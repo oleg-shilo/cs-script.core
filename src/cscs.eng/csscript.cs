@@ -234,6 +234,54 @@ namespace csscript
             return settings;
         }
 
+        public string[] PreprocessArgs(IEnumerable<string> args)
+        {
+            var newArgs = args.TakeWhile(a => !a.startsWith($"-{AppArgs.code}")).ToList();
+
+            int pos = Environment.CommandLine.indexOf(AppArgs.code);
+
+            if (pos < 0)
+            {
+                Console.WriteLine("Invalid input parameters. Expected '-code' argument is missing.");
+            }
+            else
+            {
+                // the actual arg is $"-{AppArgs.code}"
+                var code = Environment.CommandLine;
+
+                bool attchDebugger = code.EndsWith("//x", StringComparison.OrdinalIgnoreCase);
+                if (attchDebugger)
+                    code = code.Substring(0, code.Length - 3).TrimEnd();
+
+                code = code.Substring(pos + (AppArgs.code.Length + 1))
+                           .Replace("`n", "\n")
+                           .Replace("`r", "\r")
+                           .Replace("\\\"", "\"")
+                           .Trim(" \"".ToCharArray())
+                           .Expand();
+
+                var commonHeader = "//css_ac freestyle\nusing System; using System.Diagnostics; using System.IO;\n";
+
+                code = commonHeader + code;
+
+                if (!code.EndsWith(";"))
+                    code += ";";
+
+                var script = CSExecutor.GetScriptTempDir()
+                                       .PathJoin("snippets")
+                                       .EnsureDir()
+                                       .PathJoin($"{code.GetHashCodeEx()}.{Process.GetCurrentProcess().Id}.cs");
+
+                File.WriteAllText(script, code);
+
+                newArgs.Add(script);
+                if (attchDebugger)
+                    newArgs.Add("//x");
+            }
+
+            return newArgs.ToArray();
+        }
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -492,10 +540,9 @@ namespace csscript
                                 info.args = newArgs.ToArray();
                             }
 
-                            if (info.abortOnError)
-                                exec.Execute(info.args, printDelg, originalOptions.scriptFileName);
-                            else
-                                exec.Execute(info.args, null, originalOptions.scriptFileName);
+                            exec.Execute(info.args,
+                                         info.abortOnError ? printDelg : null,
+                                         originalOptions.scriptFileName);
                         }
 
                     options = originalOptions;

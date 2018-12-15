@@ -316,6 +316,10 @@ public static class CoreExtensions
 
     public static bool IsSharedAssembly(this string path) => path.StartsWith(sdk_root, StringComparison.OrdinalIgnoreCase);
 
+    public static bool startsWith(this string text, string pattern) => text.StartsWith(pattern, StringComparison.Ordinal);
+
+    public static int indexOf(this string text, string pattern) => text.IndexOf(pattern, StringComparison.Ordinal);
+
     public static bool ToBool(this string text) => text.ToLower() == "true";
 
     public static bool IsEmpty(this string text) => string.IsNullOrEmpty(text);

@@ -129,6 +129,11 @@ namespace csscript
 
                 try
                 {
+                    if (args.Any(a => a.StartsWith($"-{AppArgs.code}")))
+                    {
+                        args = exec.PreprocessArgs(args);
+                    }
+
                     exec.Execute(args, Console.WriteLine, null);
                 }
                 catch (CLIException e)

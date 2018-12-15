@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-// -c:0 "E:\Galos\Projects\CS-Script\GitHub\cs-script\Source\.NET Core\spike\script.cs"
+// -c:0 "E:\Projects\CS-Script\GitHub\cs-script\Source\.NET Core\spike\script.cs"
 
 /// <summary>
 /// .NET Full/Mono app launcher for CS-Script .NET Core host. This executable is a simple process router that forks
@@ -34,12 +34,12 @@ namespace css
             {
                 var full_env = Environment.OSVersion.IsWin() ? ".NET" : "Mono";
 
-                args = args.Where(a => !(a.StartsWith("-engine") || a.StartsWith("-eng"))).ToArray();
+                args = args.Where(a => !(a.StartsWith("-rt") || a.StartsWith("-runtime"))).ToArray();
                 if (value == null)
                 {
                     if (args.Contains("?") || args.Contains("help"))
                     {
-                        Console.WriteLine("-rt|-runtime[:<core|net>]\n" +
+                        Console.WriteLine("-rt|-runtime[:<core|full>]\n" +
                                           "    Sets the execution engine to .NET Core or the full version of .NET/Mono.");
                     }
                     else
@@ -54,7 +54,7 @@ namespace css
                 {
                     switch (value.ToLower())
                     {
-                        case "net":
+                        case "full":
                             File.WriteAllText(RedirectFileName, "");
                             Console.WriteLine($"The execution engine is set to {full_env}");
                             break;
@@ -107,13 +107,13 @@ namespace css
         {
             get
             {
-                if (Environment.OSVersion.IsWin())
+                if (!Environment.OSVersion.IsWin())
                     return null;
 
                 if (!File.Exists(RedirectFileName))
                     return null;
 
-                var css_dir = Environment.GetEnvironmentVariable("CSSCRIPT_DIR");
+                var css_dir = Environment.GetEnvironmentVariable("CSSCRIPT_FULL_DIR");
                 if (css_dir != null)
                 {
                     var launcher = Path.Combine(css_dir, "cscs.exe");

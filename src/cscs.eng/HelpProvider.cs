@@ -55,6 +55,7 @@ namespace csscript
         public const string wait = "wait";
         public const string autoclass = "autoclass";
         public const string sconfig = "sconfig";
+        public const string code = "code";
         public const string stop = "stop";
         public const string tc = "tc";
         public const string pvdr = "pvdr";
@@ -1007,7 +1008,7 @@ namespace csscript
             builder.Append("   CLR:             " + Environment.Version + (dotNetVer != null ? " (.NET Framework v" + dotNetVer + ")" : "") + "\n");
             builder.Append("   System:          " + Environment.OSVersion + "\n");
             builder.Append("   Architecture:    " + (Environment.Is64BitProcess ? "x64" : "x86") + "\n");
-            builder.Append("   Install dir:     " + (Environment.GetEnvironmentVariable("CSSCRIPT_DIR") ?? "<not integrated>") + "\n");
+            builder.Append("   Install dir:     " + (Environment.GetEnvironmentVariable("CSSCRIPT_CORE_DIR") ?? "<not integrated>") + "\n");
 
             var asm_path = Assembly.GetExecutingAssembly().Location;
             builder.Append("   Location:        " + asm_path + "\n");

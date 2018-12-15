@@ -419,8 +419,31 @@ namespace csscript
             FileDelete(path, false);
         }
 
+        public static void CleanSnippets()
+        {
+            var dir = CSExecutor.GetScriptTempDir().PathJoin("snippets");
+
+            if (!Directory.Exists(dir))
+                return;
+
+            var runningProcesses = Process.GetProcesses().Select(x => x.Id);
+
+            foreach (var script in Directory.GetFiles(dir, "*.*.cs"))
+                try
+                {
+                    int hostProcessId = int.Parse(script.GetFileName().Split('.')[1]);
+                    if (Process.GetCurrentProcess().Id == hostProcessId || !runningProcesses.Contains(hostProcessId))
+                        File.Delete(script);
+                }
+                catch
+                {
+                }
+        }
+
         public static void CleanUnusedTmpFiles(string dir, string pattern, bool verifyPid)
         {
+            CleanSnippets();
+
             if (!Directory.Exists(dir))
                 return;
 

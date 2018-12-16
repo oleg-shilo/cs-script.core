@@ -307,7 +307,11 @@ namespace csscript
 
                 //collect abandoned temp files
                 if (Environment.GetEnvironmentVariable("CSScript_Suspend_Housekeeping") == null)
+                {
                     Utils.CleanUnusedTmpFiles(CSExecutor.GetScriptTempDir(), "*????????-????-????-????-????????????.dll", false);
+                    Utils.CleanSnippets();
+                    Utils.CleanAbandonedCache();
+                }
             }
             catch { }
         }

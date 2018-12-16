@@ -373,6 +373,8 @@ namespace csscript
 
         public static string GetFileName(this string path) => Path.GetFileName(path);
 
+        public static string GetFileNameWithoutExtension(this string path) => Path.GetFileNameWithoutExtension(path);
+
         public static bool FileExists(this string path) => path.IsNotEmpty() ? File.Exists(path) : false;
 
         public static bool DirExists(this string path) => path.IsNotEmpty() ? Directory.Exists(path) : false;
@@ -419,6 +421,42 @@ namespace csscript
             FileDelete(path, false);
         }
 
+        public static void CleanAbandonedCache()
+        {
+            var rootDir = CSExecutor.GetScriptTempDir().PathJoin("cache");
+
+            if (Directory.Exists(rootDir))
+            {
+                foreach (var cacheDir in Directory.GetDirectories(rootDir))
+                    try
+                    {
+                        // line 0: <clr version>
+                        // line 1: <dir>
+                        var infoFile = cacheDir.PathJoin("css_info.txt");
+                        var sourceDir = File.Exists(infoFile) ? File.ReadAllLines(infoFile)[1] : null;
+
+                        if (sourceDir.IsEmpty() || !Directory.Exists(sourceDir))
+                        {
+                            DeleteDir(cacheDir);
+                        }
+                        else
+                        {
+                            var sorceFiles = Directory.GetFiles(cacheDir, "*.g.*")
+                                                      .Select(x => new
+                                                      {
+                                                          Source = sourceDir.PathJoin(x.GetFileNameWithoutExtension()),
+                                                          PureName = x.GetFileName().Split('.').First(),
+                                                      });
+
+                            sorceFiles.Where(x => !File.Exists(x.Source))
+                                      .ForEach(file => Directory.GetFiles(cacheDir, $"{file.PureName}.*")
+                                                                .ForEach(FileDelete));
+                        }
+                    }
+                    catch { }
+            }
+        }
+
         public static void CleanSnippets()
         {
             var dir = CSExecutor.GetScriptTempDir().PathJoin("snippets");
@@ -429,21 +467,15 @@ namespace csscript
             var runningProcesses = Process.GetProcesses().Select(x => x.Id);
 
             foreach (var script in Directory.GetFiles(dir, "*.*.cs"))
-                try
-                {
-                    int hostProcessId = int.Parse(script.GetFileName().Split('.')[1]);
-                    if (Process.GetCurrentProcess().Id == hostProcessId || !runningProcesses.Contains(hostProcessId))
-                        File.Delete(script);
-                }
-                catch
-                {
-                }
+            {
+                int hostProcessId = int.Parse(script.GetFileName().Split('.')[1]);
+                if (Process.GetCurrentProcess().Id == hostProcessId || !runningProcesses.Contains(hostProcessId))
+                    FileDelete(script);
+            }
         }
 
         public static void CleanUnusedTmpFiles(string dir, string pattern, bool verifyPid)
         {
-            CleanSnippets();
-
             if (!Directory.Exists(dir))
                 return;
 
@@ -565,7 +597,10 @@ namespace csscript
                 try
                 {
                     if (File.Exists(path))
+                    {
+                        File.SetAttributes(path, FileAttributes.Normal); // in case the file is read-only
                         File.Delete(path);
+                    }
                     break;
                 }
                 catch

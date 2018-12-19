@@ -213,6 +213,22 @@ namespace csscript
                                                    "Creates a sample script file with a given name. This command is similar to '-sample'.",
                                                    "(e.g. " + AppInfo.appName + " -new sample.cs");
 
+            switch1Help[code] = new ArgInfo("-code <script code>",
+                                                   "Executes script code directly without using a script file.",
+                                                   "Sample:",
+                                                   " ",
+                                                   "  " + AppInfo.appName + " -code Console.WriteLine(``Current User:``);`n " +
+                                                   "Console.WriteLine(``%USERNAME%``);",
+                                                   " ",
+                                                   "The -code argument must be the last argument in the command. The only argument that is allowed " +
+                                                   "after the <script code> is '//x'",
+                                                   " ",
+                                                   "Since command line interface does not allow some special characters they need to be escaped.",
+                                                   "Raw  ->  Escaped character",
+                                                   "<\\n>   `n",
+                                                   "<\\r>   `r",
+                                                   "\"      ``");
+
             switch1Help[wait] = new ArgInfo("-wait[:prompt]",
                                                    "Waits for user input after the execution before exiting.",
                                                    "If specified the execution will proceed with exit only after any std input is received.",

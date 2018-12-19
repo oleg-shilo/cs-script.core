@@ -2,7 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "-code Console.WriteLine(\\\"%USERNAME%\\\")"
+      "commandLineArgs": "-code Console.WriteLine(``Current User:``);`n Console.WriteLine(``%USERNAME%``);"
     }
   }
 }

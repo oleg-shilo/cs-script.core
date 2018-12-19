@@ -236,6 +236,13 @@ namespace csscript
 
         public string[] PreprocessArgs(IEnumerable<string> args)
         {
+            // the first arg is warranted to be '-code'
+            if (args.ElementAtOrDefault(1) == "?")
+                return args.ToArray();
+
+            if (args.Count() == 1)
+                return "-code ?".Split(' ');
+
             var newArgs = args.TakeWhile(a => !a.startsWith($"-{AppArgs.code}")).ToList();
 
             int pos = Environment.CommandLine.indexOf(AppArgs.code);
@@ -256,7 +263,7 @@ namespace csscript
                 code = code.Substring(pos + (AppArgs.code.Length + 1))
                            .Replace("`n", "\n")
                            .Replace("`r", "\r")
-                           .Replace("\\\"", "\"")
+                           .Replace("``", "\"")
                            .Trim(" \"".ToCharArray())
                            .Expand();
 

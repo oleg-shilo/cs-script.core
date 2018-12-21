@@ -1,6 +1,12 @@
 # CS-Script.Core
-.NET Core port of CS-Script
+.NET Core port of CS-Script. Currently this repository is only for source code, release and issue management. The full wiki documentation can be found at https://github.com/oleg-shilo/cs-script.
 
+
+CS-Script.Core has some dramatic improvements comparing to the .NET Full. However there are some limitations associated with .NET Core being a young and constantly evolving platform. 
+
+Also, some of the early CS-Script features, which demonstrated little traction with the developers have been deprecated. See Limitations section.
+
+ 
 ### Limitations
 
 #### Imposed by .NET Core:
@@ -24,3 +30,6 @@
     - Settings.DoCleanupAfterNumberOfRuns
   - No automatic elevation via arg '-elevate'<br>
     _Elevation must be done via shell_
+    
+----
+

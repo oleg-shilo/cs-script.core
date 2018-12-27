@@ -31,7 +31,7 @@ try {
   $css_full_dir = [System.Environment]::GetEnvironmentVariable('CSSCRIPT_FULL_DIR')
 
   if($css_full_dir) {
-    // already captured
+    # already captured
   }
   else {
     $css_full_dir = [System.Environment]::GetEnvironmentVariable('CSSCRIPT_DIR')

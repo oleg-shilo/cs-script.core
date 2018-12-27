@@ -287,7 +287,7 @@ namespace csscript
                 {
                     string lineText = line.TrimStart();
 
-                    if (!stopDecoratingDetected && (line.Trim() == "//css_ac_end" || line.Trim() == "//css_autoclass_end"))
+                    if (!stopDecoratingDetected && (lineText.Trim() == "//css_ac_end" || lineText.Trim() == "//css_autoclass_end"))
                     {
                         stopDecoratingDetected = true;
                         footer.AppendLine("#line " + (lineCount + 1) + " \"" + scriptFile + "\"");
@@ -311,9 +311,9 @@ namespace csscript
                                                 .Trim();
                     }
 
-                    if (!headerProcessed && !line.TrimStart().StartsWith("using ")) //not using...; statement of the file header
+                    if (!headerProcessed && !lineText.TrimStart().StartsWith("using ")) //not using...; statement of the file header
                     {
-                        if (!line.StartsWith("//") && line.Trim() != "") //not comments or empty line
+                        if (!lineText.StartsWith("//") && lineText.Trim() != "") //not comments or empty line
                         {
                             headerProcessed = true;
 
@@ -350,7 +350,7 @@ namespace csscript
                         }
                     }
 
-                    if (!autoCodeInjected && entryPointInjectionPos != -1 && !Utils.IsNullOrWhiteSpace(line))
+                    if (!autoCodeInjected && entryPointInjectionPos != -1 && !Utils.IsNullOrWhiteSpace(lineText))
                     {
                         bracket_count += lineText.Split('{').Length - 1;
                         bracket_count -= lineText.Split('}').Length - 1;

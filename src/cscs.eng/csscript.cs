@@ -1,3 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+
 #region Licence...
 
 //-----------------------------------------------------------------------------
@@ -34,16 +45,6 @@
 
 using CSScripting.CodeDom;
 using CSScriptLibrary;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 
 namespace csscript
 {
@@ -244,6 +245,8 @@ namespace csscript
                 return "-code ?".Split(' ');
 
             var newArgs = args.TakeWhile(a => !a.startsWith($"-{AppArgs.code}")).ToList();
+            newArgs.Add("-l:0"); // ensure the current dir is not changed to the location of the script, which is in
+                                 // this case always the "snippets" directory
 
             int pos = Environment.CommandLine.indexOf(AppArgs.code);
 
@@ -261,14 +264,18 @@ namespace csscript
                     code = code.Substring(0, code.Length - 3).TrimEnd();
 
                 code = code.Substring(pos + (AppArgs.code.Length + 1))
+                           .Replace("``", "\"")
                            .Replace("`n", "\n")
                            .Replace("`r", "\r")
-                           .Replace("``", "\"")
                            .Trim(" \"".ToCharArray())
                            .Expand();
 
                 var commonHeader = "//css_ac freestyle\nusing System; using System.Diagnostics; using System.IO;\n";
-
+                var customHeasderFile = this.GetType().Assembly.Location.GetDirName().PathJoin("-code.header");
+                if (File.Exists(customHeasderFile))
+                {
+                    commonHeader = File.ReadAllText(customHeasderFile).Replace("\r\n", "\n").TrimEnd() + "\n";
+                }
                 code = commonHeader + code;
 
                 if (!code.EndsWith(";"))

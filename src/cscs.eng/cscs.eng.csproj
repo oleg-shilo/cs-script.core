@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>cscs.eng</RootNamespace>
     <AssemblyName>cscs.eng</AssemblyName>
-    <Version>1.0.1.0</Version>
+    <Version>1.0.2.0</Version>
     <Authors>Oleg Shilo</Authors>
     <Product>CS-Script</Product>
     <Copyright>(C) 2004-2018 Oleg Shilo</Copyright>
@@ -16,8 +16,8 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>C# script dynamic</PackageTags>
     <PackageReleaseNotes>C# Script engine library (.NET Standard 2)</PackageReleaseNotes>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1.0</FileVersion>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <FileVersion>1.0.2.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

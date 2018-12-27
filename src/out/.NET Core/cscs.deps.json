@@ -6,9 +6,9 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v2.1": {
-      "cscs/1.0.1.0": {
+      "cscs/1.0.2.0": {
         "dependencies": {
-          "cscs.eng": "1.0.1"
+          "cscs.eng": "1.0.2"
         },
         "runtime": {
           "cscs.dll": {}
@@ -884,7 +884,7 @@
           "System.Xml.XPath": "4.3.0"
         }
       },
-      "cscs.eng/1.0.1": {
+      "cscs.eng/1.0.2": {
         "dependencies": {
           "Microsoft.CodeAnalysis.CSharp.Scripting": "2.8.2"
         },
@@ -895,7 +895,7 @@
     }
   },
   "libraries": {
-    "cscs/1.0.1.0": {
+    "cscs/1.0.2.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
@@ -1446,7 +1446,7 @@
       "path": "system.xml.xpath.xdocument/4.3.0",
       "hashPath": "system.xml.xpath.xdocument.4.3.0.nupkg.sha512"
     },
-    "cscs.eng/1.0.1": {
+    "cscs.eng/1.0.2": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

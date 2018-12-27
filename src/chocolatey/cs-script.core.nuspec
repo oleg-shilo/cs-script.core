@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>cs-script.core</id>
-        <version>1.0.0.0</version>
+        <version>1.0.1.0</version>
         <title>CS-Script.Core</title>
         <authors>Oleg Shilo</authors>
         <owners>Oleg Shilo</owners>
@@ -23,17 +23,27 @@
 </description>
         <summary>CS-Script.Core</summary>
         <releaseNotes>
-# Release v1.0.0.0
+# Release v1.0.1.0
+v1.0.1.0
 
-  - Added support for redirecting to Core vs .NET-Full engine
-  - Added publishing script
-  - Embedded dbg (for print() extension)
-  - Added //css_compiler
+  -  Removed referenvces to "CSSCRIPT_CORE_DIR"
+  -  Updated Choco build scripts
+  -  Added `-code` switch
+
+v1.0.0.0
+
+  -  Added support for redirecting to Core vs .NET-Full engine
+  -  Added publishing script
+  -  Embedded dbg (for print() extension)
+  -  Added //css_compiler
 
 
-</releaseNotes>
+        </releaseNotes>
         <copyright>Oleg Shilo</copyright>
         <tags>cs-script C# script dynamic hosting</tags>
+        <dependencies>
+            <dependency id="dotnetcore" version="2.1.0" />
+        </dependencies>
     </metadata>
     <files>
         <file src="tools\chocolateyInstall.ps1" target="tools\chocolateyInstall.ps1" />

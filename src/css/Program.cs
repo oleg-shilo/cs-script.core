@@ -113,6 +113,7 @@ namespace css
                 if (!File.Exists(RedirectFileName))
                     return null;
 
+                // "CSSCRIPT_FULL_DIR" is set during install with Choco
                 var css_dir = Environment.GetEnvironmentVariable("CSSCRIPT_FULL_DIR");
                 if (css_dir != null)
                 {

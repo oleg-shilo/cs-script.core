@@ -6,5 +6,5 @@ copy ..\css\bin\Release\css.exe "..\out\.NET Core\css.exe"
 cd ..\out\.NET Core
 del *.dbg
 del *.pdb
-rd /S /Q runtimes
+rem rem rd /S /Q runtimes
 pause

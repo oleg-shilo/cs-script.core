@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>cs-script.core</id>
+        <version>1.0.0.0</version>
+        <title>CS-Script.Core</title>
+        <authors>Oleg Shilo</authors>
+        <owners>Oleg Shilo</owners>
+        <licenseUrl>http://opensource.org/licenses/MIT</licenseUrl>
+        <projectUrl>http://www.csscript.net</projectUrl>
+        <packageSourceUrl>https://github.com/oleg-shilo/cs-script.core</packageSourceUrl>
+        <bugTrackerUrl>https://github.com/oleg-shilo/cs-script.core/issues</bugTrackerUrl>
+        <docsUrl>https://github.com/oleg-shilo/cs-script.core/wiki</docsUrl>
+        <iconUrl>https://raw.githubusercontent.com/oleg-shilo/cs-script.core/master/src/wiki/css_logo_codeplex_256x256.png
+        </iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>CLR based runtime environment for executing scripts written in ECMA-compliant C#.
+    The main idea of CS-Script is to allow "plain vanilla" C# code execution from both command-prompt and form any CLR application hosting the script engine.
+    CS-Script targets .NET Core 2.0.
+    The default installation directory is "%ChocolateyInstall%\lib\cs-script.core".
+    This package contains the set of scripts and binaries that required for the default functionality. However there is some additional content that represents somewhat less mainstream functionality and experimental features. This content is available as an `Extension Pack` from the releases page(https://github.com/oleg-shilo/cs-script/releases). Installing the `Extension Pack` is as simple as downloading and extracting the archive to your chocolatey install location (most likely C:\ProgramData\chocolatey\lib\cs-script.core\tools\cs-script.core).
+
+</description>
+        <summary>CS-Script.Core</summary>
+        <releaseNotes>
+# Release v1.0.0.0
+
+  - Added support for redirecting to Core vs .NET-Full engine
+  - Added publishing script
+  - Embedded dbg (for print() extension)
+  - Added //css_compiler
+
+
+</releaseNotes>
+        <copyright>Oleg Shilo</copyright>
+        <tags>cs-script C# script dynamic hosting</tags>
+    </metadata>
+    <files>
+        <file src="tools\chocolateyInstall.ps1" target="tools\chocolateyInstall.ps1" />
+    </files>
+</package>

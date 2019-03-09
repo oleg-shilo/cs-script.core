@@ -1,15 +1,15 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using Microsoft.CodeAnalysis.Scripting;
 using System.Runtime.Loader;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
 using System.Text;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Scripting;
 using CSScriptLib.Extensions;
 
 namespace CSScriptLib
@@ -218,11 +218,12 @@ namespace CSScriptLib
 
                             if (injectStatic)
                             {
-                                if (tokens[0] != "static" && tokens[1] != "static" && tokens[2] != "static") //unsafe public static
+                                //IE "unsafe public static"
+                                if (!tokens.Contains("static"))
                                     code.Append("   static\r\n");
                             }
 
-                            if (tokens[0] != "public" && tokens[1] != "public" && tokens[2] != "public")
+                            if (!tokens.Contains("public"))
                                 code.Append("   public\r\n");
                         }
                     }

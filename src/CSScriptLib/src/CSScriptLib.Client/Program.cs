@@ -1,19 +1,17 @@
-﻿using CSScriptLib;
-using System;
-using System.Linq;
-using System.Reflection;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
+﻿using System;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Reflection;
+using System.Runtime.Loader;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 
-using System.Linq;
-
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Emit;
-using System.Runtime.Loader;
-using System.Net;
+using CSScriptLib;
 using Newtonsoft.Json.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace EvalTest
 {
@@ -21,6 +19,25 @@ namespace EvalTest
     {
         public static void Main(string[] args)
         {
+            CSScript.EvaluatorConfig.DebugBuild = true;
+            CSScript.EvaluatorConfig.Engine = EvaluatorEngine.Roslyn;
+
+            dynamic script = CSScript.RoslynEvaluator
+                                     .ReferenceAssembly("System.ValueTuple")
+                                     .LoadMethod(@"void Hello()
+                                                   {
+                                                       (int count, double sum) Test()
+                                                       {
+                                                           Console.WriteLine(""Local method..."");
+                                                           return (1, 2);
+                                                       }
+
+                                                       var t = Test();
+                                                       Console.WriteLine(""Hello ! - ""+t.count);
+                                                   }");
+
+            script.Hello();
+            // =========================
             var ttt = "".Cast<char>();
             // CSScript.EvaluatorConfig.DebugBuild = true;
 

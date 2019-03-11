@@ -2,7 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "-code Environment.SetEnvironmentVariable(``ttt``, ``rrr``);"
+      "commandLineArgs": "\"C:\\Users\\oleg.shilo\\Documents\\C# Scripts\\New Script9.cs\""
     }
   }
 }

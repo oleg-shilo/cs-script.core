@@ -1,4 +1,3 @@
-using CSScripting.CodeDom;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,12 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using CSScripting.CodeDom;
 
 namespace csscript
 {
     class PackageInfo
     {
         public string SpecFile;
+        public string CompatibleLib;
         public string Version;
         public string PreferredRuntime;
         public string Name;
@@ -99,42 +100,147 @@ namespace csscript
             }
         }
 
-        string[] GetPackageAssemblies(PackageInfo package)
+        IEnumerable<PackageInfo> ResolveDependenciesFor(IEnumerable<PackageInfo> packages)
         {
-            var frameworks = Directory.GetDirectories(package.SpecFile.GetDirName().PathJoin("lib"))
-                                      .OrderByDescending(x => x);
-            string lib = null;
+            var result = new List<PackageInfo>(packages);
+            var queue = new Queue<PackageInfo>(packages);
+            while (queue.Any())
+            {
+                PackageInfo item = queue.Dequeue();
+
+                IEnumerable<XElement> dependencyPackages;
+
+                var dependenciesSection = XElement.Parse(File.ReadAllText(item.SpecFile))
+                                                  .FindDescendants("dependencies")
+                                                  .FirstOrDefault();
+                // <dependencies>
+                //   <group targetFramework=".NETStandard2.0">
+                //     <dependency id="Microsoft.Extensions.Logging.Abstractions" version="2.1.0" exclude="Build,Analyzers" />
+                var frameworks = dependenciesSection.FindDescendants("group");
+                if (frameworks.Any())
+                {
+                    IEnumerable<XElement> frameworkGroups = dependenciesSection.FindDescendants("group");
+
+                    dependencyPackages = GetCompatibleTargetFramework(frameworkGroups, item)
+                                             ?.FindDescendants("dependency")
+                                             ?? new XElement[0];
+                }
+                else
+                    dependencyPackages = dependenciesSection.FindDescendants("dependency");
+
+                foreach (var element in dependencyPackages)
+                {
+                    var newPackage = new PackageInfo
+                    {
+                        Name = element.Attribute("id").Value,
+                        Version = element.Attribute("version").Value,
+                        PreferredRuntime = item.PreferredRuntime
+                    };
+
+                    newPackage.SpecFile = NuGetCache.PathJoin(newPackage.Name, newPackage.Version, newPackage.Name + ".nuspec");
+
+                    if (!result.Any(x => x.Name == newPackage.Name) && File.Exists(newPackage.SpecFile))
+                    {
+                        queue.Enqueue(newPackage);
+                        result.Add(newPackage);
+                    }
+                }
+            }
+
+            return result.ToArray();
+        }
+
+        /// <summary>
+        /// Gets the compatible target framework. Similar to `GetPackageCompatibleLib` but relies on NuGet spec file
+        /// </summary>
+        /// <param name="freameworks">The freameworks.</param>
+        /// <param name="package">The package.</param>
+        /// <returns></returns>
+        XElement GetCompatibleTargetFramework(IEnumerable<XElement> freameworks, PackageInfo package)
+        {
+            // https://docs.microsoft.com/en-us/dotnet/standard/frameworks
+            // netstandard?.?
+            // netcoreapp?.?
+            // net?? | net???
+            // Though packages use Upper case with '.' preffix: '<group targetFramework=".NETStandard2.0">'
+
+            XElement findMatch(Predicate<string> matchTest)
+            {
+                var items = freameworks.Select(x => new { Name = x.Attribute("targetFramework").Value, Element = x })
+                            .OrderByDescending(x => x.Name)
+                            .ToArray();
+
+                return items.FirstOrDefault(x => matchTest(x.Name ?? ""))?.Element;
+            }
+
             if (package.PreferredRuntime != null)
             {
-                lib = frameworks.FirstOrDefault(x => x.EndsWith(package.PreferredRuntime));
+                // by requested runtime
+                return findMatch(x => x.Contains(package.PreferredRuntime));
             }
             else
             {
                 if (CSharpCompiler.DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
                 {
-                    lib = frameworks.FirstOrDefault(x => x.GetFileName().StartsWith("netstandard"));
+                    // by configured runtime
+                    return findMatch(x => x.Contains("netstandard", ignoreCase: true));
+                }
+                else
+                {
+                    if (Utils.IsCore)
+                        // by runtime of the host
+                        return findMatch(x => x.Contains("netcore", ignoreCase: true))
+                            ?? findMatch(x => x.Contains("netstandard", ignoreCase: true));
+                    else
+                        // by .NET full as tehre is no other options
+                        return findMatch(x => (x.StartsWith("net", ignoreCase: true)
+                                               || x.StartsWith(".net", ignoreCase: true))
+                                         && !x.Contains("netcore", ignoreCase: true)
+                                         && !x.Contains("netstandard", ignoreCase: true))
+                               ?? findMatch(x => x.Contains("netstandard", ignoreCase: true));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the package compatible library. Similar to `GetCompatibleTargetFramework` but relies on file structure
+        /// </summary>
+        /// <param name="package">The package.</param>
+        /// <returns></returns>
+        string GetPackageCompatibleLib(PackageInfo package)
+        {
+            var frameworks = Directory.GetDirectories(package.SpecFile.GetDirName().PathJoin("lib"))
+                                      .OrderByDescending(x => x)
+                                      .Select(x => new { Runtime = x.GetFileName(), Path = x });
+
+            if (package.PreferredRuntime != null)
+            {
+                return frameworks.FirstOrDefault(x => x.Runtime.EndsWith(package.PreferredRuntime))?.Path;
+            }
+            else
+            {
+                if (CSharpCompiler.DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
+                {
+                    return frameworks.FirstOrDefault(x => x.Runtime.StartsWith("netstandard", ignoreCase: true))?.Path;
                 }
                 else // host runtime
                 {
                     if (Utils.IsCore)
-                        lib = frameworks.FirstOrDefault(x => x.GetFileName().StartsWith("netcore"));
+                        return (frameworks.FirstOrDefault(x => x.Runtime.StartsWith("netcore", ignoreCase: true))
+                                ?? frameworks.FirstOrDefault(x => x.Runtime.StartsWith("netstandard", ignoreCase: true)))?.Path;
                     else
-                        lib = frameworks.FirstOrDefault(x =>
-                                                        {
-                                                            var runtime = x.GetFileName();
-                                                            return runtime.StartsWith("net") && !runtime.StartsWith("netcore") && !runtime.StartsWith("netstandard");
-                                                        });
+                        return frameworks.FirstOrDefault(x => x.Runtime.StartsWith("net", ignoreCase: true)
+                                                              && !x.Runtime.StartsWith("netcore", ignoreCase: true)
+                                                              && !x.Runtime.StartsWith("netstandard", ignoreCase: true))?.Path;
                 }
             }
+        }
 
-            if (lib == null)
-                lib = frameworks.FirstOrDefault(x => x.GetFileName().StartsWith("netstandard"));
-
+        string[] GetCompatibleAssemblies(PackageInfo package)
+        {
+            var lib = GetPackageCompatibleLib(package);
             if (lib != null)
-            {
-                var asms = Directory.GetFiles(lib, "*.dll");
-                return asms;
-            }
+                return Directory.GetFiles(GetPackageCompatibleLib(package), "*.dll");
             else
                 return new string[0];
         }
@@ -184,7 +290,8 @@ namespace csscript
 
         public string[] Resolve(string[] packages, bool suppressDownloading, string script)
         {
-            List<string> assemblies = new List<string>();
+            var assemblies = new List<string>();
+            var all_packages = new List<PackageInfo>();
 
             bool promptPrinted = false;
             foreach (string item in packages)
@@ -220,7 +327,8 @@ namespace csscript
                     if (!suppressReferencing && package_info != null)
                     {
                         package_info.PreferredRuntime = packageArgs.ArgValue("-rt");
-                        assemblies.AddRange(GetPackageAssemblies(package_info));
+                        //assemblies.AddRange(GetPackageAssemblies(package_info));
+                        all_packages.Add(package_info);
                     }
                 }
                 else
@@ -253,9 +361,14 @@ namespace csscript
                     if (!suppressReferencing)
                     {
                         package_info.PreferredRuntime = packageArgs.ArgValue("-rt");
-                        assemblies.AddRange(GetPackageAssemblies(package_info));
+                        all_packages.Add(package_info);
                     }
                 }
+            }
+
+            foreach (PackageInfo package in ResolveDependenciesFor(all_packages))
+            {
+                assemblies.AddRange(GetCompatibleAssemblies(package));
             }
 
             return Utils.RemovePathDuplicates(assemblies.ToArray());

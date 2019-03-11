@@ -22,9 +22,6 @@
 
 #endregion Licence...
 
-using csscript;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Emit;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -36,6 +33,9 @@ using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Emit;
+using csscript;
 
 /// <summary>
 /// Credit to https://stackoverflow.com/questions/298830/split-string-containing-command-line-parameters-into-string-in-c-sharp/298990#298990
@@ -83,6 +83,21 @@ public static class CLIExtensions
         return str.Replace("\r\n", "\n").Split('\n');
     }
 
+    public static IEnumerable<XElement> FindDescendants(this XElement element, string localName)
+    {
+        return element.Descendants().Where(x => x.Name.LocalName == localName);
+    }
+
+    public static bool Contains(this string text, string pattern, bool ignoreCase)
+    {
+        return text.IndexOf(pattern, ignoreCase ? StringComparison.OrdinalIgnoreCase : default(StringComparison)) != -1;
+    }
+
+    public static bool StartsWith(this string text, string pattern, bool ignoreCase)
+    {
+        return text.StartsWith(pattern, ignoreCase ? StringComparison.OrdinalIgnoreCase : default(StringComparison));
+    }
+
     public static string[] ArgValues(this string[] arguments, string prefix)
     {
         return arguments.Where(x => x.StartsWith(prefix + ":"))
@@ -93,9 +108,9 @@ public static class CLIExtensions
     public static string ArgValue(this string[] arguments, string prefix)
     {
         return (arguments.FirstOrDefault(x => x.StartsWith(prefix + ":"))
-                        ?.Substring(prefix.Length + 1).TrimMatchingQuotes('"'))
+                          ?.Substring(prefix.Length + 1).TrimMatchingQuotes('"'))
 
-               ?? arguments.Where(x => x == prefix).Select(x => "").FirstOrDefault();
+                ?? arguments.Where(x => x == prefix).Select(x => "").FirstOrDefault();
     }
 
     public static string ArgValue(this string argument, string prefix)

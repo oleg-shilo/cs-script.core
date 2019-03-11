@@ -1,5 +1,3 @@
-using csscript;
-using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
+using csscript;
 
 namespace CSScripting.CodeDom
 {
@@ -94,7 +94,7 @@ namespace CSScripting.CodeDom
                                   .SelectMany(dir => dir.PathGetDirs("Roslyn"));
 
             var csc_exe = dirs.Select(dir => dir.PathJoin("csc.exe"))
-                         .LastOrDefault(File.Exists);
+                          .LastOrDefault(File.Exists);
 
             // C:\Program Files\dotnet\sdk\2.0.3\Roslyn";
             return csc_exe;

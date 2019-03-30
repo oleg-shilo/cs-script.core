@@ -165,7 +165,9 @@ namespace CSScripting.CodeDom
                 common_args += "/t:library ";
 
             if (options.IncludeDebugInformation)
-                common_args += "/debug+";
+                common_args += "/debug+ ";
+
+            common_args += "-define:TRACE;NETCORE ";
 
             foreach (string file in Directory.GetFiles(gac, "System.*.dll"))
                 refs_args += $"/r:\"{file}\" ";
@@ -233,6 +235,12 @@ namespace CSScripting.CodeDom
                      .EnsureDir();
 
             var project_content = File.ReadAllText(template);
+
+            var constants = $@"  <PropertyGroup>
+    <DefineConstants>TRACE;NETCORE</DefineConstants>
+  </PropertyGroup>
+</Project>";
+            project_content = project_content.Replace("</Project>", constants);
 
             if (!options.GenerateExecutable || !Utils.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
             {

@@ -1,16 +1,16 @@
-﻿using csscript;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
+using csscript;
 
 namespace CSScripting.CodeDom
 {
@@ -105,6 +105,7 @@ namespace CSScripting.CodeDom
                 mapping[(start, end)] = (file, lineOffset);
             }
 
+            combinedScript.Add($"#define NETCORE");
             combinedScript.Add($"#line 1 \"{firstScript}\"");
             add_code(firstScript, File.ReadAllLines(firstScript), 0);
 
@@ -152,7 +153,7 @@ namespace CSScripting.CodeDom
                 var message = new StringBuilder();
 
                 IEnumerable<BuildResult.Diagnostic> failures = emitResult.Diagnostics.Where(d => d.IsWarningAsError ||
-                                                                                     d.Severity == DiagnosticSeverity.Error);
+                                                                                      d.Severity == DiagnosticSeverity.Error);
                 foreach (var diagnostic in failures)
                 {
                     string error_location = "";
@@ -241,6 +242,7 @@ namespace CSScripting.CodeDom
             if (IsDebug)
                 compilation = compilation.WithOptions(compilation.Options
                                          .WithOptimizationLevel(OptimizationLevel.Debug)
+                                         // .WithScriptClassName("CSScriptClassRoot")
                                          .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
 
             return build_locally(compilation, assemblyFile, IsDebug, emitOptions);

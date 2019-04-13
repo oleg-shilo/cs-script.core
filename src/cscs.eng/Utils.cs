@@ -918,7 +918,7 @@ partial class dbg
             if (out_name != null)
                 output = Path.Combine(Path.GetDirectoryName(file), out_name);
 
-            string css_dir_res_gen = Environment.ExpandEnvironmentVariables(@"%CSSCRIPT_DIR%\lib\resgen.exe");
+            string css_dir_res_gen = Environment.ExpandEnvironmentVariables(@"%CSSCRIPT_ROOT%\lib\resgen.exe");
             string user_res_gen = Environment.GetEnvironmentVariable("CSS_RESGEN");
             if (File.Exists(user_res_gen))
                 resgen_exe = user_res_gen;
@@ -949,7 +949,7 @@ partial class dbg
             {
                 if (!File.Exists(css_dir_res_gen))
                     throw new ApplicationException("Cannot invoke " + resgen_exe + ": " + e.Message +
-                                                   "\nEnsure resgen.exe is in the %CSSCRIPT_DIR%\\lib or " +
+                                                   "\nEnsure resgen.exe is in the %CSSCRIPT_ROOT%\\lib or " +
                                                    "its location is in the system PATH. Alternatively you " +
                                                    "can specify the direct location of resgen.exe via " +
                                                    "CSS_RESGEN environment variable.");

@@ -135,8 +135,8 @@ namespace csscript
             {
                 var buf = new StringBuilder();
                 buf.AppendLine(argSpec)
-                    .Append(' '.Repeat(indent))
-                    .Append(description);
+                   .Append(' '.Repeat(indent))
+                   .Append(description);
 
                 if (doc != "")
                     buf.AppendLine().Append(doc.ToConsoleLines(indent));
@@ -170,7 +170,7 @@ namespace csscript
             switch1Help[help2] =
             switch1Help[help] =
             switch1Help[question] = new ArgInfo("--help|-help|-? [command]",
-                                                    "Displays either generic or command specific help info.",
+                                                "Displays either generic or command specific help info.",
                                                     "Reversed order of parameters for the command specific help is also acceptable. " +
                                                     "The all following argument combinations print the same help topic for 'cache' command:",
                                                     "   -help cache",
@@ -178,116 +178,116 @@ namespace csscript
                                                     "   -cache help",
                                                     "   -cache ?");
             switch1Help[e] = new ArgInfo("-e",
-                                                   "Compiles script into console application executable.");
+                                         "Compiles script into console application executable.");
             switch1Help[ew] = new ArgInfo("-ew",
-                                                   "Compiles script into Windows application executable.");
+                                          "Compiles script into Windows application executable.");
             switch1Help[c] = new ArgInfo("-c[:<0|1>]",
-                                                   "Uses compiled file (cache file .compiled) if found (to improve performance).",
-                                                   "   -c:1|-c  enable caching",
-                                                   "   -c:0     disable caching (which might be enabled globally);");
+                                         "Uses compiled file (cache file .compiled) if found (to improve performance).",
+                                             "   -c:1|-c  enable caching",
+                                                 "   -c:0     disable caching (which might be enabled globally);");
             switch1Help[ca] = new ArgInfo("-ca",
-                                                  "Compiles script file into assembly (cache file .compiled) without execution.");
+                                          "Compiles script file into assembly (cache file .compiled) without execution.");
             switch1Help[cd] = new ArgInfo("-cd",
-                                                  "Compiles script file into assembly (.dll) without execution.");
+                                          "Compiles script file into assembly (.dll) without execution.");
             switch1Help[check] = new ArgInfo("-check",
-                                                  "Checks script for errors without execution.");
+                                             "Checks script for errors without execution.");
             switch1Help[proj] = new ArgInfo("-proj",
-                                                  "Shows script 'project info' - script and all its dependencies.");
+                                            "Shows script 'project info' - script and all its dependencies.");
 
             switch1Help[cache] = new ArgInfo("-cache[:<ls|trim|clear>]",
-                                                   "Performs script cache operations.",
-                                                   " ls    - lists all cache items.",
-                                                   " trim  - removes all abandoned cache items.",
-                                                   " clear - removes all cache items.");
+                                             "Performs script cache operations.",
+                                                 " ls    - lists all cache items.",
+                                                     " trim  - removes all abandoned cache items.",
+                                                     " clear - removes all cache items.");
             switch1Help[co] = new ArgInfo("-co:<options>",
-                                                   "Passes compiler options directly to the language compiler.",
-                                                   "(e.g.  -co:/d:TRACE pass /d:TRACE option to C# compiler",
-                                                   "or  -co:/platform:x86 to produce Win32 executable)");
+                                          "Passes compiler options directly to the language compiler.",
+                                              "(e.g.  -co:/d:TRACE pass /d:TRACE option to C# compiler",
+                                                  "or  -co:/platform:x86 to produce Win32 executable)");
             switch1Help[sample] =
             switch1Help[s] = new ArgInfo("-s|-sample[:<C# version>]",
-                                                   "Prints content of sample script file.",
-                                                   " -s:7    - prints C# 7 sample. Otherwise it prints the default canonical 'Hello World' sample.",
-                                                   "(e.g. " + AppInfo.appName + " -s:7 > sample.cs).");
+                                         "Prints content of sample script file.",
+                                             " -s:7    - prints C# 7 sample. Otherwise it prints the default canonical 'Hello World' sample.",
+                                                 "(e.g. " + AppInfo.appName + " -s:7 > sample.cs).");
 
             switch1Help[@new] = new ArgInfo("-new <script name>",
-                                                   "Creates a sample script file with a given name. This command is similar to '-sample'.",
-                                                   "(e.g. " + AppInfo.appName + " -new sample.cs");
+                                            "Creates a sample script file with a given name. This command is similar to '-sample'.",
+                                                "(e.g. " + AppInfo.appName + " -new sample.cs");
 
             switch1Help[code] = new ArgInfo("-code <script code>",
-                                                   "Executes script code directly without using a script file.",
-                                                   "Sample:",
-                                                   " ",
-                                                   "  " + AppInfo.appName + " -code Console.WriteLine(``Current User:``);`n " +
-                                                   "Console.WriteLine(``%USERNAME%``);",
-                                                   " ",
-                                                   "The -code argument must be the last argument in the command. The only argument that is allowed " +
-                                                   "after the <script code> is '//x'",
-                                                   " ",
-                                                   "Since command line interface does not allow some special characters they need to be escaped.",
-                                                   "Raw  ->  Escaped character",
-                                                   "<\\n>   `n",
-                                                   "<\\r>   `r",
-                                                   "\"      ``");
+                                            "Executes script code directly without using a script file.",
+                                                "Sample:",
+                                                    " ",
+                                                    "  " + AppInfo.appName + " -code Console.WriteLine(``Current User:``);`n " +
+                                                    "Console.WriteLine(``%USERNAME%``);",
+                                                    " ",
+                                                    "The -code argument must be the last argument in the command. The only argument that is allowed " +
+                                                    "after the <script code> is '//x'",
+                                                    " ",
+                                                    "Since command line interface does not allow some special characters they need to be escaped.",
+                                                    "Raw  ->  Escaped character",
+                                                    "<\\n>   `n",
+                                                    "<\\r>   `r",
+                                                    "\"      ``");
 
             switch1Help[wait] = new ArgInfo("-wait[:prompt]",
-                                                   "Waits for user input after the execution before exiting.",
-                                                   "If specified the execution will proceed with exit only after any std input is received.",
-                                                   "Applicable for console mode only.",
-                                                   "prompt - if none specified 'Press any key to continue...' will be used");
+                                            "Waits for user input after the execution before exiting.",
+                                                "If specified the execution will proceed with exit only after any std input is received.",
+                                                    "Applicable for console mode only.",
+                                                    "prompt - if none specified 'Press any key to continue...' will be used");
             switch1Help[ac] =
             switch1Help[autoclass] = new ArgInfo("-ac|-autoclass[:<0|1|2|out>]",
-                                                   "",
-                                                   " -ac     - enables auto-class decoration (which might be disabled globally).",
-                                                   " -ac:0   - disables auto-class decoration (which might be enabled globally).",
-                                                   " -ac:1   - same as '-ac'",
-                                                   " -ac:2   - same as '-ac:1' and '-ac'",
-                                                   " -ac:out - ",
-                                                   "${<=-11}prints auto-class decoration for a given script file. The argument must be followed by the path to script file.",
-                                                   " ",
-                                                   "Automatically generates 'static entry point' class if the script doesn't define any.",
-                                                   " ",
-                                                   "    using System;",
-                                                   " ",
-                                                   "    void Main()",
-                                                   "    {",
-                                                   "        Console.WriteLine(\"Hello World!\";",
-                                                   "    }",
-                                                   " ",
-                                                   "Using an alternative 'instance entry point' is even more convenient (and reliable).",
-                                                   "The acceptable 'instance entry point' signatures are:",
-                                                   " ",
-                                                   "    void main()",
-                                                   "    void main(string[] args)",
-                                                   "    int main()",
-                                                   "    int main(string[] args)",
-                                                   " ",
-                                                   "Note, having any active code above entry point is acceptable though it complicates the troubleshooting if such a code contains errors. " +
-                                                   "(see https://github.com/oleg-shilo/cs-script/wiki/CLI---User-Guide#command-auto-class)",
-                                                   " ",
-                                                   "By default CS-Script decorates the script by adding a class declaration statement to the " +
-                                                   "start of the script routine and a class closing bracket to the end. This may have an unintended " +
-                                                   "effect as any class declared in the script becomes a 'nested class'. While it is acceptable " +
-                                                   "for practically all use-cases it may be undesired for just a few scenarios. For example, any " +
-                                                   "class containing method extensions must be a top level static class, what conflicts with the " +
-                                                   "auto-class decoration algorithm.",
-                                                   " ",
-                                                   "The solution to this problem is to allow some user code to be protected from being included into " +
-                                                   "the decorated code.",
-                                                   "User can achieve this by placing '//css_ac_end' statement into the code. Any user code below this " +
-                                                   "statement will be excluded from the decoration and stay unchanged.");
+                                                 "",
+                                                     " -ac     - enables auto-class decoration (which might be disabled globally).",
+                                                     " -ac:0   - disables auto-class decoration (which might be enabled globally).",
+                                                     " -ac:1   - same as '-ac'",
+                                                     " -ac:2   - same as '-ac:1' and '-ac'",
+                                                     " -ac:out - ",
+                                                     "${<=-11}prints auto-class decoration for a given script file. The argument must be followed by the path to script file.",
+                                                     " ",
+                                                     "Automatically generates 'static entry point' class if the script doesn't define any.",
+                                                     " ",
+                                                     "    using System;",
+                                                     " ",
+                                                     "    void Main()",
+                                                     "    {",
+                                                     "        Console.WriteLine(\"Hello World!\";",
+                                                     "    }",
+                                                     " ",
+                                                     "Using an alternative 'instance entry point' is even more convenient (and reliable).",
+                                                     "The acceptable 'instance entry point' signatures are:",
+                                                     " ",
+                                                     "    void main()",
+                                                     "    void main(string[] args)",
+                                                     "    int main()",
+                                                     "    int main(string[] args)",
+                                                     " ",
+                                                     "Note, having any active code above entry point is acceptable though it complicates the troubleshooting if such a code contains errors. " +
+                                                     "(see https://github.com/oleg-shilo/cs-script/wiki/CLI---User-Guide#command-auto-class)",
+                                                     " ",
+                                                     "By default CS-Script decorates the script by adding a class declaration statement to the " +
+                                                     "start of the script routine and a class closing bracket to the end. This may have an unintended " +
+                                                     "effect as any class declared in the script becomes a 'nested class'. While it is acceptable " +
+                                                     "for practically all use-cases it may be undesired for just a few scenarios. For example, any " +
+                                                     "class containing method extensions must be a top level static class, what conflicts with the " +
+                                                     "auto-class decoration algorithm.",
+                                                     " ",
+                                                     "The solution to this problem is to allow some user code to be protected from being included into " +
+                                                     "the decorated code.",
+                                                     "User can achieve this by placing '//css_ac_end' statement into the code. Any user code below this " +
+                                                     "statement will be excluded from the decoration and stay unchanged.");
             // switch2Help[nl] = new ArgInfo("-nl",
             //                                        "No logo mode: No banner will be shown/printed at execution time.",
             //                                        "Applicable for console mode only.");
             switch2Help[d] =
             switch2Help[dbg] = new ArgInfo("-dbg|-d",
-                                                   "Forces compiler to include debug information.");
+                                           "Forces compiler to include debug information.");
             switch2Help[l] = new ArgInfo("-l[:<0|1>]",
-                                                   "'local' (makes the script directory a 'current directory'). '1' is a default value.");
+                                         "'local' (makes the script directory a 'current directory'). '1' is a default value.");
             switch2Help[version2] =
             switch2Help[version] =
             switch2Help[ver] =
             switch2Help[v] = new ArgInfo("-v|-ver|--version",
-                                                   "Prints CS-Script version information.");
+                                         "Prints CS-Script version information.");
 
             // may need to resurrect if users do miss it :)
             // switch2Help[inmem] = new ArgInfo("-inmem[:<0|1>]",
@@ -300,65 +300,65 @@ namespace csscript
             //                                        " -inmem:0   disable caching (which might be enabled globally);");
 
             switch2Help[dbgprint] = new ArgInfo("-dbgprint[:<0:1>]",
-                                                   "Controls whether to enable Python-like print methods (e.g. dbg.print(DateTime.Now)).",
-                                                   "This setting allows controlling dynamic referencing of script engine assembly containing " +
-                                                   "implementation of Python-like print methods `dbg.print` and derived extension methods object.print() " +
-                                                   "and object.dup(). While `dbg.print` is extremely useful it can and lead to some referencing challenges when " +
-                                                   "the script being executed is referencing assemblies compiled with `dbg.print` already included. " +
-                                                   "The simplest way to solve this problem is disable the `dbg.cs` inclusion.",
-                                                   " -dbgprint:1   enable `dbg.cs` inclusion; Same as `-dbgprint`;",
-                                                   " -dbgprint:0   disable `dbg.cs` inclusion;");
+                                                "Controls whether to enable Python-like print methods (e.g. dbg.print(DateTime.Now)).",
+                                                    "This setting allows controlling dynamic referencing of script engine assembly containing " +
+                                                    "implementation of Python-like print methods `dbg.print` and derived extension methods object.print() " +
+                                                    "and object.dup(). While `dbg.print` is extremely useful it can and lead to some referencing challenges when " +
+                                                    "the script being executed is referencing assemblies compiled with `dbg.print` already included. " +
+                                                    "The simplest way to solve this problem is disable the `dbg.cs` inclusion.",
+                                                    " -dbgprint:1   enable `dbg.cs` inclusion; Same as `-dbgprint`;",
+                                                    " -dbgprint:0   disable `dbg.cs` inclusion;");
             switch2Help[verbose] = new ArgInfo("-verbose",
-                                                   "Prints runtime information during the script execution.",
+                                               "Prints runtime information during the script execution.",
                                                    "(applicable for console clients only)");
             switch2Help[stop] = new ArgInfo("-stop",
-                                                   "Stops all running instances of Roslyn sever (VBCSCompiler.exe).",
-                                                   "(applicable for .NET/Windows only)");
+                                            "Stops all running instances of Roslyn sever (VBCSCompiler.exe).",
+                                                "(applicable for .NET/Windows only)");
             switch2Help[tc] = new ArgInfo("-tc",
-                                                   "Trace compiler input produced by CS-Script code provider CSSRoslynProvider.dll.",
-                                                   "It's useful when troubleshooting custom compilers (e.g. Roslyn on Linux).");
+                                          "Trace compiler input produced by CS-Script code provider CSSRoslynProvider.dll.",
+                                              "It's useful when troubleshooting custom compilers (e.g. Roslyn on Linux).");
             switch2Help[config] = new ArgInfo("-config[:<option>]",
-                                                   "Performs various CS-Script config operations",
-                                                   " -config:none               - ${<==}ignores config file (uses default settings)",
-                                                   " -config:create             - ${<==}creates config file with default settings",
-                                                   " -config:default            - ${<==}prints default config file",
-                                                   " -config:<raw|xml>          - ${<==}prints current config file content",
-                                                   " -config[:ls]               - ${<==}lists/prints current config values",
-                                                   " -config:get:name           - ${<==}prints current config value",
-                                                   " -config:set:name=value     - ${<==}sets current config value",
-                                                   " -config:set:name=add:value - ${<==}updates the current config value content by appending the specified value.",
-                                                   " -config:set:name=del:value - ${<==}updates the current config value content by removing all occurrences of the specified value.",
-                                                   " -config:set:roslyn         - ${<==}enables Roslyn integration via configuration (C#7 support)",
-                                                   " -config:<file>             - ${<==}uses custom config file",
-                                                   " ",
-                                                   "Note: The property name in -config:set and -config:set is case insensitive and can also contain '_' " +
-                                                   "as a token separator that is ignored during property lookup.",
-                                                   "(e.g. " + AppInfo.appName + " -config:none sample.cs",
-                                                   "${<=6}" + AppInfo.appName + " -config:default > css_VB.xml",
+                                              "Performs various CS-Script config operations",
+                                                  " -config:none               - ${<==}ignores config file (uses default settings)",
+                                                  " -config:create             - ${<==}creates config file with default settings",
+                                                  " -config:default            - ${<==}prints default config file",
+                                                  " -config:<raw|xml>          - ${<==}prints current config file content",
+                                                  " -config[:ls]               - ${<==}lists/prints current config values",
+                                                  " -config:get:name           - ${<==}prints current config value",
+                                                  " -config:set:name=value     - ${<==}sets current config value",
+                                                  " -config:set:name=add:value - ${<==}updates the current config value content by appending the specified value.",
+                                                  " -config:set:name=del:value - ${<==}updates the current config value content by removing all occurrences of the specified value.",
+                                                  " -config:set:roslyn         - ${<==}enables Roslyn integration via configuration (C#7 support)",
+                                                  " -config:<file>             - ${<==}uses custom config file",
+                                                  " ",
+                                                      "Note: The property name in -config:set and -config:set is case insensitive and can also contain '_' " +
+                                                      "as a token separator that is ignored during property lookup.",
+                                                      "(e.g. " + AppInfo.appName + " -config:none sample.cs",
+                                                      "${<=6}" + AppInfo.appName + " -config:default > css_VB.xml",
 
-                                                   // "${<=6}" + AppInfo.appName + " -config:set:" + inmem + "=true", // may need to resurrect if users do miss it :)
+                                                      // "${<=6}" + AppInfo.appName + " -config:set:" + inmem + "=true", // may need to resurrect if users do miss it :)
 
-                                                   "${<=6}" + AppInfo.appName + " -config:set:DefaultArguments=add:-ac",
-                                                   "${<=6}" + AppInfo.appName + " -config:set:default_arguments=del:-ac",
-                                                   "${<=6}" + AppInfo.appName + " -config:c:\\cs-script\\css_VB.xml sample.vb)");
+                                                      "${<=6}" + AppInfo.appName + " -config:set:DefaultArguments=add:-ac",
+                                                      "${<=6}" + AppInfo.appName + " -config:set:default_arguments=del:-ac",
+                                                      "${<=6}" + AppInfo.appName + " -config:c:\\cs-script\\css_VB.xml sample.vb)");
             switch2Help[@out] = new ArgInfo("-out[:<file>]",
-                                                   "Forces the script to be compiled into a specific location.",
-                                                   "Used only for very fine hosting tuning.",
-                                                   "(e.g. " + AppInfo.appName + " -out:%temp%\\%pid%\\sample.dll sample.cs");
+                                            "Forces the script to be compiled into a specific location.",
+                                                "Used only for very fine hosting tuning.",
+                                                    "(e.g. " + AppInfo.appName + " -out:%temp%\\%pid%\\sample.dll sample.cs");
             switch2Help[sconfig] = new ArgInfo("-sconfig[:<file>|none]",
-                                                   "Uses custom config file as a .NET app.config.",
+                                               "Uses custom config file as a .NET app.config.",
                                                    "This option might be useful for running scripts, which usually cannot be executed without custom configuration file (e.g. WCF, Remoting).",
                                                    "By default CS-Script expects script config file name to be <script_name>.cs.config or <script_name>.exe.config. " +
                                                    "However if <file> value is specified the it is used as a config file. ",
                                                    "(e.g. if -sconfig:myApp.config is used the expected config file name is myApp.config)");
             switch2Help[r] = new ArgInfo("-r:<assembly 1>,<assembly N>",
-                                                   "Uses explicitly referenced assembly.", "It is required only for " +
-                                                   "rare cases when namespace cannot be resolved into assembly.",
-                                                   "(e.g. " + AppInfo.appName + " /r:myLib.dll myScript.cs).");
+                                         "Uses explicitly referenced assembly.", "It is required only for " +
+                                             "rare cases when namespace cannot be resolved into assembly.",
+                                                 "(e.g. " + AppInfo.appName + " /r:myLib.dll myScript.cs).");
 
             switch2Help[dir] = new ArgInfo("-dir:<directory 1>,<directory N>",
-                                                   "Adds path(s) to the assembly probing directory list.",
-                                                   "You can use a reserved word 'show' as a directory name to print the configured probing directories.",
+                                           "Adds path(s) to the assembly probing directory list.",
+                                               "You can use a reserved word 'show' as a directory name to print the configured probing directories.",
                                                    "(e.g. " + AppInfo.appName + " -dir:C:\\MyLibraries myScript.cs; " + AppInfo.appName + " -dir:show).");
             switch2Help[pc] =
             switch2Help[precompiler] = new ArgInfo("-precompiler[:<file 1>,<file N>]",
@@ -372,41 +372,41 @@ namespace csscript
                                                    "(see http://www.csscript.net/help/precompilers.html)");
             switch2Help[pvdr] =
             switch2Help[provider] = new ArgInfo("-pvdr|-provider:<file>",
-                                                   "Location of the alternative/custom code provider assembly.",
-                                                   "Alias - pvdr:<file>",
-                                                   "If set it forces script engine to use an alternative code compiler.",
-                                                   " ",
-                                                   "C#7 support is implemented via Roslyn based provider: '-pvdr:CSSRoslynProvider.dll'." +
-                                                   "If the switch is not specified CSSRoslynProvider.dll file will be use as a code provider " +
-                                                   "if it is found in the same folder where the script engine is. Automatic CSSRoslynProvider.dll " +
-                                                   "loading can be disabled with special 'none' argument: -pvdr:none.",
-                                                   "(see http://www.csscript.net/help/non_cs_compilers.html)");
+                                                "Location of the alternative/custom code provider assembly.",
+                                                    "Alias - pvdr:<file>",
+                                                    "If set it forces script engine to use an alternative code compiler.",
+                                                    " ",
+                                                    "C#7 support is implemented via Roslyn based provider: '-pvdr:CSSRoslynProvider.dll'." +
+                                                    "If the switch is not specified CSSRoslynProvider.dll file will be use as a code provider " +
+                                                    "if it is found in the same folder where the script engine is. Automatic CSSRoslynProvider.dll " +
+                                                    "loading can be disabled with special 'none' argument: -pvdr:none.",
+                                                    "(see http://www.csscript.net/help/non_cs_compilers.html)");
             switch2Help[nuget] = new ArgInfo("-nuget[:<package|purge>]",
-                                                   "Installs new or updates existing NuGet package.",
-                                                   "This command allows light management of the NuGet packages in the CS-Script local package repository (%PROGRAMDATA%\\CS-Script\\nuget).",
-                                                   "The tasks are limited to installing, updating and listing the local packages.",
-                                                   " ",
-                                                   " -nuget           - ${<==}prints the list of all root packages in the repository",
-                                                   // " -nuget:purge     - ${<==}detects multiple versions of the same package and removes all but the latest one. ",
-                                                   " -nuget:<package> - ${<==}downloads and installs the latest version of the package(s). ",
-                                                   "                    ${<==}Wild cards can be used to update multiple packages. For example '-nuget:ServiceStack*' will update all " +
-                                                   "already installed ServiceStack packages.",
-                                                   "                    ${<==}You can also use the index of the package instead of its full name.",
-                                                   " ",
-                                                   "Installing packages this way is an alternative to have '//css_nuget -force ...' directive in the script code as it may be " +
-                                                   "more convenient for the user to update packages manually instead of having them updated on every script execution/recompilation.");
+                                             "Installs new or updates existing NuGet package.",
+                                                 "This command allows light management of the NuGet packages in the CS-Script local package repository (%PROGRAMDATA%\\CS-Script\\nuget).",
+                                                     "The tasks are limited to installing, updating and listing the local packages.",
+                                                     " ",
+                                                     " -nuget           - ${<==}prints the list of all root packages in the repository",
+                                                     // " -nuget:purge     - ${<==}detects multiple versions of the same package and removes all but the latest one. ",
+                                                     " -nuget:<package> - ${<==}downloads and installs the latest version of the package(s). ",
+                                                     "                    ${<==}Wild cards can be used to update multiple packages. For example '-nuget:ServiceStack*' will update all " +
+                                                     "already installed ServiceStack packages.",
+                                                     "                    ${<==}You can also use the index of the package instead of its full name.",
+                                                     " ",
+                                                     "Installing packages this way is an alternative to have '//css_nuget -force ...' directive in the script code as it may be " +
+                                                     "more convenient for the user to update packages manually instead of having them updated on every script execution/recompilation.");
             switch2Help[syntax] = new ArgInfo("-syntax",
-                                                  "Prints documentation for CS-Script specific C# syntax.");
+                                              "Prints documentation for CS-Script specific C# syntax.");
             switch2Help[commands] =
             switch2Help[cmd] = new ArgInfo("-commands|-cmd",
-                                                  "Prints list of supported commands (arguments).");
+                                           "Prints list of supported commands (arguments).");
 
             miscHelp["file"] = new ArgInfo("file",
-                                                   "Specifies name of a script file to be run.");
+                                           "Specifies name of a script file to be run.");
             miscHelp["params"] = new ArgInfo("params",
-                                                   "Specifies optional parameters for a script file to be run.");
+                                             "Specifies optional parameters for a script file to be run.");
             miscHelp["//x"] = new ArgInfo("//x",
-                                                   "Launch debugger just before starting the script.");
+                                          "Launch debugger just before starting the script.");
 
             #region SyntaxHelp
 
@@ -497,6 +497,12 @@ namespace csscript
                          "",
                          "This directive is used to reference assemblies required at run time.",
                          "The assembly must be in GAC, the same folder with the script file or in the 'Script Library' folders (see 'CS-Script settings').",
+                         " ",
+                         "Note if you use wildcard in the referenced assembly name (e.g. socket.*.dll) the directive will only reference from the first " +
+                         "probing directory where the matching file(s) is found. Be careful with the wide wildcard as '*.dll' as they may lead to " +
+                         "unpredictable behavior. For example they may match everything from the very first probing directory, which is typically a current " +
+                         "directory. Using more specific wildcards is arguably more practical (e.g. 'utils/*.dll', '*Helper.dll', './*.dll')",
+                         " ",
                          section_sep, //------------------------------------
                          "//css_precompiler <file 1>,<file 2>;",
                          " ",
@@ -612,7 +618,7 @@ namespace csscript
                          " 'CSS_NUGET' ",
                          "${<=6}location of the NuGet packages scripts can load/reference",
                          " ",
-                         " 'CSSCRIPT_DIR'",
+                         " 'CSSCRIPT_ROOT'",
                          "${<=6}script engine location. Used by the engine to locate dependencies (e.g. resgen.exe). Typically this variable is during the CS-Script installation.",
                          " ",
                          " 'CSSCRIPT_CONSOLE_ENCODING_OVERWRITE'",
@@ -1024,7 +1030,7 @@ namespace csscript
             builder.Append("   CLR:             " + Environment.Version + (dotNetVer != null ? " (.NET Framework v" + dotNetVer + ")" : "") + "\n");
             builder.Append("   System:          " + Environment.OSVersion + "\n");
             builder.Append("   Architecture:    " + (Environment.Is64BitProcess ? "x64" : "x86") + "\n");
-            builder.Append("   Install dir:     " + (Environment.GetEnvironmentVariable("CSSCRIPT_DIR") ?? "<not integrated>") + "\n");
+            builder.Append("   Install dir:     " + (Environment.GetEnvironmentVariable("CSSCRIPT_ROOT") ?? "<not integrated>") + "\n");
 
             var asm_path = Assembly.GetExecutingAssembly().Location;
             builder.Append("   Location:        " + asm_path + "\n");

@@ -644,7 +644,7 @@ namespace csscript
                 xml = CommentElement(xml, "consoleEncoding", "if 'default' then system default is used; otherwise specify the name of the encoding (e.g. 'utf-8')");
                 xml = CommentElement(xml, "autoclass.decorateAsCS6", "if 'true' auto-class decoration will inject C# 6 specific syntax expressions (e.g. 'using static dbg;')");
                 xml = CommentElement(xml, "autoclass.decorateAlways", "if 'true' decorate classless scripts unconditionally; otherwise only if a top level class-less 'main' detected. Not used yet.");
-                xml = CommentElement(xml, "useAlternativeCompiler", "Custom script compiler. For example C# 7 (Roslyn): '%CSSCRIPT_DIR%!lib!CSSRoslynProvider.dll'".Replace('!', Path.DirectorySeparatorChar));
+                xml = CommentElement(xml, "useAlternativeCompiler", "Custom script compiler. For example C# 7 (Roslyn): '%CSSCRIPT_ROOT%!lib!CSSRoslynProvider.dll'".Replace('!', Path.DirectorySeparatorChar));
                 xml = CommentElement(xml, "roslynDir", "Location of Roslyn compilers to be used by custom script compilers. For example C# 7 (Roslyn): /usr/lib/mono/4.5");
                 xml = CommentElement(xml, "enableDbgPrint", "Gets or sets a value indicating whether to enable Python-like print methods (e.g. dbg.print(DateTime.Now))");
 

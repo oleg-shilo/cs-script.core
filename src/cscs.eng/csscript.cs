@@ -643,64 +643,6 @@ namespace csscript
             }
         }
 
-        // /// <summary>
-        // /// Returns custom application config file.
-        // /// </summary>
-        // internal string GetCustomAppConfig(string[] args)
-        // {
-        //     try
-        //     {
-        //         if (args.Length > 0)
-        //         {
-        //             int firstScriptArg = CSSUtils.ParseAppArgs(args, this);
-        //             if (args.Length > firstScriptArg)
-        //             {
-        //                 Settings settings = null;
-        //                 if (options.noConfig)
-        //                 {
-        //                     if (options.altConfig != "")
-        //                         settings = Settings.Load(options.altConfig); //read persistent settings from configuration file
-        //                 }
-        //                 else
-        //                 {
-        //                     settings = Settings.Load(Settings.DefaultConfigFile, true);
-        //                 }
-        //                 if (!options.useScriptConfig && (settings == null || settings.DefaultArguments.IndexOf(CSSUtils.Args.DefaultPrefix + "sconfig") == -1))
-        //                     return "";
-
-        //                 string script = args[firstScriptArg];
-        //                 List<string> dirs = new List<string>();
-        //                 string libDir = Environment.ExpandEnvironmentVariables("%CSSCRIPT_DIR%" + Path.DirectorySeparatorChar + "lib");
-        //                 if (!libDir.StartsWith("%"))
-        //                     dirs.Add(libDir);
-
-        //                 if (settings != null)
-        //                     dirs.AddRange(Environment.ExpandEnvironmentVariables(settings.SearchDirs).Split(",;".ToCharArray()));
-
-        //                 dirs.Add(Assembly.GetExecutingAssembly().GetAssemblyDirectoryName());
-
-        //                 string[] searchDirs = dirs.ToArray();
-        //                 script = FileParser.ResolveFile(script, searchDirs);
-        //                 if (options.customConfigFileName != "")
-        //                     return Path.Combine(Path.GetDirectoryName(script), options.customConfigFileName);
-        //                 if (File.Exists(script + ".config"))
-        //                     return script + ".config";
-        //                 else if (File.Exists(Path.ChangeExtension(script, ".exe.config")))
-        //                     return Path.ChangeExtension(script, ".exe.config");
-        //             }
-        //         }
-        //     }
-        //     catch (CLIException)
-        //     {
-        //         throw;
-        //     }
-        //     catch
-        //     {
-        //         //ignore the exception because it will be raised (again) and handled by the Execute method
-        //     }
-        //     return "";
-        // }
-
         /// <summary>
         /// Dummy 'print' to suppress displaying application messages.
         /// </summary>
@@ -1318,7 +1260,7 @@ namespace csscript
                     catch { }
 
                     // Debug.Assert(false);
-                    throw new ApplicationException("Cannot use alternative compiler (" + options.altCompiler + "). You may want to adjust 'CSSCRIPT_DIR' environment variable or disable alternative compiler by setting 'useAlternativeCompiler' to empty value in the css_config.xml file.\n\nError Details:", ex);
+                    throw new ApplicationException("Cannot use alternative compiler (" + options.altCompiler + "). You may want to adjust 'CSSCRIPT_ROOT' environment variable or disable alternative compiler by setting 'useAlternativeCompiler' to empty value in the css_config.xml file.\n\nError Details:", ex);
                 }
             }
             return compiler;

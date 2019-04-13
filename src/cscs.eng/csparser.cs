@@ -22,14 +22,15 @@
 
 #endregion Licence...
 
-using CSScriptLibrary;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
+using CSScriptLibrary;
 
 namespace csscript
 {
@@ -558,9 +559,11 @@ namespace csscript
 
             //analyse assembly references
             foreach (string statement in GetRawStatements("//css_reference", endCodePos))
-                refAssemblies.Add(statement.NormaliseAsDirectiveOf(file));
+                refAssemblies.AddRange(infos.Resolve(statement.NormaliseAsDirectiveOf(file))
+                                            .Select(x => x.file));
             foreach (string statement in GetRawStatements("//css_ref", endCodePos))
-                refAssemblies.Add(statement.NormaliseAsDirectiveOf(file));
+                refAssemblies.AddRange(infos.Resolve(statement.NormaliseAsDirectiveOf(file))
+                                            .Select(x => x.file));
 
             //analyse precompilers
             foreach (string statement in GetRawStatements("//css_precompiler", endCodePos))

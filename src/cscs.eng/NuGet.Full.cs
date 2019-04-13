@@ -1,4 +1,3 @@
-using CSScripting.CodeDom;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using CSScripting.CodeDom;
 
 // Tempting to use "NuGet.Core" NuGet package to avoid deploying and using nuget.exe.
 // However it is not compatible with .NET Core runtime (at least as at 19.05.2018)
@@ -87,7 +87,7 @@ namespace csscript
                     nuGetExe = Path.Combine(localDir, "nuget.exe");
                     if (!File.Exists(nuGetExe))
                     {
-                        string libDir = Path.Combine(Environment.ExpandEnvironmentVariables("%CSSCRIPT_DIR%"), "lib"); //CS-S installed
+                        string libDir = Path.Combine(Environment.ExpandEnvironmentVariables("%CSSCRIPT_ROOT%"), "lib"); //CS-S installed
                         nuGetExe = Path.Combine(libDir, "nuget.exe");
                         if (!File.Exists(nuGetExe))
                         {
@@ -95,7 +95,8 @@ namespace csscript
                             if (nuGetExe == null)
                                 try
                                 {
-                                    Console.WriteLine("Warning: Cannot find 'nuget.exe'. Ensure it is in the application directory or in the %CSSCRIPT_DIR%/lib");
+                                    Console.WriteLine("Warning: Cannot find 'nuget.exe'. Ensure it is in the application " +
+                                                      "directory or in the %CSSCRIPT_ROOT%/lib");
                                 }
                                 catch { }
                         }
@@ -114,10 +115,10 @@ namespace csscript
                     var candidates = Environment.GetEnvironmentVariable("PATH")
                                                 .Split((!Utils.IsWin) ? ':' : ';')
                                                 .SelectMany(dir => new[]
-                                                                    {
-                                                                        Path.Combine(dir, "nuget"),
-                                                                        Path.Combine(dir, "nuget.exe")
-                                                                    });
+                                                                   {
+                                                                       Path.Combine(dir, "nuget"),
+                                                                       Path.Combine(dir, "nuget.exe")
+                                                                   });
 
                     foreach (string file in candidates)
                         if (File.Exists(file))

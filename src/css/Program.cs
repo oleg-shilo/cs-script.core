@@ -113,8 +113,12 @@ namespace css
                 if (!File.Exists(RedirectFileName))
                     return null;
 
-                // "CSSCRIPT_FULL_DIR" is set during install with Choco
-                var css_dir = Environment.GetEnvironmentVariable("CSSCRIPT_FULL_DIR");
+                // "CSSCRIPT_DIR" is set during install with Choco
+                // "CSSCRIPT_FULL_DIR" is an old attempt to differentiate install dirs for
+                // .NET full and Core editions currently it is
+                //  CSSCRIPT_DIR  - .NET full
+                //  CSSCRIPT_ROOT - .NET Core
+                var css_dir = Environment.GetEnvironmentVariable("CSSCRIPT_DIR");
                 if (css_dir != null)
                 {
                     var launcher = Path.Combine(css_dir, "cscs.exe");

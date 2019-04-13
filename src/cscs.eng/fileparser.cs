@@ -22,12 +22,12 @@
 
 #endregion Licence...
 
-using csscript;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using csscript;
 
 namespace CSScriptLibrary
 {
@@ -294,7 +294,7 @@ namespace CSScriptLibrary
         /// <para>
         /// The default algorithm searches for script file by given script name. Search order:
         /// 1. Current directory
-        /// 2. extraDirs (usually %CSSCRIPT_DIR%\Lib and ExtraLibDirectory)
+        /// 2. extraDirs (usually %CSSCRIPT_ROOT%\Lib and ExtraLibDirectory)
         /// 3. PATH
         /// Also fixes file name if user did not provide extension for script file (assuming .cs extension)
         /// </para>
@@ -306,7 +306,7 @@ namespace CSScriptLibrary
         /// <summary>
         /// Searches for script file by given script name. Search order:
         /// 1. Current directory
-        /// 2. extraDirs (usually %CSSCRIPT_DIR%\Lib and ExtraLibDirectory)
+        /// 2. extraDirs (usually %CSSCRIPT_ROOT%\Lib and ExtraLibDirectory)
         /// 3. PATH
         /// Also fixes file name if user did not provide extension for script file (assuming .cs extension)
         /// <para>If the default implementation isn't suitable then you can set <c>FileParser.ResolveFilesAlgorithm</c>
@@ -400,12 +400,12 @@ namespace CSScriptLibrary
         }
 
         static public string headerTemplate =
-                @"/*" + Environment.NewLine +
-                @" Created by {0}" +
-                @" Original location: {1}" + Environment.NewLine +
-                @" C# source equivalent of {2}" + Environment.NewLine +
-                @" compiler-generated file created {3} - DO NOT EDIT!" + Environment.NewLine +
-                @"*/" + Environment.NewLine;
+               @"/*" + Environment.NewLine +
+               @" Created by {0}" +
+               @" Original location: {1}" + Environment.NewLine +
+               @" C# source equivalent of {2}" + Environment.NewLine +
+               @" compiler-generated file created {3} - DO NOT EDIT!" + Environment.NewLine +
+               @"*/" + Environment.NewLine;
 
         public string ComposeHeader(string path)
         {
@@ -972,17 +972,17 @@ namespace CSScriptLibrary
                 var asmNames = refAsms.Select(x => Path.GetFileNameWithoutExtension(x).ToUpper()).ToArray();
 
                 var refNsAsms = this.ReferencedNamespaces
-                                      .Union(defaultNamespacess)
-                                      .Where(name => !string.IsNullOrEmpty(name))
-                                      .Where(name => !this.IgnoreNamespaces.Contains(name))
-                                      .Where(name => !asmNames.Contains(name.ToUpper()))
-                                      .Distinct()
-                                      .SelectMany(name =>
+                                     .Union(defaultNamespacess)
+                                     .Where(name => !string.IsNullOrEmpty(name))
+                                     .Where(name => !this.IgnoreNamespaces.Contains(name))
+                                     .Where(name => !asmNames.Contains(name.ToUpper()))
+                                     .Distinct()
+                                     .SelectMany(name =>
                                       {
                                           var asms = AssemblyResolver.FindAssembly(name, probingDirs);
                                           return asms;
                                       })
-                                      .ToArray();
+                                     .ToArray();
 
                 refAsms = refAsms.Union(refNsAsms).ToArray();
             }

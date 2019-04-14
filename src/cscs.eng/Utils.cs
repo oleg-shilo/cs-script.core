@@ -30,8 +30,6 @@
 
 #endregion Licence...
 
-using CSScripting.CodeDom;
-using CSScriptLibrary;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -44,6 +42,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using CSScripting.CodeDom;
+using CSScriptLibrary;
 
 // using System.Runtime.Remoting.Lifetime;
 
@@ -180,10 +180,10 @@ namespace csscript
         {
             var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
 
-            if (text.Length > 1 && (text[0] == '.' && text[1] != '.')) //just a single-dot start dir
-                text = Path.Combine(Path.GetDirectoryName(parentScript), text);
+            if (text.Length > 1 && (text[0] == '.' && text[1] != '.')) // just a single-dot start dir
+                text = parentScript.GetDirName().PathJoin(text).GetFullPath();
 
-            return Environment.ExpandEnvironmentVariables(text).Trim();
+            return text.Expand().Trim();
         }
 
         internal static string NormaliseAsDirective(this string statement)
@@ -218,7 +218,7 @@ namespace csscript
                                    else
                                        return x;
                                })
-                        .Distinct().ToArray();
+                       .Distinct().ToArray();
         }
 
         public static string[] RemoveDuplicates(this string[] list)
@@ -372,6 +372,8 @@ namespace csscript
         public static string GetDirName(this string path) => Path.GetDirectoryName(path);
 
         public static string GetFileName(this string path) => Path.GetFileName(path);
+
+        public static string GetFullPath(this string path) => Path.GetFullPath(path);
 
         public static string GetFileNameWithoutExtension(this string path) => Path.GetFileNameWithoutExtension(path);
 

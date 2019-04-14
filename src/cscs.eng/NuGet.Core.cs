@@ -113,6 +113,9 @@ namespace csscript
                 var dependenciesSection = XElement.Parse(File.ReadAllText(item.SpecFile))
                                                   .FindDescendants("dependencies")
                                                   .FirstOrDefault();
+                if (dependenciesSection == null)
+                    continue;
+
                 // <dependencies>
                 //   <group targetFramework=".NETStandard2.0">
                 //     <dependency id="Microsoft.Extensions.Logging.Abstractions" version="2.1.0" exclude="Build,Analyzers" />
@@ -209,6 +212,11 @@ namespace csscript
         /// <returns></returns>
         string GetPackageCompatibleLib(PackageInfo package)
         {
+            var libDir = package.SpecFile.GetDirName().PathJoin("lib");
+
+            if (!Directory.Exists(libDir))
+                return null;
+
             var frameworks = Directory.GetDirectories(package.SpecFile.GetDirName().PathJoin("lib"))
                                       .OrderByDescending(x => x)
                                       .Select(x => new { Runtime = x.GetFileName(), Path = x });

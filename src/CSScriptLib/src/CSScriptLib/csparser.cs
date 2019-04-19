@@ -23,18 +23,18 @@
 #endregion Licence...
 
 using System;
-using System.IO;
 using System.Collections;
 
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Text;
-using System.Linq;
-using System.Globalization;
+using System.Threading;
 using CSScriptLib;
-using CSScriptLib.Extensions;
+using CSScriptLibrary;
 
 namespace csscript
 {
@@ -325,7 +325,7 @@ namespace csscript
                         //it happens that user has no rights to do so.
                         //Ignore the error and it will be reported when get.exe will try to download the package(s) into
                         //this cache directory.
-                        Environment.SetEnvironmentVariable("css_nuget", NuGet.NuGetCacheView);
+                        Environment.SetEnvironmentVariable("css_nuget", Runtime.NuGetCacheView);
                     }
                     catch (Exception e)
                     {
@@ -522,7 +522,7 @@ namespace csscript
             foreach (string statement in GetRawStatements("//css_co", endCodePos))
                 compilerOptions.Add(Environment.ExpandEnvironmentVariables(UnescapeDirectiveDelimiters(statement)).Trim());
 
-            if (!Extensions.IsLinux())
+            if (!Runtime.isLinux)
                 foreach (string statement in GetRawStatements("//css_host", endCodePos))
                     hostOptions.Add(Environment.ExpandEnvironmentVariables(UnescapeDirectiveDelimiters(statement)).Trim());
 

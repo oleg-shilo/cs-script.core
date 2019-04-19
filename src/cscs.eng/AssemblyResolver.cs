@@ -31,12 +31,12 @@
 
 #endregion Licence...
 
-using csscript;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using csscript;
 
 namespace CSScriptLibrary
 {
@@ -285,7 +285,7 @@ namespace CSScriptLibrary
         {
             var retval = new List<string>();
 
-            if (Utils.IsMono)
+            if (Runtime.IsMono)
             {
                 if (Utils.MonoGAC.Contains(namespaceStr))
                 {
@@ -293,7 +293,7 @@ namespace CSScriptLibrary
                 }
             }
 
-            if (!retval.Any() && Utils.IsWin)
+            if (!retval.Any() && Runtime.IsWin)
             {
                 // try
                 // {

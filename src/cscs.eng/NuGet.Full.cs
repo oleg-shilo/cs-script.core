@@ -54,9 +54,9 @@ namespace csscript
         // C:\Users\%username%\.nuget\packages\nlog\4.5.4\lib\netstandard2.0\NLog.dll
         static string CSScriptNugetGlobalPackages =
             Path.Combine(
-                Environment.GetFolderPath(Utils.IsWin ?
-                                                Environment.SpecialFolder.CommonApplicationData :
-                                                Environment.SpecialFolder.ApplicationData),
+                Environment.GetFolderPath(Runtime.IsWin ?
+                                                  Environment.SpecialFolder.CommonApplicationData :
+                                                  Environment.SpecialFolder.ApplicationData),
                 "CS-Script", "nuget");
 
         static string nuGetCache = null;
@@ -113,7 +113,7 @@ namespace csscript
                 if (Environment.GetEnvironmentVariable("NUGET_INCOMPATIBLE_HOST") == null)
                 {
                     var candidates = Environment.GetEnvironmentVariable("PATH")
-                                                .Split((!Utils.IsWin) ? ':' : ';')
+                                                .Split((!Runtime.IsWin) ? ':' : ';')
                                                 .SelectMany(dir => new[]
                                                                    {
                                                                        Path.Combine(dir, "nuget"),
@@ -292,7 +292,7 @@ namespace csscript
                 }
             }
 
-            return Utils.RemovePathDuplicates(assemblies.ToArray());
+            return assemblies.ToArray().RemovePathDuplicates();
         }
 
         public void InstallPackage(string packageNameMask, string version = null)
@@ -357,7 +357,7 @@ namespace csscript
         {
             var dirName = Path.GetFileName(dirPath);
 
-            if (dirName.IsSamePath(packageName))
+            if (dirName.IsSamePathAs(packageName))
             {
                 return true;
             }
@@ -421,7 +421,7 @@ namespace csscript
             get
             {
                 // https://docs.microsoft.com/en-us/nuget/reference/target-frameworks
-                if (Utils.IsCore)
+                if (Runtime.IsCore)
                 {
                     if (CSharpCompiler.DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
                         return "netstandard";
@@ -550,7 +550,7 @@ namespace csscript
             //http://stackoverflow.com/questions/38118548/how-to-install-nuget-from-command-line-on-linux
             //on Linux native "nuget" app doesn't play nice with std.out redirected
 
-            if (!Utils.IsWin)
+            if (!Runtime.IsWin)
             {
                 Process.Start(exe, args).WaitForExit();
             }

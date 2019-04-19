@@ -192,40 +192,6 @@ namespace csscript
             return Environment.ExpandEnvironmentVariables(text).Trim();
         }
 
-        public static string[] ConcatWith(this string[] array1, IEnumerable<string> array2)
-        {
-            return array1.Concat(array2).ToArray();
-        }
-
-        public static string[] ConcatWith(this string[] array, string item)
-        {
-            return array.Concat(new[] { item }).ToArray();
-        }
-
-        public static string[] ConcatWith(this string item, IEnumerable<string> array)
-        {
-            return new[] { item }.Concat(array).ToArray();
-        }
-
-        public static string[] RemovePathDuplicates(this string[] list)
-        {
-            return list.Where(x => !string.IsNullOrEmpty(x))
-                       .Select(x =>
-                               {
-                                   var fullPath = Path.GetFullPath(x);
-                                   if (File.Exists(fullPath))
-                                       return fullPath;
-                                   else
-                                       return x;
-                               })
-                       .Distinct().ToArray();
-        }
-
-        public static string[] RemoveDuplicates(this string[] list)
-        {
-            return list.Distinct().ToArray();
-        }
-
         public static bool NotEmpty(this string text)
         {
             return !string.IsNullOrEmpty(text);
@@ -234,7 +200,7 @@ namespace csscript
         // Mono doesn't like referencing assemblies without dll or exe extension
         public static string EnsureAsmExtension(this string asmName)
         {
-            if (asmName != null && Utils.IsMono)
+            if (asmName != null && Runtime.IsMono)
             {
                 if (!asmName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) &&
                     !asmName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
@@ -262,29 +228,6 @@ namespace csscript
         {
             string location = asm.Location();
             return location == "" ? "" : Path.GetDirectoryName(location);
-        }
-
-        //to avoid throwing the exception
-        public static string Location(this Assembly asm)
-        {
-            if (asm.IsDynamic())
-            {
-                string location = Environment.GetEnvironmentVariable("location:" + asm.GetHashCode());
-                if (location == null)
-                    return "";
-                else
-                    return location ?? "";
-            }
-            else
-                return asm.Location;
-        }
-
-        public static string RemoveAssemblyExtension(this string asmName)
-        {
-            if (asmName.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase) || asmName.EndsWith(".exe", StringComparison.CurrentCultureIgnoreCase))
-                return asmName.Substring(0, asmName.Length - 4);
-            else
-                return asmName;
         }
 
         public static string EnsureDir(this string path)
@@ -369,8 +312,6 @@ namespace csscript
             return Directory.GetFiles(path, mask);
         }
 
-        public static string GetDirName(this string path) => Path.GetDirectoryName(path);
-
         public static string GetFileName(this string path) => Path.GetFileName(path);
 
         public static string GetFullPath(this string path) => Path.GetFullPath(path);
@@ -382,11 +323,6 @@ namespace csscript
         public static bool DirExists(this string path) => path.IsNotEmpty() ? Directory.Exists(path) : false;
 
         public static string ChangeExtension(this string path, string extension) => Path.ChangeExtension(path, extension);
-
-        public static bool IsSamePath(this string path1, string path2)
-        {
-            return string.Compare(path1, path2, Utils.IsWin) == 0;
-        }
 
         public static void ClearFile(string path)
         {
@@ -414,7 +350,7 @@ namespace csscript
         public static void SetEnvironmentVariable(string name, string value)
         {
             Environment.SetEnvironmentVariable(name, value);
-            if (Utils.IsWin)
+            if (Runtime.IsWin)
                 try { Win32.SetEnvironmentVariable(name, value); } catch { } // so the child process can consume that var
         }
 
@@ -618,17 +554,17 @@ namespace csscript
         public static bool IsNet45Plus()
         {
             // Class "ReflectionContext" exists from .NET 4.5 onwards.
-            return !Utils.IsCore && Type.GetType("System.Reflection.ReflectionContext", false) != null;
+            return !Runtime.IsCore && Type.GetType("System.Reflection.ReflectionContext", false) != null;
         }
 
         public static bool IsNet40Plus()
         {
-            return !Utils.IsCore && Environment.Version.Major >= 4;
+            return !Runtime.IsCore && Environment.Version.Major >= 4;
         }
 
         public static bool IsNet20Plus()
         {
-            return !Utils.IsCore && Environment.Version.Major >= 2;
+            return !Runtime.IsCore && Environment.Version.Major >= 2;
         }
 
         public static bool IsRuntimeCompatibleAsm(string file)
@@ -642,19 +578,9 @@ namespace csscript
             return false;
         }
 
-        public static bool IsWin { get; } = !isLinux;
-
-        // Note it is not about OS being exactly Linux but rather about OS having Linux type of file system.
-        // For example path being case sensitive
-        static bool isLinux { get; } = (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX);
-
-        public static bool IsMono { get; } = (Type.GetType("Mono.Runtime") != null);
-        public static bool IsCore { get; } = "".GetType().Assembly.Location.Split(Path.DirectorySeparatorChar).Contains("Microsoft.NETCore.App");
-        public static bool IsNet { get; } = !IsMono && !IsCore;
-
         internal static void SetMonoRootDirEnvvar()
         {
-            if (Environment.GetEnvironmentVariable("MONO") == null && IsMono)
+            if (Environment.GetEnvironmentVariable("MONO") == null && Runtime.IsMono)
                 Environment.SetEnvironmentVariable("MONO", MonoRootDir);
         }
 
@@ -698,7 +624,7 @@ namespace csscript
             }
             catch (FileNotFoundException e)
             {
-                if (!Utils.IsMono)
+                if (!Runtime.IsMono)
                     throw e;
                 else
                     try
@@ -716,7 +642,7 @@ namespace csscript
 
         public static string DbgFileOf(string assemblyFileName)
         {
-            return DbgFileOf(assemblyFileName, IsMono);
+            return DbgFileOf(assemblyFileName, Runtime.IsMono);
         }
 
         internal static string DbgFileOf(string assemblyFileName, bool is_mono)
@@ -731,7 +657,7 @@ namespace csscript
 
         public static bool ContainsPath(string path, string subPath)
         {
-            return path.Substring(0, subPath.Length).IsSamePath(subPath);
+            return path.Substring(0, subPath.Length).IsSamePathAs(subPath);
         }
 
         public static bool IsNullOrWhiteSpace(string text)
@@ -748,7 +674,7 @@ namespace csscript
         }
     }
 
-    internal static class CSSUtils
+    internal static partial class CSSUtils
     {
         internal static void VerbosePrint(this string message, ExecuteOptions options)
         {
@@ -805,7 +731,7 @@ partial class dbg
             {
                 //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
                 //throw a nice informative exception.
-                if (Utils.IsWin)
+                if (Runtime.IsWin)
                     fileLock.Wait(1000);
 
                 var cache_dir = Path.Combine(CSExecutor.GetScriptTempDir(), "Cache");
@@ -835,7 +761,7 @@ partial class dbg
             {
                 //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
                 //throw a nice informative exception.
-                if (Utils.IsWin)
+                if (Runtime.IsWin)
                     fileLock.Wait(1000);
 
                 string code = string.Format("[assembly: System.Reflection.AssemblyDescriptionAttribute(@\"{0}\")]", scriptFileName);
@@ -965,93 +891,6 @@ partial class dbg
 
         public delegate void ShowDocumentHandler();
 
-        static public string[] GetDirectories(string workingDir, string rootDir)
-        {
-            if (!Path.IsPathRooted(rootDir))
-                rootDir = Path.Combine(workingDir, rootDir); //cannot use Path.GetFullPath as it crashes if '*' or '?' are present
-
-            List<string> result = new List<string>();
-
-            if (rootDir.Contains("*") || rootDir.Contains("?"))
-            {
-                bool useAllSubDirs = rootDir.EndsWith("**");
-
-                string pattern = ConvertSimpleExpToRegExp(useAllSubDirs ? rootDir.Remove(rootDir.Length - 1) : rootDir);
-
-                Regex wildcard = new Regex(pattern, RegexOptions.IgnoreCase);
-
-                int pos = rootDir.IndexOfAny(new char[] { '*', '?' });
-
-                string newRootDir = rootDir.Remove(pos);
-
-                pos = newRootDir.LastIndexOf(Path.DirectorySeparatorChar);
-                newRootDir = rootDir.Remove(pos);
-
-                if (Directory.Exists(newRootDir))
-                {
-                    foreach (string dir in Directory.GetDirectories(newRootDir, "*", SearchOption.AllDirectories))
-                        if (wildcard.IsMatch(dir))
-                        {
-                            if (!result.Contains(dir))
-                            {
-                                result.Add(dir);
-
-                                if (useAllSubDirs)
-                                    foreach (string subDir in Directory.GetDirectories(dir, "*", SearchOption.AllDirectories))
-                                        //if (!result.Contains(subDir))
-                                        result.Add(subDir);
-                            }
-                        }
-                }
-            }
-            else
-                result.Add(rootDir);
-
-            return result.ToArray();
-        }
-
-        //Credit to MDbg team: https://github.com/SymbolSource/Microsoft.Samples.Debugging/blob/master/src/debugger/mdbg/mdbgCommands.cs
-        public static string ConvertSimpleExpToRegExp(string simpleExp)
-        {
-            StringBuilder sb = new StringBuilder();
-            sb.Append("^");
-            foreach (char c in simpleExp)
-            {
-                switch (c)
-                {
-                    case '\\':
-                    case '{':
-                    case '|':
-                    case '+':
-                    case '[':
-                    case '(':
-                    case ')':
-                    case '^':
-                    case '$':
-                    case '.':
-                    case '#':
-                    case ' ':
-                        sb.Append('\\').Append(c);
-                        break;
-
-                    case '*':
-                        sb.Append(".*");
-                        break;
-
-                    case '?':
-                        sb.Append(".");
-                        break;
-
-                    default:
-                        sb.Append(c);
-                        break;
-                }
-            }
-
-            sb.Append("$");
-            return sb.ToString();
-        }
-
         internal class Args
         {
             static internal string Join(params string[] args)
@@ -1074,7 +913,7 @@ partial class dbg
             {
                 get
                 {
-                    if (Utils.IsWin)
+                    if (Runtime.IsWin)
                         return "/";
                     else
                         return "-";
@@ -1089,7 +928,7 @@ partial class dbg
                         if (arg.Length == pattern.Length + 1 && arg.IndexOf(pattern) == 1)
                             return true;
 
-                    if (Utils.IsWin && arg[0] == '/')
+                    if (Runtime.IsWin && arg[0] == '/')
                         if (arg.Length == pattern.Length + 1 && arg.IndexOf(pattern) == 1)
                             return true;
                 }
@@ -1100,7 +939,7 @@ partial class dbg
             {
                 if (arg.StartsWith("-"))
                     return true;
-                if (Utils.IsWin)
+                if (Runtime.IsWin)
                     return (arg[0] == '/');
                 return false;
             }
@@ -1109,7 +948,7 @@ partial class dbg
             {
                 if (arg.StartsWith("-"))
                     return arg.IndexOf(pattern) == 1;
-                if (Utils.IsWin)
+                if (Runtime.IsWin)
                     if (arg[0] == '/')
                         return arg.IndexOf(pattern) == 1;
                 return false;
@@ -1610,7 +1449,7 @@ partial class dbg
 
             if (options.autoClass)
             {
-                bool canHandleCShar6 = (!string.IsNullOrEmpty(options.altCompiler) || !Utils.IsWin);
+                bool canHandleCShar6 = (!string.IsNullOrEmpty(options.altCompiler) || !Runtime.IsWin);
 
                 AutoclassPrecompiler.decorateAutoClassAsCS6 = (options.decorateAutoClassAsCS6 && options.enableDbgPrint && canHandleCShar6);
 
@@ -1621,7 +1460,7 @@ partial class dbg
                     retval.Add(Assembly.GetExecutingAssembly().Location, new List<object>() { new AutoclassPrecompiler() });
             }
 
-            foreach (string precompiler in Utils.RemoveDuplicates((options.preCompilers).Split(new char[] { ',' })))
+            foreach (string precompiler in options.preCompilers.Split(new char[] { ',' }).RemoveDuplicates())
             {
                 string precompilerFile = precompiler.Trim();
 
@@ -1726,7 +1565,7 @@ partial class dbg
             foreach (string item in parser.Precompilers)
                 allPrecompillers.AddRange(item.Split(','));
 
-            return Utils.RemoveDuplicates(allPrecompillers.ToArray());
+            return allPrecompillers.ToArray().RemovePathDuplicates();
         }
 
         internal static int GenerateCompilationContext(CSharpParser parser, ExecuteOptions options)
@@ -1759,20 +1598,13 @@ partial class dbg
                     select location).ToArray();
         }
 
-        public static bool IsDynamic(this Assembly asm)
-        {
-            //http://bloggingabout.net/blogs/vagif/archive/2010/07/02/net-4-0-and-notsupportedexception-complaining-about-dynamic-assemblies.aspx
-            //Will cover both System.Reflection.Emit.AssemblyBuilder and System.Reflection.Emit.InternalAssemblyBuilder
-            return asm.GetType().FullName.EndsWith("AssemblyBuilder") || asm.Location == null || asm.Location == "";
-        }
-
         public static Assembly CompilePrecompilerScript(string sourceFile, string[] searchDirs)
         {
             // https://github.com/aspnet/RoslynCodeDomProvider/issues/37
             // .NET Core team does not have any plans for CodeDOM
             try
             {
-                var asmExtension = Utils.IsMono ? ".dll" : ".compiled";
+                var asmExtension = Runtime.IsMono ? ".dll" : ".compiled";
                 string precompilerAsm = Path.Combine(CSExecutor.GetCacheDirectory(sourceFile), Path.GetFileName(sourceFile) + asmExtension);
 
                 using (Mutex fileLock = new Mutex(false, "CSSPrecompiling." + CSSUtils.GetHashCodeEx(precompilerAsm))) //have to use hash code as path delimiters are illegal in the mutex name
@@ -1843,7 +1675,7 @@ partial class dbg
                     catch { }
 
                     ////////////////////////////////////////
-                    foreach (string asm in Utils.RemovePathDuplicates(refAssemblies.ToArray()))
+                    foreach (string asm in refAssemblies.ToArray().RemovePathDuplicates())
                     {
                         compilerParams.ReferencedAssemblies.Add(asm);
                     }

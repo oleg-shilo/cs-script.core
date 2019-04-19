@@ -108,7 +108,7 @@ namespace csscript
                                 SchedulePreloadCompiler(rawArgs) :
                                 rawArgs.Select(Environment.ExpandEnvironmentVariables).ToArray();
 
-            if (!Utils.IsWin)
+            if (!Runtime.IsWin)
             {
                 // because Linux shebang does not properly split arguments we need to take care of this
                 // http://www.daniweb.com/software-development/c/threads/268382
@@ -344,7 +344,7 @@ namespace csscript
             Utils.SetEnvironmentVariable("CSScriptRuntimeLocation", Assembly.GetExecutingAssembly().Location);
             Utils.SetEnvironmentVariable("cscs_exe_dir", Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 
-            if (Environment.GetEnvironmentVariable("CSSCRIPT_ROOT") == null && !Utils.IsWin)
+            if (Environment.GetEnvironmentVariable("CSSCRIPT_ROOT") == null && !Runtime.IsWin)
             {
                 // GetExecutingAssembly().Location may be empty even for the entry assembly
                 var cscs_exe_dir = Environment.GetEnvironmentVariable("cscs_exe_dir");

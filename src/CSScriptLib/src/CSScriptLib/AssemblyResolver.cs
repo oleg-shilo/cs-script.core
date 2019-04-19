@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using CSScriptLib;
-using CSScriptLib.Extensions;
 
 namespace csscript
 {

@@ -44,7 +44,7 @@ namespace CSScripting.CodeDom
             throw new NotImplementedException();
         }
 
-        static string dotnet { get; } = Utils.IsCore ? Process.GetCurrentProcess().MainModule.FileName : "dotnet";
+        static string dotnet { get; } = Runtime.IsCore ? Process.GetCurrentProcess().MainModule.FileName : "dotnet";
 
         static string InitBuildTools()
         {
@@ -143,7 +143,7 @@ namespace CSScripting.CodeDom
 
             var result = new CompilerResults();
 
-            if (!options.GenerateExecutable || !Utils.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
+            if (!options.GenerateExecutable || !Runtime.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
             {
                 // todo
             }
@@ -242,7 +242,7 @@ namespace CSScripting.CodeDom
 </Project>";
             project_content = project_content.Replace("</Project>", constants);
 
-            if (!options.GenerateExecutable || !Utils.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
+            if (!options.GenerateExecutable || !Runtime.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
             {
                 project_content = project_content.Replace("<OutputType>Exe</OutputType>", "");
                 project_content = project_content.Replace("<TargetFramework>netcoreapp2.1</TargetFramework>",

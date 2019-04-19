@@ -22,7 +22,6 @@
 
 #endregion Licence...
 
-using CSScripting.CodeDom;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -31,6 +30,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml;
+using CSScripting.CodeDom;
 
 namespace csscript
 {
@@ -99,7 +99,7 @@ namespace csscript
         /// regardless if the user specified "/dbg" when a particular script is launched.
         /// </summary>
         [Category("RuntimeSettings"), Description("Default command-line arguments (e.g.-dbg) for all scripts.")]
-        public string DefaultArguments { get; set; } = CSSUtils.Args.Join("c", (Utils.IsCore || CSharpCompiler.DefaultCompilerRuntime == DefaultCompilerRuntime.Standard) ? "" : "co:" + CSSUtils.Args.DefaultPrefix + "warn:0");
+        public string DefaultArguments { get; set; } = CSSUtils.Args.Join("c", (Runtime.IsCore || CSharpCompiler.DefaultCompilerRuntime == DefaultCompilerRuntime.Standard) ? "" : "co:" + CSSUtils.Args.DefaultPrefix + "warn:0");
 
         /// <summary>
         /// Gets or sets a value indicating whether script assembly attribute should be injected. The AssemblyDecription attribute
@@ -256,7 +256,7 @@ namespace csscript
 
         string InitDefaultRefAssemblies()
         {
-            if (Utils.IsMono)
+            if (Runtime.IsMono)
             {
                 return "System; System.Core;";
             }
@@ -298,7 +298,7 @@ namespace csscript
             if (dir != "")
             {
                 foreach (string searchDir in searchDirs.Split(';'))
-                    if (searchDir != "" && Utils.IsSamePath(Path.GetFullPath(searchDir), Path.GetFullPath(dir)))
+                    if (searchDir != "" && Path.GetFullPath(searchDir).IsSamePathAs(Path.GetFullPath(dir)))
                         return; //already there
 
                 searchDirs += ";" + dir;
@@ -452,8 +452,8 @@ namespace csscript
         /// typically require assembly <c>Location</c> member being populated with the valid path.</para>
         /// </summary>
         [Category("RuntimeSettings"),
-         Description("Indicates the script assembly is to be loaded by CLR as an in-memory byte stream instead of the file. " +
-                      "Note this settings can affect the use cases requiring the loaded assemblies to have non empty Assembly.Location.")]
+        Description("Indicates the script assembly is to be loaded by CLR as an in-memory byte stream instead of the file. " +
+            "Note this settings can affect the use cases requiring the loaded assemblies to have non empty Assembly.Location.")]
         public bool InMemoryAssembly { get; set; } = true;
 
         /// <summary>
@@ -464,7 +464,7 @@ namespace csscript
         {
             get
             {
-                if (concurrencyControl == ConcurrencyControl.HighResolution && Utils.IsMono)
+                if (concurrencyControl == ConcurrencyControl.HighResolution && Runtime.IsMono)
                     concurrencyControl = ConcurrencyControl.Standard;
                 return concurrencyControl;
             }
@@ -695,7 +695,7 @@ namespace csscript
                     string asm_path = Assembly.GetExecutingAssembly().Location;
                     if (!string.IsNullOrEmpty(asm_path))
                     {
-                        if (Utils.IsMono)
+                        if (Runtime.IsMono)
                         {
                             var monoFileName = Path.Combine(Path.GetDirectoryName(asm_path), "css_config.mono.xml");
                             if (File.Exists(monoFileName))

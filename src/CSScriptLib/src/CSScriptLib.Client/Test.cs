@@ -1,11 +1,11 @@
-using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
-using CSScriptLib;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using CSScriptLib.Extensions;
+using csscript;
+using CSScriptLib;
+using Newtonsoft.Json.Linq;
 
 public interface IScript
 {
@@ -195,8 +195,8 @@ namespace Client
         static public void LoadCode_RefAsm()
         {
             var script = (IScript)CSScript.Evaluator
-                                     .ReferenceAssemblyOf<IScript>()
-                                     .LoadCode(@"using System;
+                                          .ReferenceAssemblyOf<IScript>()
+                                          .LoadCode(@"using System;
                                                  public class Script : IScript
                                                  {
                                                      public int Sum(int a, int b)

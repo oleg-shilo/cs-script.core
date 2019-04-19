@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
-using CSScriptLib.Extensions;
+using csscript;
 
 namespace CSScriptLib
 {
@@ -61,7 +61,7 @@ namespace CSScriptLib
                     try
                     {
                         var dir = Assembly.Load(asm).Directory(); // the asm is already loaded by the host anyway
-                        if (dir.HasText())
+                        if (dir.IsNotEmpty())
                             dirs.Add(dir);
                     }
                     catch { }

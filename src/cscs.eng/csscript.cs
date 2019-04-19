@@ -861,7 +861,7 @@ namespace csscript
 
                             //no need to act on lockedByCompiler/lockedByHost as Compile(...) will throw the exception
 
-                            if (!options.inMemoryAsm && Utils.IsWin)
+                            if (!options.inMemoryAsm && Runtime.IsWin)
                             {
                                 // wait for other EXECUTION to complete (if any)
                                 bool lockedByHost = !executingFileLock.Wait(1000);
@@ -1114,7 +1114,7 @@ namespace csscript
 
             if (asmFileName == null || asmFileName == "")
             {
-                var asmExtension = Utils.IsMono && !Utils.IsWin ? ".dll" : ".compiled";
+                var asmExtension = Runtime.IsMono && !Runtime.IsWin ? ".dll" : ".compiled";
                 // asmExtension = ".dll"; // testing
 
                 asmFileName = options.hideTemp != Settings.HideOptions.DoNotHide ? Path.Combine(CSExecutor.ScriptCacheDir, Path.GetFileName(scripFileName) + asmExtension) : scripFileName + ".c";
@@ -1379,7 +1379,7 @@ namespace csscript
 
             if (options.enableDbgPrint)
             {
-                if (Utils.IsNet40Plus() && !Utils.IsMono)
+                if (Utils.IsNet40Plus() && !Runtime.IsMono)
                 {
                     addByAsmName("System.Linq"); // Implementation of System.Linq namespace
                     addByAsmName("System.Core"); // dependency of System.Linq namespace assembly
@@ -1526,7 +1526,7 @@ namespace csscript
             foreach (string option in parser.CompilerOptions)
                 Utils.AddCompilerOptions(compilerParams, option);
 
-            if (options.DBG && !(Utils.IsCore || CSharpCompiler.DefaultCompilerRuntime == DefaultCompilerRuntime.Standard))
+            if (options.DBG && !(Runtime.IsCore || CSharpCompiler.DefaultCompilerRuntime == DefaultCompilerRuntime.Standard))
                 Utils.AddCompilerOptions(compilerParams, "/d:DEBUG /d:TRACE");
 
             compilerParams.IncludeDebugInformation = options.DBG;
@@ -1597,7 +1597,7 @@ namespace csscript
                 {
                     var cachedAsmExtension = ".compiled";
 
-                    if (Utils.IsMono)
+                    if (Runtime.IsMono)
                         cachedAsmExtension = ".dll"; // mono cannot locate the symbols file (*.mbd) unless the assembly file is a .dll one
 
                     if (options.DLLExtension)
@@ -1808,18 +1808,18 @@ namespace csscript
                     Utils.FileDelete(symbFileName);
 
                     // Roslyn always generates pdb files, even under Mono
-                    if (Utils.IsMono)
+                    if (Runtime.IsMono)
                         Utils.FileDelete(pdbFileName);
                 }
                 else
                 {
-                    if (Utils.IsMono)
+                    if (Runtime.IsMono)
                     {
                         // Do not do conversion if option 'pdbonly' was specified on Linux. In this case PDB is portable and Linux an
                         // Mono debugger can process it.
                         bool isPdbOnlyMode = compilerParams.CompilerOptions.Contains("debug:pdbonly");
 
-                        if (Utils.IsWin || (!File.Exists(symbFileName) && !isPdbOnlyMode))
+                        if (Runtime.IsWin || (!File.Exists(symbFileName) && !isPdbOnlyMode))
                         {
                             // Convert pdb into mdb
                             var process = new Process();
@@ -1827,7 +1827,7 @@ namespace csscript
                             {
                                 process.StartInfo.Arguments = "\"" + assemblyFileName + "\"";
 
-                                if (Utils.IsWin)
+                                if (Runtime.IsWin)
                                 {
                                     // hide terminal window
                                     process.StartInfo.FileName = "pdb2mdb.bat";
@@ -1858,7 +1858,7 @@ namespace csscript
                     {
                         var depInfo = new MetaDataItems();
 
-                        string[] searchDirs = Utils.RemovePathDuplicates(options.searchDirs);
+                        string[] searchDirs = options.searchDirs.RemovePathDuplicates();
 
                         //add entry script info
                         depInfo.AddItem(scriptFileName, scriptFile.LastWriteTimeUtc, false);
@@ -1973,7 +1973,7 @@ namespace csscript
             string cacheDir;
             string directoryPath = Path.GetDirectoryName(Path.GetFullPath(file));
             string dirHash;
-            if (Utils.IsWin)
+            if (Runtime.IsWin)
             {
                 //Win is not case-sensitive so ensure, both lower and capital case path yield the same hash
                 dirHash = CSSUtils.GetHashCodeEx(directoryPath.ToLower()).ToString();

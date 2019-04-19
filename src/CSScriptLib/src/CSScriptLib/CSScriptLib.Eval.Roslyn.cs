@@ -30,7 +30,13 @@
 
 #endregion License...
 
-using csscript;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Emit;
@@ -40,14 +46,7 @@ using Microsoft.CodeAnalysis.Emit;
 //using Microsoft.CodeAnalysis.Scripting;
 //using csscript;
 using Microsoft.CodeAnalysis.Scripting;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Text;
-using CSScriptLib.Extensions;
+using csscript;
 
 // <summary>
 //<package id="Microsoft.Net.Compilers" version="1.2.0-beta-20151211-01" targetFramework="net45" developmentDependency="true" />
@@ -886,13 +885,13 @@ namespace CSScriptLib
             if (assembly != null)//this check is needed when trying to load partial name assembalies that result in null
             {
                 //Microsoft.Net.Compilers.1.2.0 - beta
-                if (assembly.Location().IsEmpty())
+                if (assembly.Location.IsEmpty())
                     throw new Exception(
                         "Current version of Microsoft.CodeAnalysis.Scripting.dll doesn't support referencing assemblies " +
                         "which are not loaded from the file location.");
 
                 if (!CompilerSettings.MetadataReferences.OfType<PortableExecutableReference>()
-                        .Any(r => r.FilePath.IsSamePath(assembly.Location())))
+                    .Any(r => r.FilePath.IsSamePathAs(assembly.Location)))
                     //Future assembly aliases support:
                     //MetadataReference.CreateFromFile("asm.dll", new MetadataReferenceProperties().WithAliases(new[] { "lib_a", "external_lib_a" } })
                     CompilerSettings = CompilerSettings.AddReferences(assembly);
@@ -954,7 +953,7 @@ namespace CSScriptLib
         /// <returns>The instance of the <see cref="CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
         public IEvaluator ReferenceAssemblyOf(object obj)
         {
-            ReferenceAssembly(obj.GetType().Assembly());
+            ReferenceAssembly(obj.GetType().Assembly);
             return this;
         }
 
@@ -969,7 +968,7 @@ namespace CSScriptLib
         /// <returns>The instance of the <see cref="CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
         public IEvaluator ReferenceAssemblyOf<T>()
         {
-            return ReferenceAssembly(typeof(T).Assembly());
+            return ReferenceAssembly(typeof(T).Assembly);
         }
 
 #if net35

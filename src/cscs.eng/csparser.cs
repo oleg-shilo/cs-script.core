@@ -576,7 +576,7 @@ namespace csscript
             foreach (string statement in GetRawStatements("//css_co", endCodePos))
                 compilerOptions.Add(statement.NormaliseAsDirective());
 
-            if (Utils.IsWin)
+            if (Runtime.IsWin)
                 foreach (string statement in GetRawStatements("//css_host", endCodePos))
                     hostOptions.Add(statement.NormaliseAsDirective());
 

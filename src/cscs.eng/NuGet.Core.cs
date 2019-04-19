@@ -22,9 +22,9 @@ namespace csscript
     {
         //https://docs.microsoft.com/en-us/nuget/consume-packages/managing-the-global-packages-and-cache-folders
         // .NET Mono, .NET Core
-        public string NuGetCache => Utils.IsWin ?
-                                          Environment.ExpandEnvironmentVariables(@"%userprofile%\.nuget\packages") :
-                                          "~/.nuget/packages";
+        public string NuGetCache => Runtime.IsWin ?
+                                            Environment.ExpandEnvironmentVariables(@"%userprofile%\.nuget\packages") :
+                                            "~/.nuget/packages";
 
         public string NuGetExe => "dotnet";
 
@@ -190,7 +190,7 @@ namespace csscript
                 }
                 else
                 {
-                    if (Utils.IsCore)
+                    if (Runtime.IsCore)
                         // by runtime of the host
                         return findMatch(x => x.Contains("netcore", ignoreCase: true))
                             ?? findMatch(x => x.Contains("netstandard", ignoreCase: true));
@@ -233,7 +233,7 @@ namespace csscript
                 }
                 else // host runtime
                 {
-                    if (Utils.IsCore)
+                    if (Runtime.IsCore)
                         return (frameworks.FirstOrDefault(x => x.Runtime.StartsWith("netcore", ignoreCase: true))
                                 ?? frameworks.FirstOrDefault(x => x.Runtime.StartsWith("netstandard", ignoreCase: true)))?.Path;
                     else
@@ -382,7 +382,7 @@ namespace csscript
                 assemblies.AddRange(GetCompatibleAssemblies(package));
             }
 
-            return Utils.RemovePathDuplicates(assemblies.ToArray());
+            return assemblies.ToArray().RemovePathDuplicates();
         }
     }
 }

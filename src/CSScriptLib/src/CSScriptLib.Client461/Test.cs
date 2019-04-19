@@ -1,4 +1,3 @@
-using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Net;
@@ -6,7 +5,8 @@ using System.Net;
 // using CSScriptLib;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using CSScriptLib.Extensions;
+using csscript;
+using Newtonsoft.Json.Linq;
 
 public interface IScript
 {
@@ -22,10 +22,10 @@ namespace CSScriptLib.Client
             // CSScript.GlobalSettings.AddSearchDirsFromHost();
 
             dynamic script = CSScript.Evaluator
-                                        //.ReferenceAssemblyByName("Microsoft.CSharp")
-                                        //.ReferenceAssemblyOf<WebClient>()
-                                        //.ReferenceAssemblyOf<JArray>()
-                                        .LoadCode(@"
+                                      //.ReferenceAssemblyByName("Microsoft.CSharp")
+                                      //.ReferenceAssemblyOf<WebClient>()
+                                      //.ReferenceAssemblyOf<JArray>()
+                                      .LoadCode(@"
                                         //css_ref Microsoft.CSharp
                                         //css_ref System.Net.WebClient
                                         //css_ref Newtonsoft.Json
@@ -106,7 +106,7 @@ namespace CSScriptLib.Client
         {
             string asm = CSScript.Evaluator
                                  .CompileAssemblyFromCode(
-                                              @"using System;
+                                     @"using System;
                                                 public class Script
                                                 {
                                                     public int Sum(int a, int b)
@@ -114,7 +114,7 @@ namespace CSScriptLib.Client
                                                         return a+b;
                                                     }
                                                 }",
-                                                "Test.dll");
+                                         "Test.dll");
             Console.WriteLine(asm);
         }
 
@@ -122,14 +122,13 @@ namespace CSScriptLib.Client
         {
             try
             {
-
                 CSScript.Evaluator
                         .Check(@"using System;
                                  public class Script
                                  {
                                      public int Sum(int a, int b)
                                      {
-                                         error 
+                                         error
                                          return a+b;
                                      }
                                  }");
@@ -232,8 +231,8 @@ namespace CSScriptLib.Client
         static public void LoadCode_RefAsm()
         {
             var script = (IScript)CSScript.Evaluator
-                                     .ReferenceAssemblyOf<IScript>()
-                                     .LoadCode(@"using System;
+                                          .ReferenceAssemblyOf<IScript>()
+                                          .LoadCode(@"using System;
                                                  public class Script : IScript
                                                  {
                                                      public int Sum(int a, int b)

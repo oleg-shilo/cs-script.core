@@ -683,7 +683,7 @@ namespace csscript
                          " Project Website: https://github.com/oleg-shilo/cs-script",
                          " ");
 
-            if (Utils.IsWin)
+            if (Runtime.IsWin)
                 syntaxHelp = syntaxHelp.Replace("{$css_host}",
                                                 fromLines(
                                                     "//css_host [-version:<CLR_Version>] [-platform:<CPU>]",
@@ -852,7 +852,7 @@ namespace csscript
         static string CSharp_freestyle_Sample()
         {
             StringBuilder builder = new StringBuilder();
-            if (!Utils.IsWin)
+            if (!Runtime.IsWin)
             {
                 builder.AppendLine("// #!/usr/local/bin/cscs");
             }
@@ -870,7 +870,7 @@ namespace csscript
         static string CSharp_auto_Sample()
         {
             StringBuilder builder = new StringBuilder();
-            if (!Utils.IsWin)
+            if (!Runtime.IsWin)
             {
                 builder.AppendLine("// #!/usr/local/bin/cscs");
             }
@@ -905,8 +905,8 @@ namespace csscript
 
         static string CSharp7_Sample()
         {
-            StringBuilder builder = new StringBuilder();
-            if (!Utils.IsWin)
+            var builder = new StringBuilder();
+            if (!Runtime.IsWin)
             {
                 builder.AppendLine("// #!/usr/local/bin/cscs");
             }
@@ -949,7 +949,7 @@ namespace csscript
         static string CSharp4_Sample()
         {
             StringBuilder builder = new StringBuilder();
-            if (!Utils.IsWin)
+            if (!Runtime.IsWin)
             {
                 builder.AppendLine("#!<cscs.exe path> " + CSSUtils.Args.DefaultPrefix + "nl ");
                 // builder.AppendLine("//css_ref System.Windows.Forms;"); // core does not support forms yet

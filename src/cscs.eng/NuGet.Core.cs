@@ -156,7 +156,7 @@ namespace csscript
         /// <summary>
         /// Gets the compatible target framework. Similar to `GetPackageCompatibleLib` but relies on NuGet spec file
         /// </summary>
-        /// <param name="freameworks">The freameworks.</param>
+        /// <param name="freameworks">The frameworks.</param>
         /// <param name="package">The package.</param>
         /// <returns></returns>
         XElement GetCompatibleTargetFramework(IEnumerable<XElement> freameworks, PackageInfo package)
@@ -248,7 +248,10 @@ namespace csscript
         {
             var lib = GetPackageCompatibleLib(package);
             if (lib != null)
-                return Directory.GetFiles(GetPackageCompatibleLib(package), "*.dll");
+                return Directory.GetFiles(GetPackageCompatibleLib(package), "*.dll")
+                                .Where(item => !item.EndsWith(".resources.dll", StringComparison.OrdinalIgnoreCase))
+                                .Where(x => Utils.IsRuntimeCompatibleAsm(x))
+                                .ToArray();
             else
                 return new string[0];
         }

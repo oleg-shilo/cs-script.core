@@ -16,8 +16,8 @@
     <RepositoryType>git</RepositoryType>
     <PackageTags>C# script dynamic</PackageTags>
     <PackageReleaseNotes>C# Script engine library (.NET Standard 2)</PackageReleaseNotes>
-    <AssemblyVersion>1.0.2.0</AssemblyVersion>
-    <FileVersion>1.0.2.0</FileVersion>
+    <AssemblyVersion>1.1.2.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

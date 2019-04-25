@@ -1368,6 +1368,8 @@ partial class dbg
 
         delegate bool CompileMethod(ref string content, string scriptFile, bool IsPrimaryScript, Hashtable context);
 
+        delegate bool CompileMethodDynamic(object context);
+
         internal static PrecompilationContext Precompile(string scriptFile, string[] filesToCompile, ExecuteOptions options)
         {
             PrecompilationContext context = new PrecompilationContext();
@@ -1389,6 +1391,10 @@ partial class dbg
                 for (int i = 0; i < filesToCompile.Length; i++)
                 {
                     string content = File.ReadAllText(filesToCompile[i]);
+
+                    context.Content = content;
+                    context.scriptFile = filesToCompile[i];
+                    context.IsPrimaryScript = (filesToCompile[i] == scriptFile);
 
                     bool modified = false;
 

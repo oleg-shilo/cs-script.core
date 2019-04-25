@@ -866,9 +866,9 @@ namespace csscript
             {
                 bool useAllSubDirs = rootDir.EndsWith("**");
 
-                string pattern = WildCardToRegExp(useAllSubDirs ? rootDir.Remove(rootDir.Length - 1) : rootDir);
+                string pattern = WildCardToRegExpPattern(useAllSubDirs ? rootDir.Remove(rootDir.Length - 1) : rootDir);
 
-                var wildcard = new Regex(pattern, RegexOptions.IgnoreCase);
+                var wildcard = new Regex(pattern, Runtime.IsWin ? RegexOptions.IgnoreCase : RegexOptions.None);
 
                 int pos = rootDir.IndexOfAny(new char[] { '*', '?' });
 
@@ -900,8 +900,11 @@ namespace csscript
             return result.ToArray();
         }
 
+        public static Regex WildCardToRegExp(this string pattern)
+            => new Regex(pattern.WildCardToRegExpPattern(), Runtime.IsWin ? RegexOptions.IgnoreCase : RegexOptions.None);
+
         //Credit to MDbg team: https://github.com/SymbolSource/Microsoft.Samples.Debugging/blob/master/src/debugger/mdbg/mdbgCommands.cs
-        public static string WildCardToRegExp(this string simpleExp)
+        public static string WildCardToRegExpPattern(this string simpleExp)
         {
             var sb = new StringBuilder();
             sb.Append("^");

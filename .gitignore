@@ -1,1 +1,14 @@
 /src/chocolatey/publish.cmd
+/src/chocolatey/*.nupkg
+/src/chocolatey/updatenugetexe.cs
+/src/out/*.7z
+**/bin/Debug/**
+/src/chocolatey/publish.cmd
+/src/chocolatey/*.nupkg
+/src/chocolatey/updatenugetexe.cs
+/src/out/*.7z
+**/*.user
+**/bin/Release/**
+**/obj/**
+**/.vs/**
+**/spike

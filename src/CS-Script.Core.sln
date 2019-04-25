@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27428.2043
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cscs.eng", "cscs.eng\cscs.eng.csproj", "{14CE2784-9214-4763-AEFB-BD4EFEB7E86A}"
 EndProject
@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "css", "css\css.csproj", "{A
 		{14CE2784-9214-4763-AEFB-BD4EFEB7E86A} = {14CE2784-9214-4763-AEFB-BD4EFEB7E86A}
 		{20E064E3-541A-421E-8DDA-5416C19A881A} = {20E064E3-541A-421E-8DDA-5416C19A881A}
 	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cscs.tests", "cscs.tests\cscs.tests.csproj", "{764F5D84-9776-400F-9BD0-8CE147A20CEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,6 +39,10 @@ Global
 		{A8755B0E-EE1D-4CC0-9C58-A7ABB0EFAE3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8755B0E-EE1D-4CC0-9C58-A7ABB0EFAE3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8755B0E-EE1D-4CC0-9C58-A7ABB0EFAE3C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{764F5D84-9776-400F-9BD0-8CE147A20CEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{764F5D84-9776-400F-9BD0-8CE147A20CEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{764F5D84-9776-400F-9BD0-8CE147A20CEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{764F5D84-9776-400F-9BD0-8CE147A20CEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

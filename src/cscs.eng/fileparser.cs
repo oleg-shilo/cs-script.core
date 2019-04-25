@@ -123,6 +123,7 @@ namespace CSScriptLibrary
         static bool _throwOnError = true;
 
 #if !class_lib
+
         public System.Threading.ApartmentState ThreadingModel
         {
             get
@@ -133,6 +134,7 @@ namespace CSScriptLibrary
                     return this.parser.ThreadingModel;
             }
         }
+
 #endif
 
         public FileParser()
@@ -351,22 +353,55 @@ namespace CSScriptLibrary
             return retval;
         }
 
-        static string[] LocateFiles(string filePath)
+        public static string[] LocateFiles(string dir, string file)
         {
-            try
+            var filePath = dir.PathJoin(file);
+            if (file.Contains('*') || file.Contains('?'))
             {
-                string dir = Path.GetDirectoryName(filePath);
-                string name = Path.GetFileName(filePath);
+                var filePattern = filePath.GetFileName();
+                var dirPattern = file.GetDirName();
 
-                List<string> result = new List<string>();
+                if (file == "**")
+                {
+                    filePattern = "*";
+                    dirPattern = "**";
+                }
+                else if (dirPattern.StartsWith("." + Path.DirectorySeparatorChar))
+                {
+                    dirPattern = dirPattern.Substring(2);
+                }
 
-                if (Directory.Exists(dir))
-                    foreach (string item in Directory.GetFiles(dir, name))
-                        result.Add(Path.GetFullPath(item));
+                var candidates = Directory.GetFiles(dir, filePattern, SearchOption.AllDirectories)
+                                          .Select(x => x.Substring(dir.Length + 1));
 
+                var result = new List<string>();
+                foreach (var relativePath in candidates)
+                {
+                    var dirRelativePath = relativePath.GetDirName();
+
+                    bool matching = dirPattern.WildCardToRegExp().IsMatch(dirRelativePath);
+
+                    if (matching)
+                        result.Add(dir.PathJoin(relativePath).GetFullPath());
+                }
                 return result.ToArray();
             }
-            catch { }
+            else
+                try
+                {
+                    string searchDir = Path.GetDirectoryName(filePath);
+                    string name = Path.GetFileName(filePath);
+
+                    List<string> result = new List<string>();
+
+                    if (Directory.Exists(dir))
+                        foreach (string item in Directory.GetFiles(searchDir, name))
+                            result.Add(Path.GetFullPath(item));
+
+                    return result.ToArray();
+                }
+                catch { }
+
             return new string[0];
         }
 
@@ -378,17 +413,24 @@ namespace CSScriptLibrary
             if (Path.GetExtension(fileName) == "")
                 fileName += extension;
 
-            string[] files = LocateFiles(Path.Combine(Environment.CurrentDirectory, fileName));
-            if (files.Length > 0)
-                return files;
+            if (Path.IsPathRooted(fileName) && File.Exists(fileName))
+                return new[] { fileName };
+
+            string[] files;
+            if (!extraDirs.Contains(Environment.CurrentDirectory))
+            {
+                files = LocateFiles(Environment.CurrentDirectory, fileName);
+                if (files.Length > 0)
+                    return files;
+            }
 
             //arbitrary directories
             if (extraDirs != null)
             {
                 foreach (string dir in extraDirs)
                 {
-                    files = LocateFiles(Path.Combine(dir, fileName));
-                    if (files.Length > 0)
+                    files = LocateFiles(dir, fileName);
+                    if (files.Any())
                         return files;
                 }
             }
@@ -397,8 +439,8 @@ namespace CSScriptLibrary
             string[] pathDirs = Environment.GetEnvironmentVariable("PATH").Replace("\"", "").Split(';');
             foreach (string dir in pathDirs)
             {
-                files = LocateFiles(Path.Combine(dir, fileName));
-                if (files.Length > 0)
+                files = LocateFiles(dir, fileName);
+                if (files.Any())
                     return files;
             }
 

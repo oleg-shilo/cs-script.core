@@ -1493,7 +1493,7 @@ namespace csscript
             {
                 options.searchDirs = parser.SearchDirs //parser.searchDirs may be updated as result of script parsing
                                            .ConcatWith(Assembly.GetExecutingAssembly().GetAssemblyDirectoryName())
-                                           .RemoveDuplicates();
+                                           .Distinct();
             }
             else
             {
@@ -1534,7 +1534,7 @@ namespace csscript
             compilerParams.GenerateInMemory = false;
             compilerParams.WarningLevel = (options.hideCompilerWarnings ? -1 : 4);
 
-            string[] filesToCompile = parser.FilesToCompile.RemoveDuplicates();
+            string[] filesToCompile = parser.FilesToCompile.Distinct();
             PrecompilationContext context = CSSUtils.Precompile(scriptFileName, filesToCompile, options);
 
             if (context.NewIncludes.Count > 0)

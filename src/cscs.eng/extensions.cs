@@ -370,9 +370,9 @@ public static class CoreExtensions
                    .Distinct().ToArray();
     }
 
-    public static string[] RemoveDuplicates(this string[] list)
+    public static string[] Distinct(this string[] list)
     {
-        return list.Distinct().ToArray();
+        return Enumerable.Distinct(list).ToArray();
     }
 
     public static string[] ConcatWith(this string[] array1, IEnumerable<string> array2)
@@ -445,6 +445,14 @@ namespace csscript
         }
 
 #endif
+
+        public static IEnumerable<TSource> AddItem<TSource>(this IEnumerable<TSource> items, TSource item)
+        {
+            return items.Concat(new[] { item });
+        }
+
+        public static string JoinBy(this IEnumerable<string> values, string separator)
+            => string.Join(separator, values);
 
         /// <summary>
         /// Creates instance of a class from underlying assembly.

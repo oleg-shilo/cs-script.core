@@ -36,7 +36,7 @@ namespace CSScripting.CodeDom
 
         public CompilerResults CompileAssemblyFromFile(CompilerParameters options, string fileName)
         {
-            throw new NotImplementedException();
+            return CompileAssemblyFromFileBatch(options, new[] { fileName });
         }
 
         public CompilerResults CompileAssemblyFromSourceBatch(CompilerParameters options, string[] sources)

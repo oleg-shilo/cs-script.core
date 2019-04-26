@@ -1368,7 +1368,7 @@ partial class dbg
 
         delegate bool CompileMethod(ref string content, string scriptFile, bool IsPrimaryScript, Hashtable context);
 
-        delegate bool CompileMethodDynamic(object context);
+        delegate bool CompileMethodDynamic(dynamic context);
 
         internal static PrecompilationContext Precompile(string scriptFile, string[] filesToCompile, ExecuteOptions options)
         {
@@ -1412,14 +1412,38 @@ partial class dbg
                                 CSSUtils.VerbosePrint("", options);
                             }
 
-                            MethodInfo method = precompiler.GetType().GetMethod("Compile");
+                            var methods = precompiler.GetType()
+                                                     .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance)
+                                                     .Where(x => x.Name == "Compile");
 
-                            CompileMethod compile = (CompileMethod)Delegate.CreateDelegate(typeof(CompileMethod), method);
+                            MethodInfo method_dynamic = methods.FirstOrDefault(x => x.GetParameters().Count() == 1);
+                            MethodInfo method = methods.FirstOrDefault(x => x.GetParameters().Count() == 4);
 
-                            bool result = compile(ref content,
-                                                  filesToCompile[i],
-                                                  filesToCompile[i] == scriptFile,
-                                                  contextData);
+                            bool result;
+
+                            using (SimpleAsmProbing.For(options.searchDirs))
+                            {
+                                if (method_dynamic != null)
+                                {
+                                    object compiler = null;
+                                    if (!method_dynamic.IsStatic)
+                                        compiler = Activator.CreateInstance(method_dynamic.DeclaringType);
+
+                                    result = (bool)method_dynamic.Invoke(compiler, new object[] { context });
+
+                                    if (result)
+                                        content = context.Content;
+                                }
+                                else
+                                {
+                                    var compile = (CompileMethod)Delegate.CreateDelegate(typeof(CompileMethod), method);
+
+                                    result = compile(ref content,
+                                                         filesToCompile[i],
+                                                         filesToCompile[i] == scriptFile,
+                                                         contextData);
+                                }
+                            }
 
                             if (result)
                             {
@@ -1446,6 +1470,19 @@ partial class dbg
 
         internal const string noDefaultPrecompilerSwitch = "nodefault";
 
+        static Assembly Assembly_LoadFrom(string file)
+        {
+            string dbg = Utils.DbgFileOf(file);
+
+            if (File.Exists(dbg))
+            {
+                return Assembly.Load(File.ReadAllBytes(file),
+                                     File.ReadAllBytes(dbg));
+            }
+            else
+                return Assembly.LoadFrom(file);
+        }
+
         internal static Dictionary<string, List<object>> LoadPrecompilers(ExecuteOptions options)
         {
             Dictionary<string, List<object>> retval = new Dictionary<string, List<object>>();
@@ -1466,7 +1503,7 @@ partial class dbg
                     retval.Add(Assembly.GetExecutingAssembly().Location, new List<object>() { new AutoclassPrecompiler() });
             }
 
-            foreach (string precompiler in options.preCompilers.Split(new char[] { ',' }).RemoveDuplicates())
+            foreach (string precompiler in options.preCompilers.Split(new char[] { ',' }).Distinct())
             {
                 string precompilerFile = precompiler.Trim();
 
@@ -1480,25 +1517,47 @@ partial class dbg
                     Assembly asm;
 
                     if (sourceFile.EndsWith(".dll", true, CultureInfo.InvariantCulture))
-                        asm = Assembly.LoadFrom(sourceFile);
+                    {
+                        string dbg = Utils.DbgFileOf(sourceFile);
+
+                        if (File.Exists(dbg))
+                        {
+                            byte[] data = File.ReadAllBytes(sourceFile);
+                            byte[] dbgData = File.ReadAllBytes(dbg);
+                            asm = Assembly.Load(data, dbgData);
+                        }
+                        else
+                            asm = Assembly.LoadFrom(sourceFile);
+                    }
                     else
                         asm = CompilePrecompilerScript(sourceFile, options.searchDirs);
 
+                    // var asmExtension = Runtime.IsMono ? ".dll" : ".compiled";
+                    // string precompilerAsm = Path.Combine(CSExecutor.GetCacheDirectory(sourceFile), Path.GetFileName(sourceFile) + asmExtension);
+
                     object precompilerObj = null;
 
-                    foreach (Module m in asm.GetModules())
-                    {
-                        if (precompilerObj != null)
-                            break;
+                    // var executor = new LocalExecutor(ExecuteOptions.options.searchDirs);
 
-                        foreach (Type t in m.GetTypes())
+                    // var executor = new AssemblyExecutor(precompilerAsm, "AsmExecution");
+                    // executor.Execute("".Split('|'));
+
+                    using (SimpleAsmProbing.For(options.searchDirs))
+                    {
+                        foreach (Module m in asm.GetModules())
                         {
-                            if (t.Name.EndsWith("Precompiler"))
-                            {
-                                precompilerObj = asm.CreateInstance(t.Name);
-                                if (precompilerObj == null)
-                                    throw new Exception("Precompiler " + sourceFile + " cannot be loaded. CreateInstance returned null.");
+                            if (precompilerObj != null)
                                 break;
+
+                            foreach (Type t in m.GetTypes())
+                            {
+                                if (t.Name.EndsWith("Precompiler"))
+                                {
+                                    precompilerObj = asm.CreateInstance(t.Name);
+                                    if (precompilerObj == null)
+                                        throw new Exception("Precompiler " + sourceFile + " cannot be loaded. CreateInstance returned null.");
+                                    break;
+                                }
                             }
                         }
                     }
@@ -1624,7 +1683,7 @@ partial class dbg
                     if (File.Exists(precompilerAsm))
                     {
                         if (File.GetLastWriteTimeUtc(sourceFile) <= File.GetLastWriteTimeUtc(precompilerAsm))
-                            return Assembly.LoadFrom(precompilerAsm);
+                            return Assembly_LoadFrom(precompilerAsm);
 
                         Utils.FileDelete(precompilerAsm, true);
                     }
@@ -1686,6 +1745,8 @@ partial class dbg
                         compilerParams.ReferencedAssemblies.Add(asm);
                     }
 
+                    compilerParams.IncludeDebugInformation = true;
+
                     var result = CSharpCompiler.Create().CompileAssemblyFromFile(compilerParams, sourceFile);
 
                     if (result.Errors.Any())
@@ -1696,7 +1757,7 @@ partial class dbg
 
                     File.SetLastWriteTimeUtc(precompilerAsm, File.GetLastWriteTimeUtc(sourceFile));
 
-                    Assembly retval = Assembly.LoadFrom(precompilerAsm);
+                    Assembly retval = Assembly_LoadFrom(precompilerAsm);
 
                     return retval;
                 }
@@ -2321,6 +2382,137 @@ partial class dbg
                 }
 
             return result.ToString().TrimEnd() + Environment.NewLine;
+        }
+    }
+
+    /// <summary>
+    /// Class for automated assembly probing. It implments extremely simple ('optimistic')
+    /// probing algorithm. At runtime it attempts to resolve the assemblies via AppDomain.Assembly resolve
+    /// event by looking up the assembly files in the user dfined list of probing direcctories.
+    /// The algorithm relies on the simple relationship between assembluy name and assembly file name:
+    ///  &lt;assembly file&gt; = &lt;asm name&gt; + ".dll"
+    /// </summary>
+    ///<example>The following is an example of automated assembly probing.
+    ///<code>
+    /// using (SimpleAsmProbing.For(@"E:\Dev\Libs", @"E:\Dev\Packages"))
+    /// {
+    ///     dynamic script = CSScript.Load(script_file)
+    ///                              .CreateObject("Script");
+    ///     script.Print();
+    /// }
+    /// </code>
+    /// </example>
+    /// <seealso cref="System.IDisposable" />
+    public class SimpleAsmProbing : IDisposable
+    {
+        /// <summary>
+        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        /// <summary>
+        /// Releases unmanaged and - optionally - managed resources.
+        /// </summary>
+        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
+        protected virtual void Dispose(bool disposing)
+        {
+            Uninit();
+        }
+
+        /// <summary>
+        /// Finalizes an instance of the <see cref="SimpleAsmProbing"/> class.
+        /// </summary>
+        ~SimpleAsmProbing()
+        {
+            Dispose(false);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SimpleAsmProbing"/> class.
+        /// </summary>
+        public SimpleAsmProbing() { }
+
+        /// <summary>
+        /// Creates and initializes a new instance of the <see cref="SimpleAsmProbing"/> class.
+        /// </summary>
+        /// <param name="probingDirs">The probing dirs.</param>
+        /// <returns></returns>
+        public static SimpleAsmProbing For(params string[] probingDirs)
+        {
+            return new SimpleAsmProbing(probingDirs);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SimpleAsmProbing"/> class.
+        /// </summary>
+        /// <param name="probingDirs">The probing dirs.</param>
+        public SimpleAsmProbing(params string[] probingDirs)
+        {
+            Init(probingDirs);
+        }
+
+        static bool initialized = false;
+        static string[] probingDirs = new string[0];
+
+        /// <summary>
+        /// Sets probing dirs and subscribes to the <see cref="System.AppDomain.AssemblyResolve"/> event.
+        /// </summary>
+        /// <param name="probingDirs">The probing dirs.</param>
+        public void Init(params string[] probingDirs)
+        {
+            SimpleAsmProbing.probingDirs = probingDirs;
+            if (!initialized)
+            {
+                initialized = true;
+                AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+            }
+        }
+
+        /// <summary>
+        /// Unsubscribes to the <see cref="System.AppDomain.AssemblyResolve"/> event.
+        /// </summary>
+        public void Uninit()
+        {
+            if (initialized)
+            {
+                initialized = false;
+                AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomain_AssemblyResolve;
+            }
+        }
+
+        static Dictionary<string, Assembly> cache = new Dictionary<string, Assembly>();
+
+        Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            var shortName = args.Name.Split(',').First().Trim();
+
+            if (cache.ContainsKey(shortName))
+                return cache[shortName];
+
+            cache[shortName] = null; // this will prevent reentrance an cercular calls
+
+            foreach (string dir in probingDirs)
+            {
+                try
+                {
+                    string file = Path.Combine(dir, args.Name.Split(',').First().Trim() + ".dll");
+                    if (File.Exists(file))
+                        return (cache[shortName] = Assembly.LoadFrom(file));
+                }
+                catch { }
+            }
+
+            try
+            {
+                return (cache[shortName] = Assembly.LoadFrom(shortName));
+            }
+            catch
+            {
+            }
+            return null;
         }
     }
 }

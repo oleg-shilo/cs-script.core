@@ -12,7 +12,7 @@ namespace csscript
     /// <para>It is used to pass an input information from the script engine to the <c>precompiler</c> instance as well as to pass back
     /// to the script engine some output information (e.g. added referenced assemblies)</para> .
     /// </summary>
-    internal class PrecompilationContext
+    public class PrecompilationContext
     {
         ///// <summary>
         ///// Full path of the script being passed for pre-compilation.
@@ -54,6 +54,10 @@ namespace csscript
         /// Collection of the process assembly and script probing directories.
         /// </summary>
         public string[] SearchDirs = new string[0];
+
+        public string Content;
+        public string scriptFile;
+        public bool IsPrimaryScript;
     }
 
     internal class DefaultPrecompiler
@@ -388,7 +392,7 @@ namespace csscript
 
                                     // point to the next line
                                     entryPointDefinition += "///CS-Script auto-class generation" + Environment.NewLine +
-                                                            "#line " + (lineCount + 1) + " \"" + scriptFile + "\"";
+                                                             "#line " + (lineCount + 1) + " \"" + scriptFile + "\"";
                                     // if (injectBreakPoint)
                                     //     insertBreakpointAtLine = lineCount + 1;
                                     result.BodyInjectedLine = lineCount;
@@ -407,7 +411,7 @@ namespace csscript
                                     }
 
                                     string entryPointDefinition = "///CS-Script auto-class generation" + Environment.NewLine +
-                                                                  "#line " + (lineCount + 1) + " \"" + scriptFile + "\"";
+                                               "#line " + (lineCount + 1) + " \"" + scriptFile + "\"";
 
                                     result.BodyInjectedLine = lineCount;
                                     result.BodyInjectedLineCount = 2;

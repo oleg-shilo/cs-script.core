@@ -238,7 +238,7 @@ namespace csscript
                     // Required because FileParser.ResolveFiles stops searching when it finds.
                     probinghDirs = Path.GetDirectoryName(parentScript)
                                        .ConcatWith(probinghDirs)
-                                       .RemoveDuplicates();
+                                       .Distinct();
 
                     foreach (string file in FileParser.ResolveFiles(filePattern, probinghDirs, false))
                     {

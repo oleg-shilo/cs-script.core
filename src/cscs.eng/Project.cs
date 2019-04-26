@@ -1,9 +1,9 @@
-using CSScriptLibrary;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using CSScriptLibrary;
 
 namespace csscript
 {
@@ -77,19 +77,23 @@ namespace csscript
 
             searchDirs.AddRange(defaultSearchDirs);
 
-            ScriptParser parser = null;
-            string currDir = Environment.CurrentDirectory;
-            try
+            ScriptParser parser;
+            using (var currDir = new CurrentDirGuard())
             {
                 Environment.CurrentDirectory = Path.GetDirectoryName(script);
                 parser = new ScriptParser(script, searchDirs.ToArray(), false);
             }
-            finally
-            {
-                Environment.CurrentDirectory = currDir;
-            }
 
-            //search dirs could be also defined in the script
+            CSExecutor.options.preCompilers = parser.Precompilers
+                                                    .Select(x => FileParser.ResolveFile(x, CSExecutor.options.searchDirs))
+                                                    .AddItem(CSExecutor.options.preCompilers)
+                                                    .JoinBy(",");
+
+            PrecompilationContext precompiling = CSSUtils.Precompile(script,
+                                                                     parser.FilesToCompile.Distinct(),
+                                                                     CSExecutor.options);
+
+            // search dirs could be also defined in the script
             var probingDirs = searchDirs.Concat(parser.SearchDirs)
                                         .Where(x => !string.IsNullOrEmpty(x))
                                         .Distinct()
@@ -104,10 +108,16 @@ namespace csscript
             //}
 
             project.Files = sources.Distinct().Select<string, string>(Utils.PathNormaliseSeparators).ToArray();
+
             project.Refs = parser.AgregateReferences(probingDirs, defaultRefAsms, defaultNamespaces)
                                  .Map(Utils.PathNormaliseSeparators, Utils.EnsureAsmExtension)
                                  .ToArray();
+
+            project.Refs = project.Refs.ConcatWith(precompiling.NewReferences);
+            project.Files = project.Refs.ConcatWith(precompiling.NewIncludes);
+
             project.SearchDirs = probingDirs.Select<string, string>(Utils.PathNormaliseSeparators).ToArray();
+
             return project;
         }
 

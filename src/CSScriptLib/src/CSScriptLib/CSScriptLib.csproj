@@ -46,6 +46,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\cscs.eng\extensions.cs" Link="extensions.cs" />
+    <Compile Include="..\..\..\cscs.eng\fileparser.cs" Link="fileparser.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.10.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" Version="2.10.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />

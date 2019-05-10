@@ -385,6 +385,16 @@ public static class CoreExtensions
         return array.Concat(new[] { item }).ToArray();
     }
 
+    public static string GetFileName(this string path) => Path.GetFileName(path);
+
+    public static string GetFullPath(this string path) => Path.GetFullPath(path);
+
+    public static string PathJoin(this string path, params object[] parts)
+    {
+        var allParts = new[] { path ?? "" }.Concat(parts.Select(x => x?.ToString() ?? ""));
+        return Path.Combine(allParts.ToArray());
+    }
+
     public static string[] ConcatWith(this string item, IEnumerable<string> array)
     {
         return new[] { item }.Concat(array).ToArray();

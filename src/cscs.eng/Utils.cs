@@ -296,12 +296,6 @@ namespace csscript
             return Environment.GetFolderPath(folder);
         }
 
-        public static string PathJoin(this string path, params object[] parts)
-        {
-            var allParts = new[] { path ?? "" }.Concat(parts.Select(x => x?.ToString() ?? ""));
-            return Path.Combine(allParts.ToArray());
-        }
-
         public static string[] PathGetDirs(this string path, string mask)
         {
             return Directory.GetDirectories(path, mask);
@@ -311,10 +305,6 @@ namespace csscript
         {
             return Directory.GetFiles(path, mask);
         }
-
-        public static string GetFileName(this string path) => Path.GetFileName(path);
-
-        public static string GetFullPath(this string path) => Path.GetFullPath(path);
 
         public static string GetFileNameWithoutExtension(this string path) => Path.GetFileNameWithoutExtension(path);
 

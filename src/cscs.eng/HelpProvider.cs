@@ -418,6 +418,13 @@ namespace csscript
                          "**************************************",
                          " ",
                          "Engine directives:",
+                         "{$directives}",
+                         section_sep, //------------------------------------
+                         "Engine directives can be controlled (enabled/disabled) with compiler conditional symbols " +
+                         "and environment variables via the inline `#if` syntax:",
+                         "  //css_include #if DEBUG debug_utils.cs",
+                         "  //css_dir #if (DEBUG) .\\bin\\Debug",
+                         "  //css_reference #if PRODUCTION_PC d:\\temp\\build\\certificates.dll",
                          section_sep, //------------------------------------
                          "//css_include <file>;",
                          " ",
@@ -545,6 +552,8 @@ namespace csscript
                          "options - options string.",
                          " ",
                          "This directive is used to pass compiler options string directly to the language specific CLR compiler.",
+                         "Note: charecter `;` in compiler options interferes with `//css_...` directives so try to avoid it. Thus " +
+                         "use `-d:DEBUG -d:NET4` instead of `-d:DEBUG;NET4`",
                          " Example: //css_co /d:TRACE pass /d:TRACE option to C# compiler",
                          "          //css_co /platform:x86 to produce Win32 executable\n",
                          section_sep, //------------------------------------
@@ -697,12 +706,31 @@ namespace csscript
                                                     "These directive is used to execute script from a surrogate host process. The script engine application (cscs.exe or csws.exe) launches the script",
                                                     "execution as a separate process of the specified CLR version and CPU architecture.",
                                                     section_sep))
+                                       .Replace("{$css_init}",
+                                        fromLines("//css_init CoInitializeSecurity[(<level>, <capabilities>)];",
+                                            " ",
+                                                "level - dwImpLevel parameter of CoInitializeSecurity function (see MSDN for sdetails)",
+                                                "capabilities - dwCapabilities parameter of CoInitializeSecurity function(see MSDN for sdetails) ",
+                                                " ",
+                                                "This is a directive for special COM client scripting scenario when you may need to call ",
+                                                "CoInitializeSecurity. The problem is that this call must be done before any COM-server invoke calls. ",
+                                                "Unfortunately when the script is loaded for the execution it is already too late. Thus ",
+                                                "CoInitializeSecurity must be invoked from the script engine even befor the script is loaded.",
+                                                section_sep))
                                        .Replace("$(csscript_roslyn)", "");
             else
                 syntaxHelp = syntaxHelp.Replace("{$css_host}", "")
-                                       .Replace("$(csscript_roslyn)", fromLines(
-                                           " 'CSSCRIPT_ROSLYN' - a shadow copy of Roslyn compiler files. ",
-                                           "It's created during setup in order to avoid locking deployment directories because of the running Roslyn binaries."));
+                                                .Replace("{$css_init}", "")
+                                                .Replace("$(csscript_roslyn)", fromLines(
+                                                    " 'CSSCRIPT_ROSLYN' - a shadow copy of Roslyn compiler files. ",
+                                                        "It's created during setup in order to avoid locking deployment directories because of the running Roslyn binaries."));
+
+            var directives = syntaxHelp.Split('\n')
+                                       .Where(x => x.StartsWith("//css_"))
+                                       .Select(x => "- " + x.TrimEnd())
+                                       .JoinBy(Environment.NewLine);
+
+            syntaxHelp = syntaxHelp.Replace("{$directives}", directives);
 
             #endregion SyntaxHelp
         }
@@ -979,6 +1007,7 @@ namespace csscript
 
         public static string BuildPrecompilerSampleCode()
         {
+            // bool Compile(dynamic context)
             StringBuilder builder = new StringBuilder();
 
             builder.Append("using System;" + Environment.NewLine);
@@ -987,6 +1016,9 @@ namespace csscript
             builder.Append(Environment.NewLine);
             builder.Append("public class Sample_Precompiler //precompiler class name must end with 'Precompiler'" + Environment.NewLine);
             builder.Append("{" + Environment.NewLine);
+            builder.Append("    // possible signatures" + Environment.NewLine);
+            builder.Append("    // bool Compile(dynamic context)" + Environment.NewLine);
+            builder.Append("    // bool Compile(csscript.PrecompilationContext context)" + Environment.NewLine);
             builder.Append("    public static bool Compile(ref string scriptCode, string scriptFile, bool isPrimaryScript, Hashtable context)" + Environment.NewLine);
             builder.Append("    {" + Environment.NewLine);
             builder.Append("        //The context Hashtable items are:" + Environment.NewLine);

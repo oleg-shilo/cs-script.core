@@ -195,6 +195,9 @@ namespace csscript
         /// </summary>
         public class ImportInfo
         {
+            // create wrong output
+            // -proj  -dbg "C:\Users\oleg.shilo\Documents\C# Scripts\New Script11\New Script11.cs"
+
             /// <summary>
             /// <para> When importing dependency scripts with '//css_include' or '//css_import' you can use relative path.
             /// Resolving relative path is typically done with respect to the <c>current directory</c>.
@@ -526,6 +529,14 @@ namespace csscript
             foreach (string statement in GetRawStatements("//css_autoclass", endCodePos))
                 autoClassMode = statement;
 
+            // analyse compiler options
+            foreach (string statement in GetRawStatements("//css_co", endCodePos))
+            {
+                var directive = statement.NormaliseAsDirective();
+                directive.TunnelConditionalSymbolsToEnvironmentVariables();
+                compilerOptions.Add(directive);
+            }
+
             //analyse 'pre' and 'post' script commands
             foreach (string statement in GetRawStatements("//css_pre", endCodePos))
                 cmdScripts.Add(new CmdScriptInfo(statement.Trim(), true, file));
@@ -573,10 +584,6 @@ namespace csscript
 
             foreach (string statement in GetRawStatements("//css_pc", endCodePos))
                 precompilers.Add(statement.NormaliseAsDirectiveOf(file));
-
-            //analyse compiler options
-            foreach (string statement in GetRawStatements("//css_co", endCodePos))
-                compilerOptions.Add(statement.NormaliseAsDirective());
 
             if (Runtime.IsWin)
                 foreach (string statement in GetRawStatements("//css_host", endCodePos))
@@ -971,7 +978,30 @@ namespace csscript
                 }
                 pos = codeToAnalyse.IndexOf(pattern, pos + 1);
             }
-            return retval.ToArray();
+            return retval
+                .Select(ProcessConditionalSymbols)
+                .Where(x => x.IsNotEmpty())
+                .ToArray();
+        }
+
+        string ProcessConditionalSymbols(string text)
+        {
+            if (text.StartsWith("#if"))
+            {
+                var tokens = text.Split(Utils.LineWhiteSpaceCharacters, 3);
+                if (tokens.Count() == 3)
+                {
+                    if (tokens[0] == "#if")
+                    {
+                        var symbolName = tokens[1].TrimSingle('(', ')');
+                        if (Environment.GetEnvironmentVariable(symbolName) != null)
+                            return tokens[2];
+                        else
+                            return "";
+                    }
+                }
+            }
+            return text;
         }
 
         int[] AllRawIndexOf(string pattern, int startIndex, int endIndex) //all raw matches

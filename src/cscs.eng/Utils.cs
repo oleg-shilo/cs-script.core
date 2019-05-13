@@ -105,6 +105,40 @@ namespace csscript
 
     internal static class Utils
     {
+        public static char[] LineWhiteSpaceCharacters = " \t\v".ToCharArray();
+        public static char[] WhiteSpaceCharacters = " \t\r\n\v".ToCharArray();
+
+        public static void TunnelConditionalSymbolsToEnvironmentVariables(this string directive)
+        {
+            // "/define:DEBUG"
+            // "/d:DEBUG"
+            // "-define:DEBUG"
+            // "-d:DEBUG"
+            // "-d:DEBUG;NET4 -d:PRODUCTION"
+
+            // Need to handle both `-` and  `/`prefixes as older compilers use
+            // `/`
+
+            // `;` in compiler options interferes with `//css_...` directives so try to avoid it.
+            // Use `-d:DEBUG -d:NET4` instead of `-d:DEBUG;NET4`
+
+            var symbols = directive.Split(' ')
+                                   .Where(x => x.IsNotEmpty() &&
+                                               (x.StartsWith("-d:") ||
+                                                x.StartsWith("/d:") ||
+                                                x.StartsWith("-define:") ||
+                                                x.StartsWith("/define:")))
+                                   .Select(x => x.Split(':').Last())
+                                   .SelectMany(x => x.Split(';'))
+                                   .ToArray();
+
+            foreach (string item in symbols)
+            {
+                if (Environment.GetEnvironmentVariable(item) == null)
+                    Environment.SetEnvironmentVariable(item, "true");
+            }
+        }
+
         public static Thread StartMonitor(StreamReader stream, Action<string> action = null)
         {
             var thread = new Thread(x =>
@@ -1256,6 +1290,8 @@ partial class dbg
                     {
                         if (argValue != null)
                         {
+                            argValue.TunnelConditionalSymbolsToEnvironmentVariables();
+
                             //this one is accumulative
                             if (!options.compilerOptions.Contains(argValue))
                                 options.compilerOptions += " " + argValue;
@@ -1272,6 +1308,7 @@ partial class dbg
                     }
                     else if (Args.Same(arg, AppArgs.dbg, AppArgs.d)) // -dbg -d
                     {
+                        Environment.SetEnvironmentVariable("DEBUG", "true");
                         options.DBG = true;
                     }
                     else if (Args.ParseValuedArg(arg, AppArgs.l, out argValue)) // -l[:<0|1>]

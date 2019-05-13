@@ -114,7 +114,7 @@ namespace csscript
                                  .ToArray();
 
             project.Refs = project.Refs.ConcatWith(precompiling.NewReferences);
-            project.Files = project.Refs.ConcatWith(precompiling.NewIncludes);
+            project.Files = project.Files.ConcatWith(precompiling.NewIncludes);
 
             project.SearchDirs = probingDirs.Select<string, string>(Utils.PathNormaliseSeparators).ToArray();
 

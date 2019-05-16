@@ -45,8 +45,6 @@ using System.Threading;
 using CSScripting.CodeDom;
 using CSScriptLibrary;
 
-// using System.Runtime.Remoting.Lifetime;
-
 namespace csscript
 {
     internal class CurrentDirGuard : IDisposable
@@ -1452,6 +1450,8 @@ partial class dbg
                             {
                                 if (method_dynamic != null)
                                 {
+                                    // bool Compile(dynamic context)
+                                    // bool Compile(PrecompilationContext context)
                                     object compiler = null;
                                     if (!method_dynamic.IsStatic)
                                         compiler = Activator.CreateInstance(method_dynamic.DeclaringType);
@@ -1463,6 +1463,7 @@ partial class dbg
                                 }
                                 else
                                 {
+                                    // public static bool Compile(ref string scriptCode, string scriptFile, bool isPrimaryScript, Hashtable context)
                                     var compile = (CompileMethod)Delegate.CreateDelegate(typeof(CompileMethod), method);
 
                                     result = compile(ref content,

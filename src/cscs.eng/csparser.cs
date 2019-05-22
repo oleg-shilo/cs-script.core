@@ -229,7 +229,7 @@ namespace csscript
                 {
                     //e.g. resolve ..\subdir\*.cs into multiple concrete imports
                     string statementToParse = statement.Replace("($this.name)", Path.GetFileNameWithoutExtension(parentScript));
-                    statementToParse = statementToParse.Replace("\t", "").Trim();
+                    statementToParse = statementToParse.Replace("\t", "").Trim().Trim('"');
 
                     string[] parts = CSharpParser.SplitByDelimiter(statementToParse, DirectiveDelimiters);
 

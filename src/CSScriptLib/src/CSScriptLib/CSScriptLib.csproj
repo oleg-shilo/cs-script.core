@@ -13,21 +13,20 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>-->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.0.5.0</Version>
+    <Version>1.1.1.0</Version>
     <Authors>Oleg Shilo</Authors>
     <Description>CS-Script engine Class Library for .NET Core</Description>
-    <Copyright>(C) 2018 Oleg Shilo</Copyright>
+    <Copyright>(C) 2018-2019 Oleg Shilo</Copyright>
     <PackageLicenseUrl>https://github.com/oleg-shilo/cs-script/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/oleg-shilo/cs-script</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/oleg-shilo/cs-script/master/Source/Logo/css_logo.ico</PackageIconUrl>
     <RepositoryUrl>https://github.com/oleg-shilo/cs-script.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>C#, scripting, script, dynamic, .NET. .NET Core</PackageTags>
-    <PackageReleaseNotes>- Updated dependencies to their latest available versions
-</PackageReleaseNotes>
+    <PackageReleaseNotes>- Added support for _gitignore_ syntax in `//css_` directives</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>1.0.4.0</AssemblyVersion>
-    <FileVersion>1.0.4.0</FileVersion>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
 
 </PropertyGroup>
 
@@ -39,6 +38,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>E:\PrivateData\Galos\Projects\CS-Script\GitHub\cs-script\Source\.NET Core\CSScriptLib\src\CSScriptLib\CSScriptLib.xml</DocumentationFile>
+    <DefineConstants>TRACE;class_lib</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

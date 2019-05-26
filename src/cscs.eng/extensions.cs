@@ -80,6 +80,16 @@ public static class CLIExtensions
         yield return str.Substring(nextPiece);
     }
 
+    public static string[] Split(this string str, params string[] separators)
+    {
+        return str.Split(separators, str.Length, StringSplitOptions.None);
+    }
+
+    public static string[] Split(this string str, string[] separators, int count)
+    {
+        return str.Split(separators, count, StringSplitOptions.None);
+    }
+
     public static string[] GetLines(this string str) // too simplistic though adequate
     {
         return str.Replace("\r\n", "\n").Split('\n');

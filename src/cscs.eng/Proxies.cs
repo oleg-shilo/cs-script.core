@@ -69,13 +69,13 @@ namespace CSScripting.CodeDom
         {
             switch (CSExecutor.options.compilerEngine)
             {
-                case "csc":
+                case Directives.compiler_csc:
                     return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
 
-                case "roslyn":
+                case Directives.compiler_roslyn:
                     return RoslynService.CompileAssemblyFromFileBatch_with_roslyn(options, fileNames);
 
-                case "dotnet":
+                case Directives.compiler_dotnet:
                     return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
 
                 default:
@@ -85,13 +85,15 @@ namespace CSScripting.CodeDom
 
         string findCsc()
         {
-            // program_files/dotnet/sdk/<version>/Roslyn/csc.exe
+            // linux ~dotnet/.../3.0.100-preview5-011568/Roslyn/... (cannot find in preview)
+            // win: program_files/dotnet/sdk/<version>/Roslyn/csc.exe
             var dirs = Environment.SpecialFolder.ProgramFiles.GetPath()
                                   .PathJoin(@"dotnet\sdk")
                                   .PathGetDirs("*")
                                   .Where(dir => char.IsDigit(dir.GetFileName()[0]) && !dir.GetFileName().Contains('-')) // 2.0.3-preview
                                   .OrderBy(x => Version.Parse(x.GetFileName()))
-                                  .SelectMany(dir => dir.PathGetDirs("Roslyn"));
+                                  .SelectMany(dir => dir.PathGetDirs("Roslyn"))
+                                  .ToArray();
 
             var csc_exe = dirs.Select(dir => dir.PathJoin("csc.exe"))
                           .LastOrDefault(File.Exists);
@@ -102,6 +104,8 @@ namespace CSScripting.CodeDom
 
         CompilerResults CompileAssemblyFromFileBatch_with_Csc(CompilerParameters options, string[] fileNames)
         {
+            // C:\Program Files\dotnet\sdk\1.1.10\Roslyn\csc.exe
+
             string projectName = fileNames.First().GetFileName();
 
             var engine_dir = this.GetType().Assembly.Location.GetDirName();
@@ -460,7 +464,15 @@ namespace CSScripting.CodeDom
 
         internal void ProcessErrors()
         {
-            var isErrroSection = false;
+            var isErrroSection = true;
+
+            // only dotnet has a distinctive error message that separates "info"
+            // and "error" section. It is particularly important to process onlty
+            // the "error" section as dotnet compiler prints the same errors in
+            // both of these sections.
+            if (CSExecutor.options.compilerEngine == null || CSExecutor.options.compilerEngine == Directives.compiler_dotnet)
+                isErrroSection = false;
+
             // Build succeeded.
             foreach (var line in Output)
             {

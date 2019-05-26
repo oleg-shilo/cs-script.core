@@ -401,13 +401,18 @@ namespace csscript
                         }
                         else
                         {
-                            var sorceFiles = Directory.GetFiles(cacheDir, "*.g.*")
+                            string sourceName(string path) =>
+                                path.GetFileName().Replace(".attr.g", "");
+
+                            var sorceFiles = Directory.GetFiles(cacheDir, "*.attr.g.*")
                                                       .Select(x => new
                                                       {
-                                                          Source = sourceDir.PathJoin(x.GetFileNameWithoutExtension()),
+                                                          Source = sourceDir.PathJoin(sourceName(x)),
                                                           PureName = x.GetFileName().Split('.').First(),
-                                                      });
+                                                      })
+                                                      .ToArray();
 
+                            // jhkjhnk
                             sorceFiles.Where(x => !File.Exists(x.Source))
                                       .ForEach(file => Directory.GetFiles(cacheDir, $"{file.PureName}.*")
                                                                 .ForEach(FileDelete));

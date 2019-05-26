@@ -52,9 +52,7 @@
     <Compile Update="AssemblyExecutor.cs" />
     <Compile Update="AssemblyResolver.cs" />
     <Compile Update="CSExecutionClient.cs" />
-    <Compile Update="csparser.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Update="csparser.cs" />
     <Compile Update="csscript.cs" />
     <Compile Update="dbg.res.cs" />
     <Compile Update="Exceptions.cs" />

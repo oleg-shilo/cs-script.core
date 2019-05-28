@@ -1146,7 +1146,7 @@ namespace csscript
 
         class UniqueAssemblyLocations
         {
-            public static explicit operator string[] (UniqueAssemblyLocations obj)
+            public static explicit operator string[](UniqueAssemblyLocations obj)
             {
                 string[] retval = new string[obj.locations.Count];
                 obj.locations.Values.CopyTo(retval, 0);
@@ -1796,7 +1796,7 @@ namespace csscript
                             CSSUtils.NormaliseFileReference(ref file, ref line);
                         Console.WriteLine("  {0}({1},{2}):{3} {4} {5}", file, line, err.Column, (err.IsWarning ? "warning" : "error"), err.ErrorNumber, err.ErrorText);
                     }
-                    Console.WriteLine("> ----------------" + options);
+                    Console.WriteLine("> ----------------");
                 }
 
                 string symbFileName = Utils.DbgFileOf(assemblyFileName);

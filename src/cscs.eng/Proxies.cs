@@ -69,17 +69,17 @@ namespace CSScripting.CodeDom
         {
             switch (CSExecutor.options.compilerEngine)
             {
-                case Directives.compiler_csc:
-                    return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
-
                 case Directives.compiler_roslyn:
                     return RoslynService.CompileAssemblyFromFileBatch_with_roslyn(options, fileNames);
 
                 case Directives.compiler_dotnet:
                     return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
 
+                case Directives.compiler_csc:
+                    return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
+
                 default:
-                    return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
+                    return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
             }
         }
 
@@ -87,15 +87,26 @@ namespace CSScripting.CodeDom
         {
             // linux ~dotnet/.../3.0.100-preview5-011568/Roslyn/... (cannot find in preview)
             // win: program_files/dotnet/sdk/<version>/Roslyn/csc.exe
-            var dirs = Environment.SpecialFolder.ProgramFiles.GetPath()
-                                  .PathJoin(@"dotnet\sdk")
+            var dotnet_root = "".GetType().Assembly.Location;
+
+            // dotnet_root:"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\2.1.11\System.Private.CoreLib.dll"
+
+            // find first "dotnet" parent dir by trimming till the last "dotnet" token
+            dotnet_root = dotnet_root.Split(Path.DirectorySeparatorChar)
+                                     .Reverse()
+                                     .SkipWhile(x => x != "dotnet")
+                                     .Reverse()
+                                     .JoinBy(Path.DirectorySeparatorChar.ToString());
+
+            var dirs = dotnet_root.PathJoin("sdk")
                                   .PathGetDirs("*")
-                                  .Where(dir => char.IsDigit(dir.GetFileName()[0]) && !dir.GetFileName().Contains('-')) // 2.0.3-preview
-                                  .OrderBy(x => Version.Parse(x.GetFileName()))
+                                  .Where(dir => char.IsDigit(dir.GetFileName()[0]))
+                                  .Where(dir => !dir.GetFileName().Contains('-')) // 2.0.3-preview
+                                  .OrderBy(x => Version.Parse(x.GetFileName().Split('-').First()))
                                   .SelectMany(dir => dir.PathGetDirs("Roslyn"))
                                   .ToArray();
 
-            var csc_exe = dirs.Select(dir => dir.PathJoin("csc.exe"))
+            var csc_exe = dirs.Select(dir => dir.PathJoin("bincore", "csc.dll"))
                           .LastOrDefault(File.Exists);
 
             // C:\Program Files\dotnet\sdk\2.0.3\Roslyn";
@@ -104,7 +115,7 @@ namespace CSScripting.CodeDom
 
         CompilerResults CompileAssemblyFromFileBatch_with_Csc(CompilerParameters options, string[] fileNames)
         {
-            // C:\Program Files\dotnet\sdk\1.1.10\Roslyn\csc.exe
+            // C:\Program Files\dotnet\sdk\1.1.10\Roslyn\bincore\csc.dll
 
             string projectName = fileNames.First().GetFileName();
 
@@ -158,6 +169,7 @@ namespace CSScripting.CodeDom
             var csc_exe = findCsc();
 
             var gac = typeof(string).Assembly.Location.GetDirName();
+            // var gac = @"C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.0.0\ref\netcoreapp2.0";
 
             var refs_args = "";
             var source_args = "";
@@ -190,7 +202,7 @@ namespace CSScripting.CodeDom
             Profiler.get("compiler").Stop();
 
             if (CSExecutor.options.verbose)
-                Console.WriteLine("    csc.exe: " + Profiler.get("compiler").Elapsed);
+                Console.WriteLine("    csc.dll: " + Profiler.get("compiler").Elapsed);
 
             result.ProcessErrors();
 

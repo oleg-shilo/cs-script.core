@@ -4,14 +4,16 @@ using System.Linq;
 using System.Reflection;
 using csscript;
 using CSScriptLibrary;
+using Mono.Reflection;
 using Xunit;
+using static System.Reflection.BindingFlags;
 
 /// <summary>
 /// "!temp.cs" - Git: exclude 'temp.cs'
-/// "!" option does not work for cs-script as git uses a state machine for directives and efectively combines
+/// "!" option does not work for cs-script as git uses a state machine for directives and effectively combines
 /// them all.
-/// While cs-script provesses every directive inividually and completely. Meaning that it is
-/// impossible to specify in a single //css_ directive something like "incude all '.cs' except temp.cs".
+/// While cs-script provides every directive individually and completely. Meaning that it is
+/// impossible to specify in a single //css_ directive something like "include all '.cs' except temp.cs".
 /// </summary>
 class TestFolder
 {

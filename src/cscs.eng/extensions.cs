@@ -192,6 +192,10 @@ public static class SocketExtensions
     }
 }
 
+class PotentiallyDeadCodeAttribute : Attribute
+{
+}
+
 static class Serialization
 {
     public static T Deserialize<T>(this string data)

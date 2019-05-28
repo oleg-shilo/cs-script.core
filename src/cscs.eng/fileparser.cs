@@ -137,20 +137,16 @@ namespace CSScriptLibrary
 
 #endif
 
-        public FileParser()
-        {
-        }
-
         public FileParser(string fileName, ParsingParams prams, bool process, bool imported, string[] searchDirs, bool throwOnError)
         {
             if (searchDirs == null)
                 searchDirs = new string[0];
 
             FileParser._throwOnError = throwOnError;
-            this.imported = imported;
+            this.Imported = imported;
             this.prams = prams;
             this.fileName = ResolveFile(fileName, searchDirs);
-            this.searchDirs = searchDirs.ConcatWith(Path.GetDirectoryName(this.fileName))
+            this.SearchDirs = searchDirs.ConcatWith(Path.GetDirectoryName(this.fileName))
                                         .RemovePathDuplicates();
             if (process)
                 ProcessFile();
@@ -161,62 +157,56 @@ namespace CSScriptLibrary
 
         public string FileToCompile
         {
-            get { return imported ? fileNameImported : fileName; }
+            get => Imported ? fileNameImported : fileName;
         }
 
-        public string[] SearchDirs
-        {
-            get { return searchDirs; }
-        }
+        public string[] SearchDirs { get; private set; }
 
-        public bool Imported
-        {
-            get { return imported; }
-        }
+        public bool Imported { get; private set; } = false;
 
         public string[] ReferencedNamespaces
         {
-            get { return parser.RefNamespaces.Except(parser.IgnoreNamespaces).ToArray(); }
+            get => parser.RefNamespaces.Except(parser.IgnoreNamespaces).ToArray();
         }
 
         public string[] IgnoreNamespaces
         {
-            get { return parser.IgnoreNamespaces; }
+            get => parser.IgnoreNamespaces;
         }
 
         public string[] Precompilers
         {
-            get { return parser.Precompilers; }
+            get => parser.Precompilers;
         }
 
         public string[] ReferencedAssemblies
         {
-            get { return parser.RefAssemblies; }
+            get => parser.RefAssemblies;
         }
 
         public string[] Packages
         {
-            get { return parser.NuGets; }
+            get => parser.NuGets;
         }
 
         public string[] ExtraSearchDirs
         {
-            get { return parser.ExtraSearchDirs; }
+            get => parser.ExtraSearchDirs;
         }
 
         public string[] ReferencedResources
         {
-            get { return parser.ResFiles; }
+            get => parser.ResFiles;
         }
 
         public string[] CompilerOptions
         {
-            get { return parser.CompilerOptions; }
+            get => parser.CompilerOptions;
         }
 
         public ScriptInfo[] ReferencedScripts
         {
-            get { return referencedScripts.ToArray(); }
+            get => referencedScripts.ToArray();
         }
 
         public void ProcessFile()
@@ -227,7 +217,7 @@ namespace CSScriptLibrary
             referencedNamespaces.Clear();
             referencedResources.Clear();
 
-            this.parser = new CSharpParser(fileName, true, null, this.searchDirs);
+            this.parser = new CSharpParser(fileName, true, null, this.SearchDirs);
 
             foreach (CSharpParser.ImportInfo info in parser.Imports)
             {
@@ -238,7 +228,7 @@ namespace CSScriptLibrary
             referencedNamespaces.AddRange(parser.RefNamespaces.Except(parser.IgnoreNamespaces));
             referencedResources.AddRange(parser.ResFiles);
 #if !class_lib
-            if (imported)
+            if (Imported)
             {
                 if (prams != null)
                 {
@@ -279,9 +269,6 @@ namespace CSScriptLibrary
         List<string> referencedAssemblies = new List<string>();
         List<string> packages = new List<string>();
         List<string> referencedResources = new List<string>();
-
-        string[] searchDirs;
-        bool imported = false;
 
         /// <summary>
         /// Searches for script file by given script name. Calls ResolveFile(string fileName, string[] extraDirs, bool throwOnError)

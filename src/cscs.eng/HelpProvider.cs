@@ -1068,7 +1068,7 @@ namespace csscript
             builder.Append("   Location:        " + asm_path + "\n");
 
             builder.Append("   Config file:     " + (Settings.DefaultConfigFile.FileExists() ? Settings.DefaultConfigFile : "<none>") + "\n");
-            builder.Append("   Compiler:        ");
+            builder.Append("   Engine:          ");
             var compiler = "<default>";
             if (!string.IsNullOrEmpty(asm_path))
             {
@@ -1089,13 +1089,15 @@ namespace csscript
                             var maxLength = info.Keys.Max(x => x.Length);
                             foreach (var key in info.Keys)
                                 builder.AppendLine("                    " + key + " - \n                        " + info[key]);
-                            // builder.AppendLine("                    " + key.PadRight(maxLength) + " - " + info[key]);
                         }
                     }
                     catch { }
                 }
                 else
+                {
                     builder.Append(compiler + "\n");
+                }
+                builder.Append($"                    {CSScripting.CodeDom.CSharpCompiler.csc_dll}\n");
             }
             else
                 builder.Append(compiler + "\n");
@@ -1103,7 +1105,6 @@ namespace csscript
             builder.Append("   NuGet manager:   " + NuGet.NuGetExeView + "\n");
             builder.Append("   NuGet cache:     " + NuGet.NuGetCacheView + "\n");
 
-            //builder.Append("   Engine:         " + Assembly.GetExecutingAssembly().Location + "\n");
             return builder.ToString();
         }
 

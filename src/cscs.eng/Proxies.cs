@@ -83,34 +83,37 @@ namespace CSScripting.CodeDom
             }
         }
 
-        string findCsc()
+        static public string csc_dll
         {
-            // linux ~dotnet/.../3.0.100-preview5-011568/Roslyn/... (cannot find in preview)
-            // win: program_files/dotnet/sdk/<version>/Roslyn/csc.exe
-            var dotnet_root = "".GetType().Assembly.Location;
+            get
+            {
+                // linux ~dotnet/.../3.0.100-preview5-011568/Roslyn/... (cannot find in preview)
+                // win: program_files/dotnet/sdk/<version>/Roslyn/csc.exe
+                var dotnet_root = "".GetType().Assembly.Location;
 
-            // dotnet_root:"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\2.1.11\System.Private.CoreLib.dll"
+                // dotnet_root:"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\2.1.11\System.Private.CoreLib.dll"
 
-            // find first "dotnet" parent dir by trimming till the last "dotnet" token
-            dotnet_root = dotnet_root.Split(Path.DirectorySeparatorChar)
-                                     .Reverse()
-                                     .SkipWhile(x => x != "dotnet")
-                                     .Reverse()
-                                     .JoinBy(Path.DirectorySeparatorChar.ToString());
+                // find first "dotnet" parent dir by trimming till the last "dotnet" token
+                dotnet_root = dotnet_root.Split(Path.DirectorySeparatorChar)
+                                         .Reverse()
+                                         .SkipWhile(x => x != "dotnet")
+                                         .Reverse()
+                                         .JoinBy(Path.DirectorySeparatorChar.ToString());
 
-            var dirs = dotnet_root.PathJoin("sdk")
-                                  .PathGetDirs("*")
-                                  .Where(dir => char.IsDigit(dir.GetFileName()[0]))
-                                  .Where(dir => !dir.GetFileName().Contains('-')) // 2.0.3-preview
-                                  .OrderBy(x => Version.Parse(x.GetFileName().Split('-').First()))
-                                  .SelectMany(dir => dir.PathGetDirs("Roslyn"))
-                                  .ToArray();
+                var dirs = dotnet_root.PathJoin("sdk")
+                                      .PathGetDirs("*")
+                                      .Where(dir => char.IsDigit(dir.GetFileName()[0]))
+                                      // .Where(dir => !dir.GetFileName().Contains('-')) // 2.0.3-preview
+                                      .OrderBy(x => Version.Parse(x.GetFileName().Split('-').First()))
+                                      .SelectMany(dir => dir.PathGetDirs("Roslyn"))
+                                      .ToArray();
 
-            var csc_exe = dirs.Select(dir => dir.PathJoin("bincore", "csc.dll"))
-                          .LastOrDefault(File.Exists);
+                var csc_exe = dirs.Select(dir => dir.PathJoin("bincore", "csc.dll"))
+                              .LastOrDefault(File.Exists);
 
-            // C:\Program Files\dotnet\sdk\2.0.3\Roslyn";
-            return csc_exe;
+                // C:\Program Files\dotnet\sdk\2.0.3\Roslyn";
+                return csc_exe;
+            }
         }
 
         CompilerResults CompileAssemblyFromFileBatch_with_Csc(CompilerParameters options, string[] fileNames)
@@ -166,8 +169,6 @@ namespace CSScripting.CodeDom
             //----------------------------
 
             //pseudo-gac as .NET core does not support GAC but rather common assemblies.
-            var csc_exe = findCsc();
-
             var gac = typeof(string).Assembly.Location.GetDirName();
             // var gac = @"C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.0.0\ref\netcoreapp2.0";
 
@@ -194,7 +195,7 @@ namespace CSScripting.CodeDom
             foreach (string file in sources)
                 source_args += $"\"{file}\" ";
 
-            var cmd = $@"""{csc_exe}"" {common_args} {refs_args} {source_args} /out:""{assembly}""";
+            var cmd = $@"""{csc_dll}"" {common_args} {refs_args} {source_args} /out:""{assembly}""";
             //----------------------------
 
             Profiler.get("compiler").Start();

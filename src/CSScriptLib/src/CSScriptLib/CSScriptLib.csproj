@@ -46,8 +46,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\cscs.eng\extensions.cs" Link="extensions.cs" />
-    <Compile Include="..\..\..\cscs.eng\fileparser.cs" Link="fileparser.cs" />
+    <Compile Include="..\..\..\cscs\extensions.cs" Link="extensions.cs" />
+    <Compile Include="..\..\..\cscs\fileparser.cs" Link="fileparser.cs" />
   </ItemGroup>
 
   <ItemGroup>

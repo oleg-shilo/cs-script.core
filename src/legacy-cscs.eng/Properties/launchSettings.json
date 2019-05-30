@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "cscs.exe.core": {
-      "commandName": "Project",
-      "commandLineArgs": "-c:0 -dbg \"C:\\Users\\oleg.shilo\\Documents\\C# Scripts\\New Script11\\New Script11.cs\""
-    }
-  }
-}

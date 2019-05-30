@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\cscs.eng\cscs.eng.csproj" />
+    <ProjectReference Include="..\cscs.exe.core\cscs.csproj" />
   </ItemGroup>
 
 </Project>

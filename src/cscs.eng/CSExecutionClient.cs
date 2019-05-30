@@ -98,7 +98,7 @@ namespace csscript
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
-        public static void Main(string[] rawArgs)
+        public static void Run(string[] rawArgs)
         {
             // Debug.Assert(false);
             main(PreprocessArgs(rawArgs));

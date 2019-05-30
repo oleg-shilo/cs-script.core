@@ -17,7 +17,7 @@ namespace cscs.exe.core
             else if (args.Contains("-server") || args.Contains("-server:start"))
                 BuildServer.Start();
             else
-                CSExecutionClient.Main(args);
+                CSExecutionClient.Run(args);
         }
     }
 }

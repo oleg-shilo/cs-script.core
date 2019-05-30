@@ -182,7 +182,10 @@ namespace CSScripting.CodeDom
                 common_args += "/t:library ";
 
             if (options.IncludeDebugInformation)
-                common_args += "/debug+ ";
+                common_args += "/debug:portable ";  // on .net full it is "/debug+"
+
+            if (options.CompilerOptions.IsNotEmpty())
+                common_args += $"{options.CompilerOptions} ";
 
             common_args += "-define:TRACE;NETCORE ";
 

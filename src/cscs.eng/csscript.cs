@@ -1813,41 +1813,43 @@ namespace csscript
                 }
                 else
                 {
-                    if (Runtime.IsMono)
-                    {
-                        // Do not do conversion if option 'pdbonly' was specified on Linux. In this case PDB is portable and Linux an
-                        // Mono debugger can process it.
-                        bool isPdbOnlyMode = compilerParams.CompilerOptions.Contains("debug:pdbonly");
+                    // > dead code
+                    // if (Runtime.IsMono)
+                    // {
+                    //     // Do not do conversion if option 'pdbonly' was specified on Linux. In this case PDB is portable and Linux an
+                    //     // Mono debugger can process it.
+                    //     bool isPdbOnlyMode = compilerParams.CompilerOptions?.Contains("debug:pdbonly") == true;
 
-                        if (Runtime.IsWin || (!File.Exists(symbFileName) && !isPdbOnlyMode))
-                        {
-                            // Convert pdb into mdb
-                            var process = new Process();
-                            try
-                            {
-                                process.StartInfo.Arguments = "\"" + assemblyFileName + "\"";
+                    //     if (Runtime.IsWin || (!File.Exists(symbFileName) && !isPdbOnlyMode))
+                    //     {
+                    //         // Convert pdb into mdb
+                    //         var process = new Process();
+                    //         try
+                    //         {
+                    //             process.StartInfo.Arguments = "\"" + assemblyFileName + "\"";
 
-                                if (Runtime.IsWin)
-                                {
-                                    // hide terminal window
-                                    process.StartInfo.FileName = "pdb2mdb.bat";
-                                    process.StartInfo.UseShellExecute = false;
-                                    process.StartInfo.ErrorDialog = false;
-                                    process.StartInfo.CreateNoWindow = true;
-                                }
-                                else
-                                {
-                                    process.StartInfo.FileName = "pdb2mdb";
-                                }
-                                process.Start();
-                                process.WaitForExit();
-                            }
-                            catch { }
+                    //             if (Runtime.IsWin)
+                    //             {
+                    //                 // hide terminal window
+                    //                 process.StartInfo.FileName = "pdb2mdb.bat";
+                    //                 process.StartInfo.UseShellExecute = false;
+                    //                 process.StartInfo.ErrorDialog = false;
+                    //                 process.StartInfo.CreateNoWindow = true;
+                    //             }
+                    //             else
+                    //             {
+                    //                 process.StartInfo.FileName = "pdb2mdb";
+                    //             }
+                    //             process.Start();
+                    //             process.WaitForExit();
+                    //         }
+                    //         catch { }
 
-                            if (process.ExitCode == 0)
-                                Utils.FileDelete(pdbFileName);
-                        }
-                    }
+                    //         if (process.ExitCode == 0)
+                    //             Utils.FileDelete(pdbFileName);
+                    //     }
+                    // }
+                    //  < dead code
                 }
 
                 if (options.useCompiled)

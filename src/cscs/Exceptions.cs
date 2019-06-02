@@ -1,90 +1,17 @@
-#region Licence...
-
-//----------------------------------------------
-// The MIT License (MIT)
-// Copyright (c) 2004-2018 Oleg Shilo
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-// and associated documentation files (the "Software"), to deal in the Software without restriction,
-// including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-// subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all copies or substantial
-// portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-// LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//----------------------------------------------
-
-#endregion Licence...
-
-using CSScripting.CodeDom;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
+using CSScripting.CodeDom;
 
 namespace csscript
 {
-    internal class Surrogate86ProcessRequiredException : ApplicationException
-    {
-    }
-
-    internal class SurrogateHostProcessRequiredException : ApplicationException
-    {
-        public SurrogateHostProcessRequiredException(string scriptAssembly, string[] scriptArgs, bool startDebugger)
-        {
-            ScriptAssembly = scriptAssembly;
-            StartDebugger = startDebugger;
-            ScriptArgs = scriptArgs;
-        }
-
-        string scriptAssembly;
-
-        public string ScriptAssembly
-        {
-            get { return scriptAssembly; }
-            set { scriptAssembly = value; }
-        }
-
-        bool startDebugger;
-
-        public bool StartDebugger
-        {
-            get { return startDebugger; }
-            set { startDebugger = value; }
-        }
-
-        string[] scriptArgs;
-
-        public string[] ScriptArgs
-        {
-            get { return scriptArgs; }
-            set { scriptArgs = value; }
-        }
-    }
-
     internal class CLIExitRequest : CLIException
     {
-        static public void Throw()
-        {
-            throw new CLIExitRequest();
-        }
-
-        static public void Throw(string message)
-        {
+        static public void Throw(string message = null) =>
             throw new CLIExitRequest(message);
-        }
 
-        public CLIExitRequest(string message) : base(message)
-        {
-        }
-
-        public CLIExitRequest()
+        public CLIExitRequest(string message = null) : base(message)
         {
         }
     }
@@ -96,11 +23,7 @@ namespace csscript
     {
         public int ExitCode = -1;
 
-        public CLIException()
-        {
-        }
-
-        public CLIException(string message) : base(message)
+        public CLIException(string message = null) : base(message)
         {
         }
     }
@@ -132,22 +55,13 @@ namespace csscript
         /// Initializes a new instance of the <see cref="CompilerException"/> class.
         /// </summary>
         /// <param name="message">The message.</param>
-        public CompilerException(string message)
-            : base(message)
-        {
-        }
-
-        int errorCount;
+        public CompilerException(string message) : base(message) { }
 
         /// <summary>
         /// Gets or sets the error count associated with the last script compilation.
         /// </summary>
         /// <value>The error count.</value>
-        public int ErrorCount
-        {
-            get { return errorCount; }
-            set { errorCount = value; }
-        }
+        public int ErrorCount { get; set; }
 
         /// <summary>
         /// Creates the CompilerException instance from the specified compiler errors.
@@ -159,7 +73,7 @@ namespace csscript
         /// <returns></returns>
         public static CompilerException Create(IEnumerable<CompilerError> Errors, bool hideCompilerWarnings, bool resolveAutogenFilesRefs)
         {
-            StringBuilder compileErr = new StringBuilder();
+            var compileErr = new StringBuilder();
 
             int errorCount = 0;
 

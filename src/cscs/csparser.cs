@@ -1,27 +1,3 @@
-#region Licence...
-
-//----------------------------------------------
-// The MIT License (MIT)
-// Copyright (c) 2004-2018 Oleg Shilo
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-// and associated documentation files (the "Software"), to deal in the Software without restriction,
-// including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-// subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all copies or substantial
-// portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-// LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//----------------------------------------------
-
-#endregion Licence...
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -34,8 +10,6 @@ using CSScriptLibrary;
 
 namespace csscript
 {
-    #region CSharpParser...
-
     /// <summary>
     /// Very light parser for C# code. The main purpose of it is to be very fast and reliable.
     /// It only extracts code information relative to the CS-Script.
@@ -288,13 +262,13 @@ namespace csscript
                 InternalInit(parts, 1);
             }
 
-            private ImportInfo(string[] parts)
+            ImportInfo(string[] parts)
             {
                 this.file = parts[0];
                 InternalInit(parts, 1);
             }
 
-            private void InternalInit(string[] statementParts, int startIndex)
+            void InternalInit(string[] statementParts, int startIndex)
             {
                 List<string[]> renameingMap = new List<string[]>();
 
@@ -350,19 +324,6 @@ namespace csscript
         List<int[]> stringRegions = new List<int[]>();
         List<int[]> commentRegions = new List<int[]>();
 
-        #region Public interface
-
-#if DEBUG
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CSharpParser"/> class.
-        /// </summary>
-        public CSharpParser() //Needed for testing only. Otherwise you will always call the constructor with the parameters
-        {
-            InitEnvironment();
-        }
-
-#endif
         static bool NeedInitEnvironment = true;
 
         static void InitEnvironment()
@@ -478,14 +439,6 @@ namespace csscript
         public static bool SuppressCodeAnalysis = false;
 
         /// <summary>
-        /// Global flag to forcefully suppress any C# code analyses. This flag effectively disables
-        /// all CS-Script assembly and script probing and most likely some other functionality.
-        /// <para>You may ever want to suppress code analysis only for profiling purposes or during performance tuning.</para>
-        /// </summary>
-        [Obsolete("Please use 'SuppressCodeAnalysis' instead.", true)]
-        public static bool SupressCodeAnalysis;
-
-        /// <summary>
         /// Parses the C# code.
         /// </summary>
         /// <param name="code">C# script (code or file).</param>
@@ -498,7 +451,7 @@ namespace csscript
             if (file != "")
                 workingDir = Path.GetDirectoryName(file);
 
-            this.code = code;
+            this.Code = code;
 
             if (SuppressCodeAnalysis)
                 return;
@@ -585,10 +538,6 @@ namespace csscript
             foreach (string statement in GetRawStatements("//css_pc", endCodePos))
                 precompilers.Add(statement.NormaliseAsDirectiveOf(file));
 
-            if (Runtime.IsWin)
-                foreach (string statement in GetRawStatements("//css_host", endCodePos))
-                    hostOptions.Add(statement.NormaliseAsDirective());
-
             //analyse assembly references
             foreach (string statement in GetRawStatements("//css_ignore_namespace", endCodePos))
                 ignoreNamespaces.Add(statement.Trim());
@@ -614,14 +563,14 @@ namespace csscript
 
             //analyse threading model
             pos = code.IndexOf("TAThread]");
-            while (pos != -1 && pos > 0 && threadingModel == ApartmentState.Unknown)
+            while (pos != -1 && pos > 0 && ThreadingModel == ApartmentState.Unknown)
             {
                 if (!IsComment(pos - 1) && !IsString(pos - 1) && IsToken(pos - 2, "??TAThread]".Length))
                 {
                     if (code[pos - 1] == 'S')
-                        threadingModel = ApartmentState.STA;
+                        ThreadingModel = ApartmentState.STA;
                     else if (code[pos - 1] == 'M')
-                        threadingModel = ApartmentState.MTA;
+                        ThreadingModel = ApartmentState.MTA;
                 }
                 pos = code.IndexOf("TAThread]", pos + 1);
             }
@@ -678,13 +627,13 @@ namespace csscript
             int pos = FindStatement("Main", 0);
             while (!preserveMain && pos != -1 && renamingPos == -1)
             {
-                int declarationStart = code.LastIndexOfAny("{};".ToCharArray(), pos, pos);
+                int declarationStart = Code.LastIndexOfAny("{};".ToCharArray(), pos, pos);
                 do
                 {
                     if (!IsComment(declarationStart) || !IsString(declarationStart))
                     {
                         //test if it is "static void" Main
-                        string statement = StripNonStringStatementComments(code.Substring(declarationStart + 1, pos - declarationStart - 1));
+                        string statement = StripNonStringStatementComments(Code.Substring(declarationStart + 1, pos - declarationStart - 1));
                         string[] tokens = statement.Trim().Split("\n\r\t ".ToCharArray());
 
                         foreach (string token in tokens)
@@ -695,7 +644,7 @@ namespace csscript
                         break;
                     }
                     else
-                        declarationStart = code.LastIndexOfAny("{};".ToCharArray(), declarationStart - 1, declarationStart - 1);
+                        declarationStart = Code.LastIndexOfAny("{};".ToCharArray(), declarationStart - 1, declarationStart - 1);
                 }
                 while (declarationStart != -1 && renamingPos == -1);
 
@@ -710,14 +659,14 @@ namespace csscript
                 pos = FindStatement(names[0], 0);
                 while (pos != -1 && renamingPos == -1)
                 {
-                    int declarationStart = code.LastIndexOfAny("{};".ToCharArray(), pos, pos);
+                    int declarationStart = Code.LastIndexOfAny("{};".ToCharArray(), pos, pos);
                     do
                     {
                         if (!IsComment(declarationStart) || !IsString(declarationStart))
                         {
                             //test if it is "namespace" <name>
-                            string test = code.Substring(declarationStart + 1, pos - declarationStart - 1);
-                            string statement = StripNonStringStatementComments(code.Substring(declarationStart + 1, pos - declarationStart - 1));
+                            string test = Code.Substring(declarationStart + 1, pos - declarationStart - 1);
+                            string statement = StripNonStringStatementComments(Code.Substring(declarationStart + 1, pos - declarationStart - 1));
                             string[] tokens = statement.Trim().Split("\n\r\t ".ToCharArray());
 
                             foreach (string token in tokens)
@@ -731,7 +680,7 @@ namespace csscript
                             break;
                         }
                         else
-                            declarationStart = code.LastIndexOfAny("{};".ToCharArray(), declarationStart - 1, declarationStart - 1);
+                            declarationStart = Code.LastIndexOfAny("{};".ToCharArray(), declarationStart - 1, declarationStart - 1);
                     }
                     while (declarationStart != -1 && renamingPos == -1);
 
@@ -743,7 +692,7 @@ namespace csscript
 
             renamingPositions.Sort(new RenamingInfoComparer());
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             for (int i = 0; i < renamingPositions.Count; i++)
             {
                 //RenamingInfo info = (RenamingInfo)renamingPositions[i];
@@ -751,185 +700,105 @@ namespace csscript
                 RenamingInfo info = renamingPositions[i];
                 int prevEnd = ((i - 1) >= 0) ? renamingPositions[i - 1].endPos : 0;
 
-                sb.Append(code.Substring(prevEnd, info.stratPos - prevEnd));
+                sb.Append(Code.Substring(prevEnd, info.stratPos - prevEnd));
                 sb.Append(info.newValue);
                 if (i == renamingPositions.Count - 1) // the last renaming
-                    sb.Append(code.Substring(info.endPos, code.Length - info.endPos));
+                    sb.Append(Code.Substring(info.endPos, Code.Length - info.endPos));
             }
-            this.modifiedCode = sb.ToString();
+            this.ModifiedCode = sb.ToString();
         }
 
         /// <summary>
         /// Embedded script arguments. The both script and engine arguments are allowed except "/noconfig" engine command line switch.
         /// </summary>
-        public string[] Args
-        {
-            get
-            {
-                return args.ToArray();
-            }
-        }
+        public string[] Args { get => args.ToArray(); }
 
         /// <summary>
         /// Embedded compiler options.
         /// </summary>
-        public string[] CompilerOptions
-        {
-            get
-            {
-                return compilerOptions.ToArray();
-            }
-        }
-
-        /// <summary>
-        /// Embedded compiler options.
-        /// </summary>
-        public string[] HostOptions
-        {
-            get
-            {
-                return hostOptions.ToArray();
-            }
-        }
+        public string[] CompilerOptions { get => compilerOptions.ToArray(); }
 
         /// <summary>
         /// Precompilers.
         /// </summary>
-        public string[] Precompilers
-        {
-            get
-            {
-                return precompilers.ToArray();
-            }
-        }
+        public string[] Precompilers { get => precompilers.ToArray(); }
 
         /// <summary>
         /// References to the external assemblies and namespaces.
         /// </summary>
-        public string[] References
-        {
-            get
-            {
-                List<string> retval = new List<string>();
-                retval.AddRange(refAssemblies);
-                retval.AddRange(refNamespaces);
-                return retval.ToArray();
-            }
-        }
+        public string[] References { get => refAssemblies.Concat(refNamespaces).ToArray(); }
 
         /// <summary>
         /// References to the external assemblies.
         /// </summary>
-        public string[] RefAssemblies
-        {
-            get { return refAssemblies.ToArray(); }
-        }
+        public string[] RefAssemblies { get => refAssemblies.ToArray(); }
 
         /// <summary>
         /// Names of namespaces to be ignored by namespace-to-assembly resolver.
         /// </summary>
-        public string[] IgnoreNamespaces
-        {
-            get { return ignoreNamespaces.ToArray(); }
-        }
+        public string[] IgnoreNamespaces { get => ignoreNamespaces.ToArray(); }
 
         /// <summary>
         /// Additional search directories (for script and assembly probing).
         /// </summary>
-        public string[] ExtraSearchDirs
-        {
-            get { return searchDirs.ToArray(); }
-        }
+        public string[] ExtraSearchDirs { get => searchDirs.ToArray(); }
 
         /// <summary>
         /// References to the resource files.
         /// </summary>
-        public string[] ResFiles
-        {
-            get { return resFiles.ToArray(); }
-        }
+        public string[] ResFiles { get => resFiles.ToArray(); }
 
         /// <summary>
         /// References to the namespaces.
         /// </summary>
-        public string[] RefNamespaces
-        {
-            get { return refNamespaces.ToArray(); }
-        }
+        public string[] RefNamespaces { get => refNamespaces.ToArray(); }
 
         /// <summary>
         /// References to the NuGet packages.
         /// </summary>
-        public string[] NuGets
-        {
-            get { return nugets.ToArray(); }
-        }
+        public string[] NuGets { get => nugets.ToArray(); }
 
         /// <summary>
         /// C# scripts to be imported.
         /// </summary>
-        public ImportInfo[] Imports
-        {
-            get { return imports.ToArray(); }
-        }
+        public ImportInfo[] Imports { get => imports.ToArray(); }
 
         /// <summary>
         /// Pre- and post-execution scripts.
         /// </summary>
-        public CmdScriptInfo[] CmdScripts
-        {
-            get { return cmdScripts.ToArray(); }
-        }
+        public CmdScriptInfo[] CmdScripts { get => cmdScripts.ToArray(); }
 
         /// <summary>
         /// Script initialization directives.
         /// </summary>
-        public InitInfo[] Inits
-        {
-            get { return inits.ToArray(); }
-        }
+        public InitInfo[] Inits { get => inits.ToArray(); }
 
         /// <summary>
         /// Apartment state of the script.
         /// </summary>
-        public ApartmentState ThreadingModel
-        {
-            get { return threadingModel; }
-        }
+        public ApartmentState ThreadingModel { get; private set; } = ApartmentState.Unknown;
 
         string autoClassMode = null;
 
         /// <summary>
         /// Gets the `auto-class` decoration mode value.
         /// </summary>
-        public string AutoClassMode
-        {
-            get { return autoClassMode; }
-        }
+        public string AutoClassMode { get => autoClassMode; }
 
         /// <summary>
         /// Script C# raw code.
         /// </summary>
-        public string Code
-        {
-            get { return code; }
-        }
+        public string Code { get; private set; } = "";
 
         /// <summary>
         /// Script C# code after namespace renaming.
         /// </summary>
-        public string ModifiedCode
-        {
-            get { return modifiedCode; }
-        }
-
-        #endregion Public interface
+        public string ModifiedCode { get; private set; } = "";
 
         List<string> searchDirs = new List<string>();
         List<string> resFiles = new List<string>();
         List<string> refAssemblies = new List<string>();
         List<string> compilerOptions = new List<string>();
-        List<string> hostOptions = new List<string>();
         List<CmdScriptInfo> cmdScripts = new List<CmdScriptInfo>();
         List<InitInfo> inits = new List<InitInfo>();
         List<string> nugets = new List<string>();
@@ -939,10 +808,6 @@ namespace csscript
         List<string> precompilers = new List<string>();
         List<string> args = new List<string>();
 
-        ApartmentState threadingModel = ApartmentState.Unknown;
-        string code = "";
-        string modifiedCode = "";
-
         /// <summary>
         /// Enables omitting closing character (";") for CS-Script directives (e.g. "//css_ref System.Xml.dll" instead of "//css_ref System.Xml.dll;").
         /// </summary>
@@ -950,7 +815,7 @@ namespace csscript
 
         string[] GetRawStatements(string pattern, int endIndex)
         {
-            return GetRawStatements(this.code, pattern, endIndex, false);
+            return GetRawStatements(this.Code, pattern, endIndex, false);
         }
 
         string[] GetRawStatements(string codeToAnalyse, string pattern, int endIndex, bool ignoreComments)
@@ -1008,24 +873,24 @@ namespace csscript
         {
             List<int> retval = new List<int>();
 
-            int pos = code.IndexOf(pattern, startIndex, endIndex - startIndex);
+            int pos = Code.IndexOf(pattern, startIndex, endIndex - startIndex);
             while (pos != -1)
             {
                 retval.Add(pos);
-                pos = code.IndexOf(pattern, pos + 1, endIndex - (pos + 1));
+                pos = Code.IndexOf(pattern, pos + 1, endIndex - (pos + 1));
             }
             return retval.ToArray();
         }
 
         int IndexOf(string pattern, int startIndex, int endIndex) //non-comment match
         {
-            int pos = code.IndexOf(pattern, startIndex, endIndex - startIndex);
+            int pos = Code.IndexOf(pattern, startIndex, endIndex - startIndex);
             while (pos != -1)
             {
                 if (!IsComment(pos) && IsToken(pos, pattern.Length))
                     return pos;
 
-                pos = code.IndexOf(pattern, pos + 1, endIndex - (pos + 1));
+                pos = Code.IndexOf(pattern, pos + 1, endIndex - (pos + 1));
             }
             return -1;
         }
@@ -1091,7 +956,7 @@ namespace csscript
 
             for (int i = startIndex; i <= endIndex; i++)
             {
-                char c = code[i];
+                char c = Code[i];
                 if (lastDelimiter != char.MinValue)
                 {
                     // need to ensure that double "\n\n" is not treated as escaped delimiter. The same comes to '\r' and '\t'.
@@ -1104,7 +969,7 @@ namespace csscript
                 else
                 {
                     foreach (char delimiter in delimiters)
-                        if (code[i] == delimiter)
+                        if (Code[i] == delimiter)
                         {
                             lastDelimiter = delimiter;
                             if (i == endIndex)
@@ -1144,13 +1009,13 @@ namespace csscript
 
         bool IsToken(int startPos, int length)
         {
-            if (code.Length < startPos + length) //the rest of the text is too short
+            if (Code.Length < startPos + length) //the rest of the text is too short
                 return false;
 
-            if (startPos != 0 && !(char.IsWhiteSpace(code[startPos - 1]) || IsOneOf(code[startPos - 1], codeDelimiters))) //position is not at the start of the token
+            if (startPos != 0 && !(char.IsWhiteSpace(Code[startPos - 1]) || IsOneOf(Code[startPos - 1], codeDelimiters))) //position is not at the start of the token
                 return false;
 
-            if (code.Length > startPos + length && !(char.IsWhiteSpace(code[startPos + length]) || IsOneOf(code[startPos + length], codeDelimiters))) //position is not at the end of the token
+            if (Code.Length > startPos + length && !(char.IsWhiteSpace(Code[startPos + length]) || IsOneOf(Code[startPos + length], codeDelimiters))) //position is not at the end of the token
                 return false;
 
             return true;
@@ -1158,13 +1023,13 @@ namespace csscript
 
         bool IsDirectiveToken(int startPos, int length)
         {
-            if (code.Length < startPos + length) //the rest of the text is too short
+            if (Code.Length < startPos + length) //the rest of the text is too short
                 return false;
 
-            if (startPos != 0 && !char.IsWhiteSpace(code[startPos - 1])) //position is not at the start of the token
+            if (startPos != 0 && !char.IsWhiteSpace(Code[startPos - 1])) //position is not at the start of the token
                 return false;
 
-            if (code.Length > startPos + length && !char.IsWhiteSpace(code[startPos + length])) //position is not at the end of the token
+            if (Code.Length > startPos + length && !char.IsWhiteSpace(Code[startPos + length])) //position is not at the end of the token
                 return false;
 
             int endPos = startPos + length;
@@ -1173,7 +1038,7 @@ namespace csscript
 
             for (int i = startPos; i <= endPos; i++)
             {
-                char c = code[i];
+                char c = Code[i];
                 if (lastDelimiter != char.MinValue)
                 {
                     if (lastDelimiter == c) //delimiter was escaped
@@ -1244,18 +1109,18 @@ namespace csscript
         {
             List<int> quotationChars = new List<int>();
 
-            int startPos = -1;
-            int startSLC = -1; //single line comment
-            int startMLC = -1; //multiple line comment
+            int startPos;
+            int startSLC; //single line comment
+            int startMLC; //multiple line comment
+            string endToken;
+            string startToken;
             int searchOffset = 0;
-            string endToken = "";
-            string startToken = "";
             int endPos = -1;
             int lastEndPos = -1;
             do
             {
-                startSLC = code.IndexOf("//", searchOffset);
-                startMLC = code.IndexOf("/*", searchOffset);
+                startSLC = Code.IndexOf("//", searchOffset);
+                startMLC = Code.IndexOf("/*", searchOffset);
 
                 if (startSLC == Math.Min(startSLC != -1 ? startSLC : Int16.MaxValue,
                                          startMLC != -1 ? startMLC : Int16.MaxValue))
@@ -1272,7 +1137,7 @@ namespace csscript
                 }
 
                 if (startPos != -1)
-                    endPos = code.IndexOf(endToken, startPos + startToken.Length);
+                    endPos = Code.IndexOf(endToken, startPos + startToken.Length);
 
                 if (startPos != -1 && endPos != -1)
                 {
@@ -1294,9 +1159,9 @@ namespace csscript
             }
             while (startPos != -1 && endPos != -1);
 
-            if (lastEndPos != 0 && searchOffset < code.Length)
+            if (lastEndPos != 0 && searchOffset < Code.Length)
             {
-                quotationChars.AddRange(AllRawIndexOf("\"", searchOffset, code.Length));
+                quotationChars.AddRange(AllRawIndexOf("\"", searchOffset, Code.Length));
             }
 
             for (int i = 0; i < quotationChars.Count; i++)
@@ -1311,16 +1176,16 @@ namespace csscript
 
         int FindStatement(string pattern, int start)
         {
-            if (code.Length == 0)
+            if (Code.Length == 0)
                 return -1;
 
-            int pos = IndexOf(pattern, start, code.Length - 1);
+            int pos = IndexOf(pattern, start, Code.Length - 1);
             while (pos != -1)
             {
                 if (!IsString(pos))
                     return pos;
                 else
-                    pos = IndexOf(pattern, pos + 1, code.Length - 1);
+                    pos = IndexOf(pattern, pos + 1, Code.Length - 1);
             }
             return -1;
         }
@@ -1328,12 +1193,12 @@ namespace csscript
         string StripNonStringStatementComments(string text)
         {
             StringBuilder sb = new StringBuilder();
-            int startPos = -1;
-            int startSLC = -1; //single line comment
-            int startMLC = -1; //multiple line comment
+            int startPos;
+            int startSLC; //single line comment
+            int startMLC; //multiple line comment
+            string endToken;
+            string startToken;
             int searchOffset = 0;
-            string endToken = "";
-            string startToken = "";
             int endPos = -1;
             int lastEndPos = -1;
             do
@@ -1368,7 +1233,7 @@ namespace csscript
             }
             while (startPos != -1 && endPos != -1);
 
-            if (lastEndPos != 0 && searchOffset < code.Length)
+            if (lastEndPos != 0 && searchOffset < Code.Length)
             {
                 string codeFragment = text.Substring(searchOffset, text.Length - searchOffset);
                 sb.Append(codeFragment);
@@ -1376,6 +1241,4 @@ namespace csscript
             return sb.ToString();
         }
     }
-
-    #endregion CSharpParser...
 }

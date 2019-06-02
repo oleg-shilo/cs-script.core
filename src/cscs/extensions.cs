@@ -136,19 +136,19 @@ public static class CLIExtensions
         bool isEscaping = false;
 
         return commandLine.Split(c =>
-        {
-            if (c == '\\' && !isEscaping) { isEscaping = true; return false; }
+                                 {
+                                     if (c == '\\' && !isEscaping) { isEscaping = true; return false; }
 
-            if (c == '\"' && !isEscaping)
-                inQuotes = !inQuotes;
+                                     if (c == '\"' && !isEscaping)
+                                         inQuotes = !inQuotes;
 
-            isEscaping = false;
+                                     isEscaping = false;
 
-            return !inQuotes && Char.IsWhiteSpace(c)/*c == ' '*/;
-        })
-        .Select(arg => arg.Trim().TrimMatchingQuotes('\"').Replace("\\\"", "\""))
-        .Where(arg => !string.IsNullOrEmpty(arg))
-        .ToArray();
+                                     return !inQuotes && Char.IsWhiteSpace(c)/*c == ' '*/;
+                                 })
+                          .Select(arg => arg.Trim().TrimMatchingQuotes('\"').Replace("\\\"", "\""))
+                          .Where(arg => !string.IsNullOrEmpty(arg))
+                          .ToArray();
     }
 }
 

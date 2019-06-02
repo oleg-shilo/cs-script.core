@@ -8,145 +8,22 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-
-#region Licence...
-
-//-----------------------------------------------------------------------------
-// Date:	17/10/04	Time: 2:33p
-// Module:	csscript.cs
-// Classes:	CSExecutor
-//			ExecuteOptions
-//
-// This module contains the definition of the CSExecutor class. Which implements
-// compiling C# code and executing 'Main' method of compiled assembly
-//
-// Written by Oleg Shilo (oshilo@gmail.com)
-//----------------------------------------------
-// The MIT License (MIT)
-// Copyright (c) 2004-2018 Oleg Shilo
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-// and associated documentation files (the "Software"), to deal in the Software without restriction,
-// including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-// subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all copies or substantial
-// portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-// LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//----------------------------------------------
-
-#endregion Licence...
-
 using CSScripting.CodeDom;
 using CSScriptLibrary;
 
 namespace csscript
 {
     /// <summary>
-    /// Delegate implementing source file probing algorithm.
-    /// </summary>
-    /// <param name="file">The file.</param>
-    /// <param name="searchDirs">The extra dirs.</param>
-    /// <param name="throwOnError">if set to <c>true</c> [throw on error].</param>
-    /// <returns></returns>
-    public delegate string[] ResolveSourceFileAlgorithm(string file, string[] searchDirs, bool throwOnError);
-
-    /// <summary>
-    /// Delegate implementing assembly file probing algorithm.
-    /// </summary>
-    /// <param name="file">The file.</param>
-    /// <param name="searchDirs">The extra dirs.</param>
-    /// <returns></returns>
-    public delegate string[] ResolveAssemblyHandler(string file, string[] searchDirs);
-
-    internal class Profiler
-    {
-        static public Stopwatch Stopwatch = new Stopwatch();
-
-        static Dictionary<string, Stopwatch> items = new Dictionary<string, Stopwatch>();
-
-        public static bool has(string key) => items.ContainsKey(key);
-
-        public static Stopwatch get(string key)
-        {
-            if (!items.ContainsKey(key))
-                items[key] = new Stopwatch();
-            return items[key];
-        }
-
-        public static void measure(string name, Action action)
-        {
-            var sw = new Stopwatch();
-            try
-            {
-                sw.Start();
-                action();
-            }
-            finally
-            {
-                Console.WriteLine($"{name}: {sw.Elapsed}");
-            }
-        }
-    }
-
-    internal interface IScriptExecutor
-    {
-        void ShowHelpFor(string arg);
-
-        void ShowProjectFor(string arg);
-
-        void ShowHelp(string helpTyp, params object[] context);
-
-        void DoCacheOperations(string command);
-
-        void ShowVersion();
-
-        void ShowPrecompilerSample();
-
-        void CreateDefaultConfigFile();
-
-        void PrintDefaultConfig();
-
-        void PrintDecoratedAutoclass(string script);
-
-        void ProcessConfigCommand(string command);
-
-        void Sample(string version, string file = null);
-
-        ExecuteOptions GetOptions();
-
-        string WaitForInputBeforeExit { get; set; }
-    }
-
-    /// <summary>
     /// CSExecutor is an class that implements execution of *.cs files.
     /// </summary>
     internal class CSExecutor : IScriptExecutor
     {
-        #region Public interface...
-
         /// <summary>
         /// Force caught exceptions to be re-thrown.
         /// </summary>
-        public bool Rethrow
-        {
-            get { return rethrow; }
-            set { rethrow = value; }
-        }
+        public bool Rethrow { get; set; }
 
-        string waitForInputBeforeExit;
-
-        public string WaitForInputBeforeExit
-        {
-            get { return waitForInputBeforeExit; }
-            set { waitForInputBeforeExit = value; }
-        }
+        public string WaitForInputBeforeExit { get; set; }
 
         internal static void HandleUserNoExecuteRequests(ExecuteOptions options)
         {
@@ -189,7 +66,7 @@ namespace csscript
             return settings;
         }
 
-        Settings GetPersistedSettings(List<string> appArgs)
+        Settings LoadSettings(List<string> appArgs)
         {
             //read persistent settings from configuration file
             Settings settings = LoadSettings(options);
@@ -220,7 +97,7 @@ namespace csscript
                                                   .Where(Utils.NotEmpty)
                                                   .ToArray();
 
-                int firstDefaultScriptArg = CSSUtils.ParseAppArgs(defaultCmdArgs, this);
+                int firstDefaultScriptArg = this.ParseAppArgs(defaultCmdArgs);
                 if (firstDefaultScriptArg != defaultCmdArgs.Length)
                 {
                     options.scriptFileName = defaultCmdArgs[firstDefaultScriptArg];
@@ -228,9 +105,6 @@ namespace csscript
                         if (defaultCmdArgs[i].Trim().Length != 0)
                             appArgs.Add(defaultCmdArgs[i]);
                 }
-
-                //if (options.suppressExternalHosting)
-                //    options.useSurrogateHostingProcess = settings.UseSurrogateHostingProcess = false;
             }
             return settings;
         }
@@ -307,17 +181,15 @@ namespace csscript
 
                 if (args.Length > 0)
                 {
-                    #region Parse command-line arguments...
-
                     //Here we need to separate application arguments from script ones.
                     //Script engine arguments are always followed by script arguments
                     //[appArgs][scriptFile][scriptArgs][//x]
                     List<string> appArgs = new List<string>();
 
                     //The following will also update corresponding "options" members from "settings" data
-                    Settings settings = GetPersistedSettings(appArgs);
+                    Settings settings = LoadSettings(appArgs);
 
-                    int firstScriptArg = CSSUtils.ParseAppArgs(args, this);
+                    int firstScriptArg = this.ParseAppArgs(args);
 
                     options.resolveAutogenFilesRefs = settings.ResolveAutogenFilesRefs;
                     if (!options.processFile)
@@ -383,7 +255,7 @@ namespace csscript
                     var host_dir = this.GetType().Assembly.GetAssemblyDirectoryName();
                     var local_dir = Path.GetDirectoryName(Path.GetFullPath(options.scriptFileName));
 
-                    using (IDisposable currDir = new CurrentDirGuard())
+                    using (var currDir = new CurrentDirGuard())
                     {
                         if (options.local)
                             Environment.CurrentDirectory = Path.GetDirectoryName(Path.GetFullPath(options.scriptFileName));
@@ -428,7 +300,7 @@ namespace csscript
                     }
 
                     options.searchDirs = dirs.ToArray();
-                    CSharpParser.CmdScriptInfo[] cmdScripts = new CSharpParser.CmdScriptInfo[0];
+                    var cmdScripts = new CSharpParser.CmdScriptInfo[0];
 
                     var compilerDirective = "//css_compiler";
                     //do quick parsing for pre/post scripts, ThreadingModel and embedded script arguments
@@ -483,9 +355,9 @@ namespace csscript
                                 foreach (string file in files)
                                     if (file.IndexOf(".g.cs") == -1) //non auto-generated file
                                     {
-                                        using (IDisposable currDir = new CurrentDirGuard())
+                                        using (var currDir = new CurrentDirGuard())
                                         {
-                                            CSharpParser impParser = new CSharpParser(file, true, null, options.searchDirs);
+                                            var impParser = new CSharpParser(file, true, null, options.searchDirs);
                                             Environment.CurrentDirectory = Path.GetDirectoryName(file);
 
                                             string[] packageAsms = NuGet.Resolve(impParser.NuGets, true, file);
@@ -510,7 +382,7 @@ namespace csscript
 
                         if (primaryScript == null)//this is a primary script
                         {
-                            int firstEmbeddedScriptArg = CSSUtils.ParseAppArgs(parser.Args, this);
+                            int firstEmbeddedScriptArg = this.ParseAppArgs(parser.Args);
                             if (firstEmbeddedScriptArg != -1)
                             {
                                 for (int i = firstEmbeddedScriptArg; i < parser.Args.Length; i++)
@@ -520,9 +392,7 @@ namespace csscript
                         }
                     }
 
-                    #endregion Parse command-line arguments...
-
-                    ExecuteOptions originalOptions = (ExecuteOptions)options.Clone(); //preserve master script options
+                    var originalOptions = (ExecuteOptions)options.Clone(); //preserve master script options
                     string originalCurrDir = Environment.CurrentDirectory;
 
                     //run prescripts
@@ -624,7 +494,7 @@ namespace csscript
                 if (e is System.Reflection.TargetInvocationException)
                     ex = e.InnerException;
 
-                if (rethrow)
+                if (Rethrow)
                 {
                     throw ex;
                 }
@@ -666,7 +536,7 @@ namespace csscript
                 if (options.processFile)
                 {
                     var initInfo = options.initContext as CSharpParser.InitInfo;
-
+                    // from here
                     if (options.local)
                         Environment.CurrentDirectory = Path.GetDirectoryName(Path.GetFullPath(options.scriptFileName));
 
@@ -957,7 +827,7 @@ namespace csscript
 
                                 if (options.useCompiled)
                                 {
-                                    CSScriptLibrary.AssemblyResolver.CacheProbingResults = true; //it is reasonable safe to do the aggressive probing as we are executing only a single script (standalone execution not a script hosting model)
+                                    AssemblyResolver.CacheProbingResults = true; //it is reasonable safe to do the aggressive probing as we are executing only a single script (standalone execution not a script hosting model)
 
                                     var executor = new LocalExecutor(options.searchDirs);
                                     executor.ExecuteAssembly(assemblyFileName, scriptArgs, executingFileLock);
@@ -984,7 +854,7 @@ namespace csscript
                 if (e is System.Reflection.TargetInvocationException)
                     ex = e.InnerException;
 
-                if (rethrow || e is SurrogateHostProcessRequiredException)
+                if (Rethrow)
                 {
                     lastException = ex;
                 }
@@ -1048,10 +918,6 @@ namespace csscript
             return Compile(scriptFile);
         }
 
-        #endregion Public interface...
-
-        #region Class data...
-
         /// <summary>
         /// C# Script arguments array (sub array of application arguments array).
         /// </summary>
@@ -1067,41 +933,19 @@ namespace csscript
         /// </summary>
         static internal ExecuteOptions options = new ExecuteOptions();
 
-        /// <summary>
-        /// Flag to force to re-throw critical exceptions
-        /// </summary>
-        bool rethrow;
-
-        #endregion Class data...
-
-        #region Class methods...
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
         public CSExecutor()
-        {
-            rethrow = false;
-            options = new ExecuteOptions();
-        }
+        { }
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
         public CSExecutor(bool rethrow, ExecuteOptions optionsBase)
         {
-            this.rethrow = rethrow;
-            options = new ExecuteOptions();
+            this.Rethrow = rethrow;
 
             //force to read all relative options data from the config file
             options.noConfig = optionsBase.noConfig;
             options.altConfig = optionsBase.altConfig;
         }
 
-        public ExecuteOptions GetOptions()
-        {
-            return options;
-        }
+        public ExecuteOptions GetOptions() => options;
 
         /// <summary>
         /// Checks/returns if compiled C# script file (ScriptName + ".compiled") available and valid.
@@ -2219,14 +2063,9 @@ namespace csscript
             print(HelpProvider.BuildVersionInfo());
         }
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern bool SetEnvironmentVariable(string lpName, string lpValue);
-
         public void ShowProjectFor(string arg)
         {
             throw new NotImplementedException();
         }
-
-        #endregion Class methods...
     }
 }

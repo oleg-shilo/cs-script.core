@@ -693,19 +693,7 @@ namespace csscript
                          " ");
 
             if (Runtime.IsWin)
-                syntaxHelp = syntaxHelp.Replace("{$css_host}",
-                                                fromLines(
-                                                    "//css_host [-version:<CLR_Version>] [-platform:<CPU>]",
-                                                    " ",
-                                                    "CLR_Version - version of CLR the script should be execute on (e.g. //css_host /version:v3.5)",
-                                                    "CPU - indicates which platforms the script should be run on: x86, Itanium, x64, or anycpu.",
-                                                    "Sample: //css_host /version:v2.0 /platform:x86;",
-                                                    " ",
-                                                    "Note this directive only supported on Windows due to the fact that on Linux the x86/x64 hosting implemented via runtime launcher 'mono'.",
-                                                    " ",
-                                                    "These directive is used to execute script from a surrogate host process. The script engine application (cscs.exe or csws.exe) launches the script",
-                                                    "execution as a separate process of the specified CLR version and CPU architecture.",
-                                                    section_sep))
+                syntaxHelp = syntaxHelp.Replace("{$css_host}", "")
                                        .Replace("{$css_init}",
                                         fromLines("//css_init CoInitializeSecurity[(<level>, <capabilities>)];",
                                             " ",
@@ -720,10 +708,10 @@ namespace csscript
                                        .Replace("$(csscript_roslyn)", "");
             else
                 syntaxHelp = syntaxHelp.Replace("{$css_host}", "")
-                                                .Replace("{$css_init}", "")
-                                                .Replace("$(csscript_roslyn)", fromLines(
-                                                    " 'CSSCRIPT_ROSLYN' - a shadow copy of Roslyn compiler files. ",
-                                                        "It's created during setup in order to avoid locking deployment directories because of the running Roslyn binaries."));
+                                       .Replace("{$css_init}", "")
+                                       .Replace("$(csscript_roslyn)", fromLines(
+                                           " 'CSSCRIPT_ROSLYN' - a shadow copy of Roslyn compiler files. ",
+                                               "It's created during setup in order to avoid locking deployment directories because of the running Roslyn binaries."));
 
             var directives = syntaxHelp.Split('\n')
                                        .Where(x => x.StartsWith("//css_"))

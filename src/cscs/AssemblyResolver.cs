@@ -1,56 +1,20 @@
-#region Licence...
-
-//-----------------------------------------------------------------------------
-// Date:	17/10/04	Time: 2:33p
-// Module:	AssemblyResolver.cs
-// Classes:	AssemblyResolver
-//
-// This module contains the definition of the AssemblyResolver class. Which implements
-// some methods for simplified Assembly navigation
-//
-// Written by Oleg Shilo (oshilo@gmail.com)
-//----------------------------------------------
-// The MIT License (MIT)
-// Copyright (c) 2004-2018 Oleg Shilo
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-// and associated documentation files (the "Software"), to deal in the Software without restriction,
-// including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-// subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all copies or substantial
-// portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-// LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//----------------------------------------------
-
-#endregion Licence...
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using csscript;
 
-namespace CSScriptLibrary
+namespace csscript
 {
     /// <summary>
     /// Class for resolving assembly name into assembly file
     /// </summary>
-    public class AssemblyResolver
+    public static class AssemblyResolver
     {
         /// <summary>
         /// File to be excluded from assembly search
         /// </summary>
         static public string ignoreFileName = "";
-
-        #region Class public methods...
 
         static bool cacheProbingResults;
 
@@ -83,7 +47,7 @@ namespace CSScriptLibrary
             }
         }
 
-        static readonly HashSet<int> NotFoundAssemblies = new HashSet<int>();
+        static HashSet<int> NotFoundAssemblies = new HashSet<int>();
 
         static int BuildHashSetValue(string assemblyName, string directory)
         {
@@ -332,8 +296,6 @@ namespace CSScriptLibrary
             return retval.ToArray();
         }
 
-        #endregion Class public methods...
-
         /// <summary>
         /// Search for namespace into local assembly file.
         /// </summary>
@@ -366,19 +328,6 @@ namespace CSScriptLibrary
                 catch { }
             }
             return false;
-        }
-
-        bool ProbeAssembly(string file)
-        {
-            try
-            {
-                Assembly.ReflectionOnlyLoadFrom(Path.GetFullPath(file));
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
         }
     }
 }

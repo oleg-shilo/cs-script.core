@@ -4,7 +4,7 @@ using System.Linq;
 using csscript;
 using CSScripting.CodeDom;
 
-namespace cscs.exe.core
+namespace cscs
 {
     class Program
     {

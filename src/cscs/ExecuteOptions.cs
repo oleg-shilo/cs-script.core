@@ -1,37 +1,3 @@
-#region Licence...
-
-//-----------------------------------------------------------------------------
-// Date:	17/10/04	Time: 2:33p
-// Module:	csscript.cs
-// Classes:	CSExecutor
-//			ExecuteOptions
-//
-// This module contains the definition of the CSExecutor class. Which implements
-// compiling C# code and executing 'Main' method of compiled assembly
-//
-// Written by Oleg Shilo (oshilo@gmail.com)
-//----------------------------------------------
-// The MIT License (MIT)
-// Copyright (c) 2004-2018 Oleg Shilo
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-// and associated documentation files (the "Software"), to deal in the Software without restriction,
-// including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-// subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all copies or substantial
-// portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-// LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//----------------------------------------------
-
-#endregion Licence...
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -85,7 +51,6 @@ namespace csscript
             ExecuteOptions clone = new ExecuteOptions();
             clone.processFile = this.processFile;
             clone.scriptFileName = this.scriptFileName;
-            // clone.noLogo = this.noLogo;
             clone.useCompiled = this.useCompiled;
             clone.suppressTimestampAltering = this.suppressTimestampAltering;
             clone.useSmartCaching = this.useSmartCaching;
@@ -115,7 +80,6 @@ namespace csscript
             clone.forceOutputAssembly = this.forceOutputAssembly;
             clone.versionOnly = this.versionOnly;
             clone.noConfig = this.noConfig;
-            //clone.suppressExternalHosting = this.suppressExternalHosting;
             clone.altConfig = this.altConfig;
             clone.defaultRefAssemblies = this.defaultRefAssemblies;
             clone.hideTemp = this.hideTemp;
@@ -202,20 +166,15 @@ namespace csscript
         public string scriptFileNamePrimary = null;
         public bool useCompiled = false;
         public bool useScriptConfig = true;
-        public bool useSmartCaching = true; //hardcoded true but can be set from config file in the future
-        public bool suppressTimestampAltering = false; //hardcoded true but can be set from config file in the future
+        public bool useSmartCaching = true; //hard-coded true but can be set from config file in the future
+        public bool suppressTimestampAltering = false; //hard-coded true but can be set from config file in the future
         public string customConfigFileName = "";
         public bool DLLExtension = false;
         public bool forceCompile = false;
         public bool suppressExecution = false;
         public bool syntaxCheck = false;
         public bool DBG = false;
-
-#if net35
-        public string TargetFramework = "v3.5";
-#else
         public string TargetFramework = "v4.0";
-#endif
         internal bool InjectScriptAssemblyAttribute = true;
         public bool verbose = false;
         public bool startDebugger = false;
@@ -256,31 +215,6 @@ namespace csscript
             {
                 this.searchDirs = this.searchDirs.ToList().AddIfNotThere(dir, section).ToArray();
             }
-        }
-
-        // public void AddSearchDir1(string dir)
-        // {
-        //     if (Array.Find(this.searchDirs, (x) => x == dir) != null)
-        //         return;
-
-        //     string[] newSearchDirs = new string[this.searchDirs.Length + 1];
-        //     this.searchDirs.CopyTo(newSearchDirs, 0);
-        //     newSearchDirs[newSearchDirs.Length - 1] = dir;
-        //     this.searchDirs = newSearchDirs;
-        // }
-
-        public string[] ExtractShellCommand(string command)
-        {
-            int pos = command.IndexOf("\"");
-            string endToken = "\"";
-            if (pos == -1 || pos != 0) //no quotation marks
-                endToken = " ";
-
-            pos = command.IndexOf(endToken, pos + 1);
-            if (pos == -1)
-                return new string[] { command };
-            else
-                return new string[] { command.Substring(0, pos).Replace("\"", ""), command.Substring(pos + 1).Trim() };
         }
     }
 }

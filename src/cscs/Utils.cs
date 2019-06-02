@@ -47,60 +47,6 @@ using CSScriptLibrary;
 
 namespace csscript
 {
-    internal class CurrentDirGuard : IDisposable
-    {
-        string currentDir = Environment.CurrentDirectory;
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!this.disposed)
-                Environment.CurrentDirectory = currentDir;
-
-            disposed = true;
-        }
-
-        ~CurrentDirGuard()
-        {
-            Dispose(false);
-        }
-
-        bool disposed = false;
-    }
-
-    /// <summary>
-    /// Class containing all information about script compilation context and the compilation result.
-    /// </summary>
-    public class CompilingInfo
-    {
-        /// <summary>
-        /// The script file that the <c>CompilingInfo</c> is associated with.
-        /// </summary>
-        public string ScriptFile;
-
-        /// <summary>
-        /// The script parsing context containing the all CS-Script specific compilation/parsing info (e.g. probing directories,
-        /// NuGet packages, compiled sources).
-        /// </summary>
-        public ScriptParsingResult ParsingContext;
-
-        /// <summary>
-        /// The script compilation result.
-        /// </summary>
-        public CompilerResults Result;
-
-        /// <summary>
-        /// The compilation context object that contain all information about the script compilation input
-        /// (referenced assemblies, compiler symbols).
-        /// </summary>
-        public CompilerParameters Input;
-    }
-
     internal static class Utils
     {
         public static char[] LineWhiteSpaceCharacters = " \t\v".ToCharArray();
@@ -172,7 +118,7 @@ namespace csscript
             return process;
         }
 
-        public static int Run(string exe, string args, string dir = null, Action<string> onOutput = null, Action<string> onError = null)
+        public static int Run(this string exe, string args, string dir = null, Action<string> onOutput = null, Action<string> onError = null)
         {
             var process = RunAsync(exe, args, dir);
 
@@ -1049,7 +995,7 @@ partial class dbg
         /// <param name="args">Arguments</param>
         /// <param name="executor">Script executor instance</param>
         /// <returns>Index of the first script argument.</returns>
-        static internal int ParseAppArgs(string[] args, IScriptExecutor executor)
+        static internal int ParseAppArgs(this IScriptExecutor executor, string[] args)
         {
             // NOTE: it is expected that arguments are passed multiple times during the session.
             // E.g. first time from command line, second time for the DefaultArguments from the config file, that

@@ -170,7 +170,6 @@ namespace CSScripting.CodeDom
 
             //pseudo-gac as .NET core does not support GAC but rather common assemblies.
             var gac = typeof(string).Assembly.Location.GetDirName();
-            // var gac = @"C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.netcore.app\2.0.0\ref\netcoreapp2.0";
 
             var refs_args = "";
             var source_args = "";
@@ -202,7 +201,7 @@ namespace CSScripting.CodeDom
             //----------------------------
 
             Profiler.get("compiler").Start();
-            result.NativeCompilerReturnValue = Utils.Run(dotnet, cmd, build_dir, x => result.Output.Add(x));
+            result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
             Profiler.get("compiler").Stop();
 
             if (CSExecutor.options.verbose)
@@ -378,79 +377,6 @@ namespace CSScripting.CodeDom
         {
             return CompileAssemblyFromFileBatch(options, new[] { source });
         }
-
-        static void explore_package_dependencies_spike()
-        {
-            // var package_name = "NLog.Config";
-            // var package_ver = "4.5.4";
-            // project_content = project_content.Replace("</Project>",
-            //                                        $@"  <ItemGroup>
-            //                                             <PackageReference Include=""{package_name}""  />
-            //                                             </ItemGroup>
-            //                                          </Project>");
-
-            // "C:\Users\%username%\.nuget\packages\nlog\4.5.4\lib\netstandard2.0\NLog.dll"
-            // var logger = NLog.LogManager.GetCurrentClassLogger();
-
-            // <PackageReference Include=""{package_name}"" Version=""{package_ver}"" />
-            /*
-            <ItemGroup>
-                <PackageReference Include="NLog.Config" Version="4.5.4" />
-            </ItemGroup>
-            */
-            /*
-             "targets": {
-    ".NETStandard,Version=v2.0": {},
-    ".NETStandard,Version=v2.0/": {
-      "script/1.0.0": {
-        "dependencies": {
-          "NETStandard.Library": "2.0.1",
-          "NLog.Config": "4.5.4"
-        },
-        "runtime": {
-          "script.dll": {}
-        }
-      },
-      "Microsoft.NETCore.Platforms/1.1.0": {},
-      "NETStandard.Library/2.0.1": {
-        "dependencies": {
-          "Microsoft.NETCore.Platforms": "1.1.0"
-        }
-      },
-      "NLog/4.5.4": {
-        "runtime": {
-          "lib/netstandard2.0/NLog.dll": {}
-        }
-      },
-             */
-            // C:\Users\%username%\.nuget\packages\nlog\4.5.4\lib\netstandard2.0\NLog.dll
-
-            /* "NLog/4.5.4": {
-                  "type": "package",
-                  "serviceable": true,
-                  "sha512": "sha512-sYOzep0pdVat2zkOREy6FQwcH4zRCTimGr4c1Esqc0+t9QYvQ5JXDnW/sdqOsVxbxJ28sa/3MRUGSAfXz7eIGw==",
-                  "path": "nlog/4.5.4",
-                  "hashPath": "nlog.4.5.4.nupkg.sha512"
-                },
-                "NLog.Config/4.5.4": {
-                  "type": "package",
-                  "serviceable": true,
-                  "sha512": "sha512-qMqpvqTqUwUuOQB7Y4HKJ/ZWPIsDyt4qD58B+z6KRG1vN0TeGKfz0gF4rGSGXLvOpwlxd6Gqai2u9U6WtbhOgg==",
-                  "path": "nlog.config/4.5.4",
-                  "hashPath": "nlog.config.4.5.4.nupkg.sha512"
-                },
-                "NLog.Schema/4.5.4": {
-                  "type": "package",
-                  "serviceable": true,
-                  "sha512": "sha512-DEjVc+GSpUpeR3zInV6GJ6OuHzoM0qgweTbpuQc6wHicENq6ZY4DNi2Kk4AcEGrzdIwyIcyAsvAxYg/+bZHQEQ==",
-                  "path": "nlog.schema/4.5.4",
-                  "hashPath": "nlog.schema.4.5.4.nupkg.sha512"
-                }*/
-
-            // result.ProcessErrors();
-
-            // result.ProbingDirs.Add(@"C:\Users\%username%\.nuget\packages\nlog\4.5.4\lib\netstandard2.0");
-        }
     }
 
     public interface ICodeCompiler
@@ -483,7 +409,7 @@ namespace CSScripting.CodeDom
             var isErrroSection = true;
 
             // only dotnet has a distinctive error message that separates "info"
-            // and "error" section. It is particularly important to process onlty
+            // and "error" section. It is particularly important to process only
             // the "error" section as dotnet compiler prints the same errors in
             // both of these sections.
             if (CSExecutor.options.compilerEngine == null || CSExecutor.options.compilerEngine == Directives.compiler_dotnet)
@@ -498,7 +424,7 @@ namespace CSScripting.CodeDom
                     if (line.StartsWith("Build FAILED.") || line.StartsWith("Build succeeded."))
                         isErrroSection = true;
 
-                    if (line.Contains("MSBUILD : error "))
+                    if (line.Contains("): error "))
                     {
                         var error = CompilerError.Parser(line);
                         if (error != null)

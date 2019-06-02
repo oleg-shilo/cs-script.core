@@ -1,28 +1,4 @@
-﻿#region Licence...
-
-//----------------------------------------------
-// The MIT License (MIT)
-// Copyright (c) 2004-2018 Oleg Shilo
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-// and associated documentation files (the "Software"), to deal in the Software without restriction,
-// including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-// subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all copies or substantial
-// portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-// LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//----------------------------------------------
-
-#endregion Licence...
-
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -106,9 +82,7 @@ namespace csscript
 
         private static string[] PreprocessArgs(string[] rawArgs)
         {
-            string[] args = rawArgs.Contains("-preload") ?
-                                SchedulePreloadCompiler(rawArgs) :
-                                rawArgs.Select(Environment.ExpandEnvironmentVariables).ToArray();
+            string[] args = rawArgs.Select(Environment.ExpandEnvironmentVariables).ToArray();
 
             if (!Runtime.IsWin)
             {
@@ -161,55 +135,6 @@ namespace csscript
             }
         }
 
-        // static string GetCommandLineArgumentsStringFromEnvironment1()
-        // {
-        //     if (Environment.CommandLine.StartsWith("\""))
-        //     {
-        //         return Environment.CommandLine.Substring(Environment.CommandLine.IndexOf('"', 1) + 1).TrimStart();
-        //     }
-        //     else
-        //     {
-        //         return Environment.CommandLine.Substring(Environment.CommandLine.IndexOf(' ') + 1).TrimStart();
-        //     }
-        // }
-
-        private static string GenerateCommandLineArgumentsString(string[] args)
-        {
-            var sb = new StringBuilder();
-
-            foreach (string arg in args)
-            {
-                sb.Append("\"");
-                sb.Append(arg);
-                sb.Append("\" ");
-            }
-
-            return sb.ToString();
-        }
-
-        private static string[] SchedulePreloadCompiler(string[] args)
-        {
-            var tmp = Path.GetTempFileName();
-            Utils.FileDelete(tmp);
-
-            var script = Path.Combine(Path.GetDirectoryName(tmp), "css_load.cs");
-
-            try
-            {
-                File.WriteAllText(script, @"using System;
-                                            class Script
-                                            {
-                                                static public void Main()
-                                                {
-                                                  Console.WriteLine(""Compiler is loaded..."");
-                                                }
-                                            }");
-            }
-            catch { }
-
-            return args.Where(x => x != "-preload").Concat(new[] { "-c:0", script }).ToArray();
-        }
-
         private static void RunConsoleApp(string app, string args)
         {
             var process = new Process();
@@ -229,7 +154,7 @@ namespace csscript
             ManualResetEvent outputThreadDone = new ManualResetEvent(false);
             ManualResetEvent errorOutputThreadDone = new ManualResetEvent(false);
 
-            Action<StreamReader, Stream, ManualResetEvent> redirect = (src, dest, doneEvent) =>
+            void redirect(StreamReader src, Stream dest, ManualResetEvent doneEvent)
             {
                 try
                 {
@@ -250,7 +175,7 @@ namespace csscript
                 {
                     doneEvent.Set();
                 }
-            };
+            }
 
             ThreadPool.QueueUserWorkItem(x =>
                 redirect(process.StandardOutput, Console.OpenStandardOutput(), outputThreadDone));

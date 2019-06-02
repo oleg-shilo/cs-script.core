@@ -8,7 +8,7 @@ using csscript;
 namespace CSScriptLibrary
 {
     /// <summary>
-    /// ParsingParams is an class that holds parsing parameters (parameters that controls how file is to be parsed).
+    /// ParsingParams is a class that holds parsing parameters (parameters that controls how file is to be parsed).
     /// At this moment they are namespace renaming rules only.
     /// </summary>
     class ParsingParams
@@ -126,7 +126,7 @@ namespace CSScriptLibrary
             this.imported = imported;
             this.prams = prams;
             this.fileName = ResolveFile(fileName, searchDirs);
-            this.searchDirs = searchDirs.ConcatWith(Path.GetDirectoryName(this.fileName))
+            this.searchDirs = searchDirs.ConcatWith(this.fileName.GetDirName())
                                         .RemovePathDuplicates();
             if (process)
                 ProcessFile();

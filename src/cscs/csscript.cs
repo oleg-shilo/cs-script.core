@@ -118,11 +118,11 @@ namespace csscript
             if (args.Count() == 1)
                 return "-code ?".Split(' ');
 
-            var newArgs = args.TakeWhile(a => !a.startsWith($"-{AppArgs.code}")).ToList();
+            var newArgs = args.TakeWhile(a => !a.StartsWith($"-{AppArgs.code}")).ToList();
             newArgs.Add("-l:0"); // ensure the current dir is not changed to the location of the script, which is in
                                  // this case always the "snippets" directory
 
-            int pos = Environment.CommandLine.indexOf(AppArgs.code);
+            int pos = Environment.CommandLine.IndexOf(AppArgs.code);
 
             if (pos < 0)
             {
@@ -137,12 +137,12 @@ namespace csscript
                 if (attchDebugger)
                     code = code.Substring(0, code.Length - 3).TrimEnd();
 
-                code = code.Substring(pos + (AppArgs.code.Length + 1))
+                code = Utils.Expand(code.Substring(pos + (AppArgs.code.Length + 1))
                            .Replace("``", "\"")
                            .Replace("`n", "\n")
                            .Replace("`r", "\r")
                            .Trim(" \"".ToCharArray())
-                           .Expand();
+);
 
                 var commonHeader = "//css_ac freestyle\nusing System; using System.Diagnostics; using System.IO;\n";
                 var customHeaderFile = this.GetType().Assembly.Location.GetDirName().PathJoin("-code.header");

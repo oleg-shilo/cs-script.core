@@ -91,7 +91,7 @@ namespace csscript
 
             PrecompilationContext precompiling = CSSUtils.Precompile(script,
                                                                      parser.FilesToCompile.Distinct(),
-                                                                     CSExecutor.options);
+                                                                         CSExecutor.options);
 
             // search dirs could be also defined in the script
             var probingDirs = searchDirs.Concat(parser.SearchDirs)

@@ -50,6 +50,13 @@ using System.Text;
  *
 */
 
+// SHOULD BE REMOVED AND POSSIBLY REPLACED WITH 'STORE'
+// https://stackoverflow.com/questions/35538093/is-there-any-gac-equivalent-for-net-core
+// This feature is implemented as a runtime package store, which is a directory on disk
+// where packages are stored(typically at
+// /usr/local/share/dotnet/store on macOS/Linux and
+// C:/Program Files/dotnet/store on Windows).
+
 namespace csscript
 {
     /// <summary>
@@ -73,23 +80,23 @@ namespace csscript
         //PreserveSig() Indicates that the HRESULT or retval signature transformation that takes place during COM interop calls should be suppressed
         [PreserveSig()]
         int UninstallAssembly(int flags,
-                                [MarshalAs(UnmanagedType.LPWStr)]
-                                string assemblyName,
-                                InstallReference refData,
-                                out AssemblyCacheUninstallDisposition disposition);
+                                  [MarshalAs(UnmanagedType.LPWStr)]
+                                  string assemblyName,
+                                  InstallReference refData,
+                                  out AssemblyCacheUninstallDisposition disposition);
 
         [PreserveSig()]
         int QueryAssemblyInfo(int flags,
-                                [MarshalAs(UnmanagedType.LPWStr)]
-                                string assemblyName,
-                                ref AssemblyInfo assemblyInfo);
+                                  [MarshalAs(UnmanagedType.LPWStr)]
+                                  string assemblyName,
+                                  ref AssemblyInfo assemblyInfo);
 
         [PreserveSig()]
         int Reserved(int flags,
-                                IntPtr pvReserved,
-                                out Object ppAsmItem,
-                                [MarshalAs(UnmanagedType.LPWStr)]
-                                string assemblyName);
+                             IntPtr pvReserved,
+                                 out Object ppAsmItem,
+                                 [MarshalAs(UnmanagedType.LPWStr)]
+                                 string assemblyName);
 
         [PreserveSig()]
         int Reserved(out Object ppAsmScavenger);
@@ -122,18 +129,18 @@ namespace csscript
 
         [PreserveSig()]
         int GetDisplayName(StringBuilder pDisplayName,
-                            ref int pccDisplayName,
-                            int displayFlags);
+                           ref int pccDisplayName,
+                           int displayFlags);
 
         [PreserveSig()]
         int Reserved(ref Guid guid,
-                        Object o1,
-                        Object o2,
-                        string string1,
-                        Int64 llFlags,
-                        IntPtr pvReserved,
-                        int cbReserved,
-                        out IntPtr ppv);
+                         Object o1,
+                         Object o2,
+                         string string1,
+                         Int64 llFlags,
+                         IntPtr pvReserved,
+                         int cbReserved,
+                         out IntPtr ppv);
 
         [PreserveSig()]
         int GetName(ref int pccBuffer,

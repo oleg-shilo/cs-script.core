@@ -161,7 +161,7 @@ namespace csscript
             if (text.Length > 1 && (text[0] == '.' && text[1] != '.')) // just a single-dot start dir
                 text = parentScript.GetDirName().PathJoin(text).GetFullPath();
 
-            return text.Expand().Trim();
+            return Expand(text).Trim();
         }
 
         internal static string NormaliseAsDirective(this string statement)

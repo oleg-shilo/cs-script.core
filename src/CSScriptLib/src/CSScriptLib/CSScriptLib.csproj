@@ -46,8 +46,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\cscs\extensions.cs" Link="extensions.cs" />
     <Compile Include="..\..\..\cscs\fileparser.cs" Link="fileparser.cs" />
+    <Compile Include="..\..\..\cscs\Utils\CoreExtensions.cs" Link="Utils\CoreExtensions.cs" />
+    <Compile Include="..\..\..\cscs\Utils\LinqExtensions.cs" Link="Utils\LinqExtensions.cs" />
+    <Compile Include="..\..\..\cscs\Utils\PathExtensions.cs" Link="Utils\PathExtensions.cs" />
+    <Compile Include="..\..\..\cscs\Utils\ReflectionExtensions.cs" Link="Utils\ReflectionExtensions.cs" />
+    <Compile Include="..\..\..\cscs\Utils\Runtime.cs" Link="Utils\Runtime.cs" />
+    <Compile Include="..\..\..\cscs\Utils\StringExtensions.cs" Link="Utils\StringExtensions.cs" />
+    <Compile Include="..\..\..\cscs\Utils\WildCardExtensions.cs" Link="Utils\WildCardExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -55,6 +61,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" Version="2.10.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Utils\" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

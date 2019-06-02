@@ -193,7 +193,7 @@ namespace csscript
 
                 public ImportInfo[] Resolve(string statement)
                 {
-                    return ImportInfo.ResolveStatement(statement.Expand(), parentScript, dirs);
+                    return ImportInfo.ResolveStatement(Utils.Expand(statement), parentScript, dirs);
                 }
             }
 
@@ -518,10 +518,10 @@ namespace csscript
                 imports.AddRange(infos.Resolve(statement));
             foreach (string statement in GetRawStatements("//css_include", endCodePos))
                 if (!string.IsNullOrEmpty(statement))
-                    imports.AddRange(infos.Resolve(statement.Expand() + ",preserve_main"));
+                    imports.AddRange(infos.Resolve(Utils.Expand(statement) + ",preserve_main"));
             foreach (string statement in GetRawStatements("//css_inc", endCodePos))
                 if (!string.IsNullOrEmpty(statement))
-                    imports.AddRange(infos.Resolve(statement.Expand() + ",preserve_main"));
+                    imports.AddRange(infos.Resolve(Utils.Expand(statement) + ",preserve_main"));
 
             //analyse assembly references
             foreach (string statement in GetRawStatements("//css_reference", endCodePos))
@@ -552,10 +552,15 @@ namespace csscript
 
             //analyse extra search (probing) dirs
             foreach (string statement in GetRawStatements("//css_searchdir", endCodePos))
-                searchDirs.AddRange(CSSUtils.GetDirectories(workingDir, Environment.ExpandEnvironmentVariables(UnescapeDirectiveDelimiters(statement)).Trim()));
+            {
+                var pattern = Environment.ExpandEnvironmentVariables(UnescapeDirectiveDelimiters(statement)).Trim();
+                searchDirs.AddRange(workingDir.GetMatchingDirs(pattern));
+            }
             foreach (string statement in GetRawStatements("//css_dir", endCodePos))
-                searchDirs.AddRange(CSSUtils.GetDirectories(workingDir, Environment.ExpandEnvironmentVariables(UnescapeDirectiveDelimiters(statement)).Trim()));
-
+            {
+                var pattern = Environment.ExpandEnvironmentVariables(UnescapeDirectiveDelimiters(statement)).Trim();
+                searchDirs.AddRange(workingDir.GetMatchingDirs(pattern));
+            }
             //analyse namespace references
             foreach (string statement in GetRawStatements(code, "using", endCodePos, true))
                 if (!statement.StartsWith("(")) //just to cut off "using statements" as we are interested in "using directives" only

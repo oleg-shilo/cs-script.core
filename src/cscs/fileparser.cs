@@ -18,10 +18,7 @@ namespace CSScriptLibrary
             renameNamespaceMap = new List<string[]>();
         }
 
-        public string[][] RenameNamespaceMap
-        {
-            get { return renameNamespaceMap.ToArray(); }
-        }
+        public string[][] RenameNamespaceMap => renameNamespaceMap.ToArray();
 
         public void AddRenameNamespaceMap(string[][] names)
         {
@@ -96,7 +93,7 @@ namespace CSScriptLibrary
     /// </summary>
     class FileParser
     {
-        static bool _throwOnError = true;
+        static bool throwOnError = true;
 
 #if !class_lib
 
@@ -122,11 +119,11 @@ namespace CSScriptLibrary
             if (searchDirs == null)
                 searchDirs = new string[0];
 
-            FileParser._throwOnError = throwOnError;
-            this.imported = imported;
+            FileParser.throwOnError = throwOnError;
+            this.Imported = imported;
             this.prams = prams;
             this.fileName = ResolveFile(fileName, searchDirs);
-            this.searchDirs = searchDirs.ConcatWith(this.fileName.GetDirName())
+            this.SearchDirs = searchDirs.ConcatWith(this.fileName.GetDirName())
                                         .RemovePathDuplicates();
             if (process)
                 ProcessFile();
@@ -135,65 +132,29 @@ namespace CSScriptLibrary
         public string fileNameImported = "";
         public ParsingParams prams = null;
 
-        public string FileToCompile
-        {
-            get { return imported ? fileNameImported : fileName; }
-        }
+        public string FileToCompile => Imported ? fileNameImported : fileName;
 
-        public string[] SearchDirs
-        {
-            get { return searchDirs; }
-        }
+        public string[] SearchDirs { get; private set; } = new string[0];
 
-        public bool Imported
-        {
-            get { return imported; }
-        }
+        public bool Imported { get; private set; } = false;
 
-        public string[] ReferencedNamespaces
-        {
-            get { return parser.RefNamespaces.Except(parser.IgnoreNamespaces).ToArray(); }
-        }
+        public string[] ReferencedNamespaces => parser.RefNamespaces.Except(parser.IgnoreNamespaces).ToArray();
 
-        public string[] IgnoreNamespaces
-        {
-            get { return parser.IgnoreNamespaces; }
-        }
+        public string[] IgnoreNamespaces => parser.IgnoreNamespaces;
 
-        public string[] Precompilers
-        {
-            get { return parser.Precompilers; }
-        }
+        public string[] Precompilers => parser.Precompilers;
 
-        public string[] ReferencedAssemblies
-        {
-            get { return parser.RefAssemblies; }
-        }
+        public string[] ReferencedAssemblies => parser.RefAssemblies;
 
-        public string[] Packages
-        {
-            get { return parser.NuGets; }
-        }
+        public string[] Packages => parser.NuGets;
 
-        public string[] ExtraSearchDirs
-        {
-            get { return parser.ExtraSearchDirs; }
-        }
+        public string[] ExtraSearchDirs => parser.ExtraSearchDirs;
 
-        public string[] ReferencedResources
-        {
-            get { return parser.ResFiles; }
-        }
+        public string[] ReferencedResources => parser.ResFiles;
 
-        public string[] CompilerOptions
-        {
-            get { return parser.CompilerOptions; }
-        }
+        public string[] CompilerOptions => parser.CompilerOptions;
 
-        public ScriptInfo[] ReferencedScripts
-        {
-            get { return referencedScripts.ToArray(); }
-        }
+        public ScriptInfo[] ReferencedScripts => referencedScripts.ToArray();
 
         public void ProcessFile()
         {
@@ -203,7 +164,7 @@ namespace CSScriptLibrary
             referencedNamespaces.Clear();
             referencedResources.Clear();
 
-            this.parser = new CSharpParser(fileName, true, null, this.searchDirs);
+            this.parser = new CSharpParser(fileName, true, null, this.SearchDirs);
 
             foreach (CSharpParser.ImportInfo info in parser.Imports)
             {
@@ -214,7 +175,7 @@ namespace CSScriptLibrary
             referencedNamespaces.AddRange(parser.RefNamespaces.Except(parser.IgnoreNamespaces));
             referencedResources.AddRange(parser.ResFiles);
 #if !class_lib
-            if (imported)
+            if (Imported)
             {
                 if (prams != null)
                 {
@@ -256,22 +217,15 @@ namespace CSScriptLibrary
         List<string> packages = new List<string>();
         List<string> referencedResources = new List<string>();
 
-        string[] searchDirs;
-        bool imported = false;
-
         /// <summary>
         /// Searches for script file by given script name. Calls ResolveFile(string fileName, string[] extraDirs, bool throwOnError)
         /// with throwOnError flag set to true.
         /// </summary>
         public static string ResolveFile(string fileName, string[] extraDirs)
-        {
-            return ResolveFile(fileName, extraDirs, _throwOnError);
-        }
+            => ResolveFile(fileName, extraDirs, throwOnError);
 
         internal static string[] ResolveFiles(string fileName, string[] extraDirs)
-        {
-            return ResolveFiles(fileName, extraDirs, _throwOnError);
-        }
+            => ResolveFiles(fileName, extraDirs, throwOnError);
 
         /// <summary>
         /// The resolve file algorithm,
@@ -303,9 +257,7 @@ namespace CSScriptLibrary
         }
 
         internal static string[] ResolveFiles(string file, string[] extraDirs, bool throwOnError)
-        {
-            return ResolveFilesAlgorithm(file, extraDirs, throwOnError);
-        }
+            => ResolveFilesAlgorithm(file, extraDirs, throwOnError);
 
         internal static string[] ResolveFilesDefault(string file, string[] extraDirs, bool throwOnError)
         {

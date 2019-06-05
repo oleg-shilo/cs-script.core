@@ -49,10 +49,8 @@ namespace csscript
 
         static HashSet<int> NotFoundAssemblies = new HashSet<int>();
 
-        static int BuildHashSetValue(string assemblyName, string directory)
-        {
-            return CSSUtils.GetHashCodeEx((assemblyName ?? "") + (directory ?? ""));
-        }
+        static int BuildHashSetValue(string assemblyName, string directory) =>
+            CSSUtils.GetHashCodeEx((assemblyName ?? "") + (directory ?? ""));
 
         static Assembly LoadAssemblyFrom(string assemblyName, string asmFile, bool throwException = false)
         {
@@ -255,39 +253,6 @@ namespace csscript
                 {
                     retval.Add(namespaceStr);
                 }
-            }
-
-            if (!retval.Any() && Runtime.IsWin)
-            {
-                // try
-                // {
-                //     AssemblyEnum asmEnum = new csscript.AssemblyEnum(namespaceStr);
-
-                //     string highestVersion = "";
-                //     string asmName = "";
-                //     do
-                //     {
-                //         asmName = asmEnum.GetNextAssembly();
-                //         if (string.Compare(asmName, highestVersion) > 0)
-                //             highestVersion = asmName;
-
-                //         if (namespaceStr.Contains(", Version=")) //the assembly was specified by its full name
-                //             break; //stop searching for the higher version
-                //     }
-                //     while (asmName != null);
-
-                //     if (highestVersion != "")
-                //     {
-                //         string asmLocation = AssemblyCache.QueryAssemblyInfo(highestVersion);
-                //         retval.Add(asmLocation);
-                //     }
-                // }
-                // catch (Exception)
-                // {
-                //     // fuslion.dll cannot be found under Mono even if it is running on Windows
-                //     //If exception is thrown it is very likely it is because where fusion.dll does not exist/unavailable/broken.
-                //     //We might be running under the MONO run-time.
-                // }
             }
 
             if (retval.Count == 0 && namespaceStr.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase))

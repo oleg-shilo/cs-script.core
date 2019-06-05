@@ -16,7 +16,7 @@ namespace csscript
     /// <summary>
     /// CSExecutor is an class that implements execution of *.cs files.
     /// </summary>
-    internal class CSExecutor : IScriptExecutor
+    internal partial class CSExecutor : IScriptExecutor
     {
         /// <summary>
         /// Force caught exceptions to be re-thrown.
@@ -138,11 +138,10 @@ namespace csscript
                     code = code.Substring(0, code.Length - 3).TrimEnd();
 
                 code = Utils.Expand(code.Substring(pos + (AppArgs.code.Length + 1))
-                           .Replace("``", "\"")
-                           .Replace("`n", "\n")
-                           .Replace("`r", "\r")
-                           .Trim(" \"".ToCharArray())
-);
+                                        .Replace("``", "\"")
+                                        .Replace("`n", "\n")
+                                        .Replace("`r", "\r")
+                                        .Trim(" \"".ToCharArray()));
 
                 var commonHeader = "//css_ac freestyle\nusing System; using System.Diagnostics; using System.IO;\n";
                 var customHeaderFile = this.GetType().Assembly.Location.GetDirName().PathJoin("-code.header");
@@ -218,7 +217,9 @@ namespace csscript
 
                     for (int i = firstScriptArg; i < args.Length; i++)
                     {
-                        if (i == args.Length - 1 && string.Compare(args[args.Length - 1], "//x", true, CultureInfo.InvariantCulture) == 0)
+                        var isLastArg = i == args.Length - 1;
+
+                        if (isLastArg && args.Last().SameAs("//x"))
                         {
                             options.startDebugger = true;
                             options.DBG = true;
@@ -988,36 +989,6 @@ namespace csscript
             return retval;
         }
 
-        class UniqueAssemblyLocations
-        {
-            public static explicit operator string[](UniqueAssemblyLocations obj)
-            {
-                string[] retval = new string[obj.locations.Count];
-                obj.locations.Values.CopyTo(retval, 0);
-                return retval;
-            }
-
-            public void AddAssembly(string location)
-            {
-                string assemblyID = Path.GetFileName(location).ToUpperInvariant();
-                if (!locations.ContainsKey(assemblyID))
-                    locations[assemblyID] = location.EnsureAsmExtension();
-            }
-
-            public bool ContainsAssembly(string name)
-            {
-                string assemblyID = name.ToUpperInvariant();
-                foreach (string key in locations.Keys)
-                {
-                    if (Path.GetFileNameWithoutExtension(key) == assemblyID)
-                        return true;
-                }
-                return false;
-            }
-
-            System.Collections.Hashtable locations = new System.Collections.Hashtable();
-        }
-
         ICodeCompiler LoadDefaultCompiler()
         {
             return CSharpCompiler.Create();
@@ -1110,10 +1081,7 @@ namespace csscript
             return compiler;
         }
 
-        internal static string LookupAltCompilerFile(string altCompiler)
-        {
-            return LookupAltCompilerFile(altCompiler, null);
-        }
+        internal static string LookupAltCompilerFile(string altCompiler) => LookupAltCompilerFile(altCompiler, null);
 
         internal static string LookupDefaultRoslynCompilerFile()
         {
@@ -1198,7 +1166,7 @@ namespace csscript
                     }
                 }
 
-            Action<string> addByAsmName = asmName =>
+            void addByAsmName(string asmName)
             {
                 string[] files = AssemblyResolver.FindAssembly(asmName, options.searchDirs);
                 if (files.Any())
@@ -1210,7 +1178,7 @@ namespace csscript
                 {
                     requestedRefAsms.AddAssembly(asmName);
                 }
-            };
+            }
 
             //add assemblies referenced from command line
             string[] cmdLineAsms = options.refAssemblies;
@@ -1655,46 +1623,6 @@ namespace csscript
                     if (Runtime.IsMono)
                         Utils.FileDelete(pdbFileName);
                 }
-                else
-                {
-                    // > dead code
-                    // if (Runtime.IsMono)
-                    // {
-                    //     // Do not do conversion if option 'pdbonly' was specified on Linux. In this case PDB is portable and Linux an
-                    //     // Mono debugger can process it.
-                    //     bool isPdbOnlyMode = compilerParams.CompilerOptions?.Contains("debug:pdbonly") == true;
-
-                    //     if (Runtime.IsWin || (!File.Exists(symbFileName) && !isPdbOnlyMode))
-                    //     {
-                    //         // Convert pdb into mdb
-                    //         var process = new Process();
-                    //         try
-                    //         {
-                    //             process.StartInfo.Arguments = "\"" + assemblyFileName + "\"";
-
-                    //             if (Runtime.IsWin)
-                    //             {
-                    //                 // hide terminal window
-                    //                 process.StartInfo.FileName = "pdb2mdb.bat";
-                    //                 process.StartInfo.UseShellExecute = false;
-                    //                 process.StartInfo.ErrorDialog = false;
-                    //                 process.StartInfo.CreateNoWindow = true;
-                    //             }
-                    //             else
-                    //             {
-                    //                 process.StartInfo.FileName = "pdb2mdb";
-                    //             }
-                    //             process.Start();
-                    //             process.WaitForExit();
-                    //         }
-                    //         catch { }
-
-                    //         if (process.ExitCode == 0)
-                    //             Utils.FileDelete(pdbFileName);
-                    //     }
-                    // }
-                    //  < dead code
-                }
 
                 if (options.useCompiled)
                 {
@@ -1746,9 +1674,6 @@ namespace csscript
 
         internal CompilingInfo LastCompileResult;
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern uint GetTempFileName(string lpPathName, string lpPrefixString, uint uUnique, [Out] StringBuilder lpTempFileName);
-
         /// <summary>
         /// Returns the name of the temporary file in the CSSCRIPT subfolder of Path.GetTempPath().
         /// </summary>
@@ -1758,18 +1683,6 @@ namespace csscript
             lock (typeof(CSExecutor))
             {
                 return Path.Combine(GetScriptTempDir(), string.Format("{0}.{1}.tmp", Process.GetCurrentProcess().Id, Guid.NewGuid()));
-            }
-        }
-
-        static internal string GetScriptTempFile(string subDir)
-        {
-            lock (typeof(CSExecutor))
-            {
-                string tempDir = Path.Combine(GetScriptTempDir(), subDir);
-                if (!Directory.Exists(tempDir))
-                    Directory.CreateDirectory(tempDir);
-
-                return Path.Combine(tempDir, string.Format("{0}.{1}.tmp", Process.GetCurrentProcess().Id, Guid.NewGuid()));
             }
         }
 
@@ -1867,13 +1780,7 @@ namespace csscript
         ///<summary>
         /// Contains the name of the temporary cache folder in the CSSCRIPT subfolder of Path.GetTempPath(). The cache folder is specific for every script file.
         /// </summary>
-        static public string ScriptCacheDir
-        {
-            get
-            {
-                return cacheDir;
-            }
-        }
+        static public string ScriptCacheDir { get; private set; } = "";
 
         /// <summary>
         /// Generates the name of the temporary cache folder in the CSSCRIPT subfolder of Path.GetTempPath(). The cache folder is specific for every script file.
@@ -1882,190 +1789,7 @@ namespace csscript
         static public void SetScriptCacheDir(string scriptFile)
         {
             string newCacheDir = GetCacheDirectory(scriptFile); //this will also create the directory if it does not exist
-            cacheDir = newCacheDir;
-        }
-
-        static string cacheDir = "";
-
-        /// <summary>
-        /// Prints Help info.
-        /// </summary>
-        public void ShowHelpFor(string arg)
-        {
-            if (print != null)
-                print(HelpProvider.BuildCommandInterfaceHelp(arg));
-        }
-
-        /// <summary>
-        /// Prints CS-Script specific C# syntax help info.
-        /// </summary>
-        public void ShowHelp(string helpType, params object[] context)
-        {
-            if (print != null)
-                print(HelpProvider.ShowHelp(helpType, context));
-        }
-
-        /// <summary>
-        /// Show sample C# script file.
-        /// </summary>
-        public void Sample(string version, string outFile)
-        {
-            var code = HelpProvider.BuildSampleCode(version);
-
-            if (outFile.IsNotEmpty())
-                File.WriteAllText(outFile, code);
-            else if (print != null)
-                print(code);
-        }
-
-        /// <summary>
-        /// Show sample precompiler C# script file.
-        /// </summary>
-        public void ShowPrecompilerSample()
-        {
-            if (print != null)
-                print(HelpProvider.BuildPrecompilerSampleCode());
-        }
-
-        /// <summary>
-        /// Performs the cache operations and shows the operation output.
-        /// </summary>
-        /// <param name="command">The command.</param>
-        public void DoCacheOperations(string command)
-        {
-            if (print != null)
-            {
-                if (command == "ls")
-                    print(Cache.List());
-                else if (command == "trim")
-                    print(Cache.Trim());
-                else if (command == "clear")
-                    print(Cache.Clear());
-                else
-                    print("Unknown cache command." + Environment.NewLine
-                        + "Expected: 'cache:ls', 'cache:trim' or 'cache:clear'" + Environment.NewLine);
-            }
-        }
-
-        /// <summary>
-        /// Creates the default config file in the CurrentDirectory.
-        /// </summary>
-        public void CreateDefaultConfigFile()
-        {
-            string file = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "css_config.xml");
-            new Settings().Save(file);
-            print("The default config file has been created: " + file);
-        }
-
-        /// <summary>
-        /// Prints the config file default content.
-        /// </summary>
-        public void PrintDefaultConfig()
-        {
-            print(new Settings().ToStringRaw());
-        }
-
-        public void PrintDecoratedAutoclass(string script)
-        {
-            string code = File.ReadAllText(script);
-
-            var decorated = AutoclassPrecompiler.Process(code);
-
-            print(decorated);
-        }
-
-        public void ProcessConfigCommand(string command)
-        {
-            //-config                  - lists/print current settings value
-            //-config:raw              - print current config file content
-            //-config:ls               - lists/print current settings value (same as simple -config)
-            //-config:create           - create config file with default settings
-            //-config:default          - print default settings
-            //-config:get:name         - print current config file value
-            //-config:set:name=value   - set current config file value
-            try
-            {
-                if (command == "create")
-                {
-                    CreateDefaultConfigFile();
-                }
-                else if (command == "default")
-                {
-                    print(new Settings().ToStringRaw());
-                }
-                else if (command == "ls" || command == null)
-                {
-                    print(Settings.Load(false).ToString());
-                }
-                else if (command == "raw" || command == "xml")
-                {
-                    var currentConfig = Settings.Load(false) ?? new Settings();
-                    print(currentConfig.ToStringRaw());
-                }
-                else if (command.StartsWith("get:"))
-                {
-                    string name = command.Substring(4);
-                    var currentConfig = Settings.Load(false) ?? new Settings();
-                    var value = currentConfig.Get(ref name);
-                    print(name + ": " + value);
-                }
-                else if (command.StartsWith("set:"))
-                {
-                    // set:DefaultArguments=-ac
-                    // set:roslyn
-                    string name, value;
-
-                    if (string.Compare(command, "set:roslyn", true) == 0)
-                    {
-                        var asmDir = Assembly.GetExecutingAssembly().GetAssemblyDirectoryName();
-
-                        var providerFile = ExistingFile(asmDir, "CSSRoslynProvider.dll") ??
-                                           ExistingFile(asmDir, "Lib", "CSSRoslynProvider.dll");
-
-                        if (providerFile != null)
-                        {
-                            name = "UseAlternativeCompiler";
-                            value = providerFile;
-                        }
-                        else
-                            throw new CLIException("Cannot locate Roslyn provider CSSRoslynProvider.dll");
-                    }
-                    else
-                    {
-                        string[] tokens = command.Substring(4).Split(new char[] { '=', ':' }, 2);
-                        if (tokens.Length != 2)
-                            throw new CLIException("Invalid set config property expression. Must be in name 'set:<name>=<value>' format.");
-
-                        name = tokens[0];
-                        value = tokens[1].Trim().Trim('"');
-                    }
-
-                    var currentConfig = Settings.Load(true) ?? new Settings();
-                    currentConfig.Set(name, value);
-                    currentConfig.Save();
-
-                    var new_value = currentConfig.Get(ref name);
-                    print("set: " + name + ": " + new_value);
-                }
-            }
-            catch (Exception e)
-            {
-                throw new CLIException(e.Message); //only a message, stack info for CLI is too verbose
-            }
-            throw new CLIExitRequest();
-        }
-
-        /// <summary>
-        /// Show CS-Script version information.
-        /// </summary>
-        public void ShowVersion()
-        {
-            print(HelpProvider.BuildVersionInfo());
-        }
-
-        public void ShowProjectFor(string arg)
-        {
-            throw new NotImplementedException();
+            ScriptCacheDir = newCacheDir;
         }
     }
 }

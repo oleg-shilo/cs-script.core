@@ -210,15 +210,12 @@ namespace csscript
         public static string appName = Assembly.GetExecutingAssembly().GetName().Name;
         public static bool appConsole = true;
 
-        public static string appLogo
-        {
-            get { return "C# Script execution engine (.NET Core). Version " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() + ".\nCopyright (C) 2004-2018 Oleg Shilo.\n"; }
-        }
+        public static string appLogo =>
+            $"C# Script execution engine (.NET Core). Version {Assembly.GetExecutingAssembly().GetName().Version}.\n" +
+            "Copyright (C) 2004-2019 Oleg Shilo.\n";
 
-        public static string appLogoShort
-        {
-            get { return "C# Script execution engine (.NET Core). Version " + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString() + ".\n"; }
-        }
+        public static string appLogoShort =>
+            $"C# Script execution engine (.NET Core). Version{Assembly.GetExecutingAssembly().GetName().Version}.\n";
     }
 
     internal class Host
@@ -305,7 +302,7 @@ namespace csscript
 
         public static string NormaliseEncodingName(string name)
         {
-            if (string.Compare(name, Settings.DefaultEncodingName, true) == 0)
+            if (name.SameAs(Settings.DefaultEncodingName))
                 return Settings.DefaultEncodingName;
             else
                 return name;

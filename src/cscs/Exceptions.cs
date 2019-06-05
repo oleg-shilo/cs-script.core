@@ -8,8 +8,7 @@ namespace csscript
 {
     internal class CLIExitRequest : CLIException
     {
-        static public void Throw(string message = null) =>
-            throw new CLIExitRequest(message);
+        static public void Throw(string message = null) => throw new CLIExitRequest(message);
 
         public CLIExitRequest(string message = null) : base(message)
         {

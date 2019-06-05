@@ -64,17 +64,12 @@ namespace csscript
                    probe(args.Name.Split(',').First()); // repeat it again but with the short name
         }
 
-        public Assembly ResolveResEventHandler(object sender, ResolveEventArgs args)
-        {
-            return Assembly.LoadFrom(this.asmFile);
-        }
+        public Assembly ResolveResEventHandler(object sender, ResolveEventArgs args) => Assembly.LoadFrom(this.asmFile);
 
         string asmFile = "";
 
-        public void ExecuteAssembly(string filename, string[] args)
-        {
+        public void ExecuteAssembly(string filename, string[] args) =>
             ExecuteAssembly(filename, args, null);
-        }
 
         public void ExecuteAssembly(string filename, string[] args, SystemWideLock asmLock)
         {

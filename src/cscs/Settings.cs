@@ -1,27 +1,3 @@
-#region Licence...
-
-//----------------------------------------------
-// The MIT License (MIT)
-// Copyright (c) 2004-2018 Oleg Shilo
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-// and associated documentation files (the "Software"), to deal in the Software without restriction,
-// including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-// subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all copies or substantial
-// portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-// LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//----------------------------------------------
-
-#endregion Licence...
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -298,7 +274,7 @@ namespace csscript
             if (dir != "")
             {
                 foreach (string searchDir in searchDirs.Split(';'))
-                    if (searchDir != "" && Path.GetFullPath(searchDir).IsSamePathAs(Path.GetFullPath(dir)))
+                    if (searchDir != "" && Path.GetFullPath(searchDir).SamePathAs(Path.GetFullPath(dir)))
                         return; //already there
 
                 searchDirs += ";" + dir;
@@ -347,21 +323,6 @@ namespace csscript
             set { customHashing = value; }
         }
 
-        ///// <summary>
-        ///// The value, which indicates which version of CLR compiler should be used to compile script.
-        ///// For example CLR 2.0 can use the following compiler versions:
-        ///// default - .NET 2.0
-        ///// 3.5 - .NET 3.5
-        ///// Use empty string for default compiler.
-        ///// </summary>string compilerVersion = "";
-        //[Category("RuntimeSettings")]
-        //public string CompilerVersion
-        //{
-        //    get { return compilerVersion; }
-        //    set { compilerVersion = value; }
-        //}
-        //string compilerVersion = "";
-
         /// <summary>
         /// Enum for possible hide auto-generated files scenarios
         /// Note: when HideAll is used it is responsibility of the pre/post script to implement actual hiding.
@@ -390,13 +351,7 @@ namespace csscript
         /// true - Whole exception stack will be reported
         /// </summary>
         [Category("RuntimeSettings"), Description("Indicates how much error details to be reported should error occur.")]
-        public bool ReportDetailedErrorInfo
-        {
-            get { return reportDetailedErrorInfo; }
-            set { reportDetailedErrorInfo = value; }
-        }
-
-        bool reportDetailedErrorInfo = false;
+        public bool ReportDetailedErrorInfo { get; set; } = false;
 
         /// <summary>
         /// Gets or sets a value indicating whether Optimistic Concurrency model should be used when executing scripts from the host application.
@@ -407,13 +362,7 @@ namespace csscript
         /// <value>
         /// 	<c>true</c> if Optimistic Concurrency model otherwise, <c>false</c>.
         /// </value>
-        internal bool OptimisticConcurrencyModel
-        {
-            get { return optimisticConcurrencyModel; }
-            set { optimisticConcurrencyModel = value; }
-        }
-
-        bool optimisticConcurrencyModel = true;
+        internal bool OptimisticConcurrencyModel { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether auto-class decoration should allow C# 6 specific syntax.
@@ -434,13 +383,7 @@ namespace csscript
         /// true - warnings will not be displayed
         /// </summary>
         [Category("RuntimeSettings"), Description("Indicates if compiler warnings should be included in script compilation output.")]
-        public bool HideCompilerWarnings
-        {
-            get { return hideCompilerWarnings; }
-            set { hideCompilerWarnings = value; }
-        }
-
-        bool hideCompilerWarnings = false;
+        public bool HideCompilerWarnings { get; set; } = false;
 
         /// <summary>
         /// Boolean flag that indicates the script assembly is to be loaded by CLR as an in-memory byte stream instead of the file.
@@ -477,7 +420,7 @@ namespace csscript
         ConcurrencyControl concurrencyControl = ConcurrencyControl.Standard;
 
         /// <summary>
-        /// Serialises instance of Settings.
+        /// Serializes instance of Settings.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
@@ -487,9 +430,9 @@ namespace csscript
                             .Where(p => p.CanRead && p.CanWrite)
                             .Where(p => p.Name != "SuppressTimestamping")
                             .Select(p => " " + p.Name + ": " + (p.PropertyType == typeof(string) ? "\"" + p.GetValue(this, dummy) + "\"" : p.GetValue(this, dummy)))
-                            .ToArray();
+                            .JoinBy("\n");
 
-            return string.Join("\n", props);
+            return props;
         }
 
         internal string ToStringRaw()
@@ -511,7 +454,7 @@ namespace csscript
             string lookupName = name.Replace("_", ""); // user is allowed to use '_' for very long named properties
 
             PropertyInfo prop = typeof(Settings).GetProperties()
-                                                .Where(x => 0 == string.Compare(x.Name.Replace("_", ""), lookupName, StringComparison.OrdinalIgnoreCase))
+                                                .Where(x => x.Name.Replace("_", "").SameAs(lookupName))
                                                 .FirstOrDefault();
 
             if (prop == null)
@@ -563,7 +506,7 @@ namespace csscript
         {
             string lookupName = name.Replace("_", ""); // user is allowed to use '_' for very long named properties
             PropertyInfo prop = typeof(Settings).GetProperties()
-                                                .Where(x => 0 == string.Compare(x.Name.Replace("_", ""), lookupName, StringComparison.OrdinalIgnoreCase))
+                                                .Where(x => x.Name.Replace("_", "").SameAs(lookupName))
                                                 .FirstOrDefault();
 
             if (prop == null)
@@ -765,7 +708,7 @@ namespace csscript
                     XmlNode data = doc.FirstChild;
                     XmlNode node;
                     node = data.SelectSingleNode(nameof(DefaultArguments)); if (node != null) settings.DefaultArguments = node.InnerText;
-                    node = data.SelectSingleNode(nameof(ReportDetailedErrorInfo)); if (node != null) settings.reportDetailedErrorInfo = node.InnerText.ToBool();
+                    node = data.SelectSingleNode(nameof(ReportDetailedErrorInfo)); if (node != null) settings.ReportDetailedErrorInfo = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(UseAlternativeCompiler)); if (node != null) settings.UseAlternativeCompiler = node.InnerText;
                     node = data.SelectSingleNode(nameof(RoslynDir)); if (node != null) settings.RoslynDir = Environment.ExpandEnvironmentVariables(node.InnerText);
                     node = data.SelectSingleNode(nameof(SearchDirs)); if (node != null) settings.SearchDirs = node.InnerText;
@@ -773,7 +716,7 @@ namespace csscript
                     node = data.SelectSingleNode(nameof(AutoClass_DecorateAsCS6)); if (node != null) settings.AutoClass_DecorateAsCS6 = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(EnableDbgPrint)); if (node != null) settings.EnableDbgPrint = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(AutoClass_DecorateAlways)); if (node != null) settings.AutoClass_DecorateAlways = node.InnerText.ToBool();
-                    node = data.SelectSingleNode(nameof(HideCompilerWarnings)); if (node != null) settings.hideCompilerWarnings = node.InnerText.ToBool();
+                    node = data.SelectSingleNode(nameof(HideCompilerWarnings)); if (node != null) settings.HideCompilerWarnings = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(InMemoryAssembly)); if (node != null) settings.InMemoryAssembly = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(ResolveRelativeFromParentScriptLocation)); if (node != null) settings.ResolveRelativeFromParentScriptLocation = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(ConcurrencyControl)); if (node != null) settings.concurrencyControl = (ConcurrencyControl)Enum.Parse(typeof(ConcurrencyControl), node.InnerText, false);

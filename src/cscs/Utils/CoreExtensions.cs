@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis;
 
 namespace csscript
 {
-    public static class CoreExtensions
+    internal static class CoreExtensions
     {
         public static XElement SelectFirst(this XContainer element, string path)
         {
@@ -72,7 +72,7 @@ namespace csscript
                 return asmName;
         }
 
-        public static bool IsSamePathAs(this string path1, string path2) =>
+        public static bool SamePathAs(this string path1, string path2) =>
             string.Compare(path1, path2, Runtime.IsWin) == 0;
 
         public static Exception CaptureExceptionDispatchInfo(this Exception ex)
@@ -124,7 +124,7 @@ namespace csscript
         {
             if (item != null && item != "")
             {
-                bool isThere = items.Any(x => x.IsSamePathAs(item));
+                bool isThere = items.Any(x => x.SamePathAs(item));
 
                 if (!isThere)
                 {

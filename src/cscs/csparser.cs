@@ -716,67 +716,67 @@ namespace csscript
         /// <summary>
         /// Embedded script arguments. The both script and engine arguments are allowed except "/noconfig" engine command line switch.
         /// </summary>
-        public string[] Args { get => args.ToArray(); }
+        public string[] Args => args.ToArray();
 
         /// <summary>
         /// Embedded compiler options.
         /// </summary>
-        public string[] CompilerOptions { get => compilerOptions.ToArray(); }
+        public string[] CompilerOptions => compilerOptions.ToArray();
 
         /// <summary>
         /// Precompilers.
         /// </summary>
-        public string[] Precompilers { get => precompilers.ToArray(); }
+        public string[] Precompilers => precompilers.ToArray();
 
         /// <summary>
         /// References to the external assemblies and namespaces.
         /// </summary>
-        public string[] References { get => refAssemblies.Concat(refNamespaces).ToArray(); }
+        public string[] References => refAssemblies.Concat(refNamespaces).ToArray();
 
         /// <summary>
         /// References to the external assemblies.
         /// </summary>
-        public string[] RefAssemblies { get => refAssemblies.ToArray(); }
+        public string[] RefAssemblies => refAssemblies.ToArray();
 
         /// <summary>
         /// Names of namespaces to be ignored by namespace-to-assembly resolver.
         /// </summary>
-        public string[] IgnoreNamespaces { get => ignoreNamespaces.ToArray(); }
+        public string[] IgnoreNamespaces => ignoreNamespaces.ToArray();
 
         /// <summary>
         /// Additional search directories (for script and assembly probing).
         /// </summary>
-        public string[] ExtraSearchDirs { get => searchDirs.ToArray(); }
+        public string[] ExtraSearchDirs => searchDirs.ToArray();
 
         /// <summary>
         /// References to the resource files.
         /// </summary>
-        public string[] ResFiles { get => resFiles.ToArray(); }
+        public string[] ResFiles => resFiles.ToArray();
 
         /// <summary>
         /// References to the namespaces.
         /// </summary>
-        public string[] RefNamespaces { get => refNamespaces.ToArray(); }
+        public string[] RefNamespaces => refNamespaces.ToArray();
 
         /// <summary>
         /// References to the NuGet packages.
         /// </summary>
-        public string[] NuGets { get => nugets.ToArray(); }
+        public string[] NuGets => nugets.ToArray();
 
         /// <summary>
         /// C# scripts to be imported.
         /// </summary>
-        public ImportInfo[] Imports { get => imports.ToArray(); }
+        public ImportInfo[] Imports => imports.ToArray();
 
         /// <summary>
         /// Pre- and post-execution scripts.
         /// </summary>
-        public CmdScriptInfo[] CmdScripts { get => cmdScripts.ToArray(); }
+        public CmdScriptInfo[] CmdScripts => cmdScripts.ToArray();
 
         /// <summary>
         /// Script initialization directives.
         /// </summary>
-        public InitInfo[] Inits { get => inits.ToArray(); }
+        public InitInfo[] Inits => inits.ToArray();
 
         /// <summary>
         /// Apartment state of the script.
@@ -788,7 +788,7 @@ namespace csscript
         /// <summary>
         /// Gets the `auto-class` decoration mode value.
         /// </summary>
-        public string AutoClassMode { get => autoClassMode; }
+        public string AutoClassMode => autoClassMode;
 
         /// <summary>
         /// Script C# raw code.

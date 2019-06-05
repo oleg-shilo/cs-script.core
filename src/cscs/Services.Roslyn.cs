@@ -323,46 +323,6 @@ namespace CSScripting.CodeDom
             }
         }
 
-        // public static void Init1()
-        // {
-        //     var sourceFile = Path.GetTempFileName();
-        //     var assemblyFile = sourceFile + ".dll";
-
-        //     try
-        //     {
-        //         var code = @"using System;
-        //                      class Script
-        //                      {
-        //                          static public void Main()
-        //                          {
-        //                              (int a, int b) t = (1, 2);
-        //                              Console.WriteLine(""hello..."");
-        //                          }
-        //                      }";
-
-        //         File.WriteAllText(sourceFile, code);
-        //         var refs = new List<string>();
-
-        //         var gac = typeof(string).Assembly.Location.GetDirName();
-
-        //         var request = new BuildRequest
-        //         {
-        //             Source = sourceFile,
-        //             Assembly = assemblyFile,
-        //             IsDebug = true,
-        //             References = Directory.GetFiles(gac, "System.*.dll")
-        //         }.Serialize();
-
-        //         process_build_remotelly_request(request);
-        //     }
-        //     catch { }
-        //     finally
-        //     {
-        //         try { sourceFile.DeleteIfExists(); } catch { }
-        //         try { assemblyFile.DeleteIfExists(); } catch { }
-        //     }
-        // }
-
         public static object Init()
         {
             try

@@ -18,7 +18,36 @@ namespace csscript
         public string Name;
     }
 
-    class NuGetCore : INuGet
+    // Tempting to use "NuGet.Core" NuGet package to avoid deploying and using nuget.exe.
+    // However it is not compatible with .NET Core runtime (at least as at 19.05.2018)
+    // Next candidate is the REST API (e.g. https://api-v2v3search-0.nuget.org/query?q=cs-script&prerelease=false)
+    class NuGet
+    {
+        static NuGetCore nuget = new NuGetCore();
+
+        static public string NuGetCacheView => Directory.Exists(nuget.NuGetCache) ? nuget.NuGetCache : "<not found>";
+
+        static public string NuGetExeView
+            => (nuget.NuGetExe.FileExists() || nuget.NuGetExe == "dotnet") ? nuget.NuGetExe : "<not found>";
+
+        static public bool newPackageWasInstalled => nuget.NewPackageWasInstalled;
+
+        static public void InstallPackage(string packageNameMask) => nuget.InstallPackage(packageNameMask);
+
+        static public void ListPackages()
+        {
+            Console.WriteLine("Repository: " + NuGetCacheView);
+            int i = 0;
+            foreach (string name in nuget.ListPackages())
+                Console.WriteLine((++i) + ". " + name);
+            nuget.ListPackages();
+        }
+
+        static public string[] Resolve(string[] packages, bool suppressDownloading, string script)
+            => nuget.Resolve(packages, suppressDownloading, script);
+    }
+
+    class NuGetCore
     {
         //https://docs.microsoft.com/en-us/nuget/consume-packages/managing-the-global-packages-and-cache-folders
         // .NET Mono, .NET Core

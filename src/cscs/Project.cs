@@ -164,8 +164,6 @@ namespace csscript
         /// <returns></returns>cls
         ///
         static public string GetCSSConfig()
-        {
-            return Settings.DefaultConfigFile;
-        }
+            => Settings.DefaultConfigFile;
     }
 }

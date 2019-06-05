@@ -1,32 +1,7 @@
-#region Licence...
-
-//----------------------------------------------
-// The MIT License (MIT)
-// Copyright (c) 2004-2018 Oleg Shilo
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-// and associated documentation files (the "Software"), to deal in the Software without restriction,
-// including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-// subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all copies or substantial
-// portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
-// LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-// IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-// SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-//----------------------------------------------
-
-#endregion Licence...
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using csscript;
 
 namespace CSScriptLibrary
@@ -82,73 +57,39 @@ namespace CSScriptLibrary
         /// <summary>
         /// Collection of the files to be compiled (including dependent scripts)
         /// </summary>
-        public string[] FilesToCompile
-        {
-            get
-            {
-                List<string> retval = new List<string>();
-                foreach (FileParser file in fileParsers)
-                    retval.Add(file.FileToCompile);
-                return retval.ToArray();
-            }
-        }
+        public string[] FilesToCompile => fileParsers.Select(x => x.FileToCompile).ToArray();
 
         /// <summary>
         /// Collection of the imported files (dependent scripts)
         /// </summary>
         public string[] ImportedFiles
-        {
-            get
-            {
-                List<string> retval = new List<string>();
-                foreach (FileParser file in fileParsers)
-                {
-                    if (file.Imported)
-                        retval.Add(file.fileName);
-                }
-                return retval.ToArray();
-            }
-        }
+            => fileParsers.Where(x => x.Imported).Select(x => x.FileToCompile).ToArray();
 
         /// <summary>
         /// Collection of resource files referenced from code
         /// </summary>
         public string[] ReferencedResources
-        {
-            get { return referencedResources.ToArray(); }
-        }
+            => referencedResources.ToArray();
 
         /// <summary>
         /// Collection of compiler options
         /// </summary>
-        public string[] CompilerOptions
-        {
-            get { return compilerOptions.ToArray(); }
-        }
+        public string[] CompilerOptions => compilerOptions.ToArray();
 
         /// <summary>
         /// Precompilers specified in the primary script file.
         /// </summary>
-        public string[] Precompilers
-        {
-            get { return precompilers.ToArray(); }
-        }
+        public string[] Precompilers => precompilers.ToArray();
 
         /// <summary>
-        /// Collection of namespaces referenced from code (including those referenced in dependant scripts)
+        /// Collection of namespaces referenced from code (including those referenced in dependent scripts)
         /// </summary>
-        public string[] ReferencedNamespaces
-        {
-            get { return referencedNamespaces.ToArray(); }
-        }
+        public string[] ReferencedNamespaces => referencedNamespaces.ToArray();
 
         /// <summary>
         /// Collection of namespaces, which if found in code, should not be resolved into referenced assembly.
         /// </summary>
-        public string[] IgnoreNamespaces
-        {
-            get { return ignoreNamespaces.ToArray(); }
-        }
+        public string[] IgnoreNamespaces => ignoreNamespaces.ToArray();
 
         /// <summary>
         /// Resolves the NuGet packages into assemblies to be referenced by the script.
@@ -167,18 +108,12 @@ namespace CSScriptLibrary
         /// <summary>
         /// Collection of the NuGet packages
         /// </summary>
-        public string[] Packages
-        {
-            get { return packages.ToArray(); }
-        }
+        public string[] Packages => packages.ToArray();
 
         /// <summary>
         /// Collection of referenced assemblies. All assemblies are referenced either from command-line, code or resolved from referenced namespaces.
         /// </summary>
-        public string[] ReferencedAssemblies
-        {
-            get { return referencedAssemblies.ToArray(); }
-        }
+        public string[] ReferencedAssemblies => referencedAssemblies.ToArray();
 
         /// <summary>
         /// Constructor.
@@ -236,14 +171,6 @@ namespace CSScriptLibrary
         void Init(string fileName, string[] searchDirs)
         {
             ScriptPath = fileName;
-
-            packages = new List<string>();
-            referencedNamespaces = new List<string>();
-            referencedAssemblies = new List<string>();
-            referencedResources = new List<string>();
-            ignoreNamespaces = new List<string>();
-            precompilers = new List<string>();
-            compilerOptions = new List<string>();
 
             //process main file
             FileParser mainFile = new FileParser(fileName, null, true, false, searchDirs, throwOnError);
@@ -398,13 +325,13 @@ namespace CSScriptLibrary
             }
         }
 
-        List<string> referencedNamespaces;
-        List<string> ignoreNamespaces;
-        List<string> referencedResources;
-        List<string> compilerOptions;
-        List<string> precompilers;
-        List<string> referencedAssemblies;
-        List<string> packages;
+        List<string> referencedNamespaces = new List<string>();
+        List<string> ignoreNamespaces = new List<string>();
+        List<string> referencedResources = new List<string>();
+        List<string> compilerOptions = new List<string>();
+        List<string> precompilers = new List<string>();
+        List<string> referencedAssemblies = new List<string>();
+        List<string> packages = new List<string>();
 
         /// <summary>
         /// CS-Script SearchDirectories specified in the parsed script or its dependent scripts.

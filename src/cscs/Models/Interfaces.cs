@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
@@ -107,5 +108,35 @@ namespace csscript
                 Diagnostics = data.Diagnostics.Select(x => Diagnostic.From(x)).ToList()
             };
         }
+    }
+
+    class UniqueAssemblyLocations
+    {
+        public static explicit operator string[](UniqueAssemblyLocations obj)
+        {
+            string[] retval = new string[obj.locations.Count];
+            obj.locations.Values.CopyTo(retval, 0);
+            return retval;
+        }
+
+        public void AddAssembly(string location)
+        {
+            string assemblyID = Path.GetFileName(location).ToUpperInvariant();
+            if (!locations.ContainsKey(assemblyID))
+                locations[assemblyID] = location.EnsureAsmExtension();
+        }
+
+        public bool ContainsAssembly(string name)
+        {
+            string assemblyID = name.ToUpperInvariant();
+            foreach (string key in locations.Keys)
+            {
+                if (Path.GetFileNameWithoutExtension(key) == assemblyID)
+                    return true;
+            }
+            return false;
+        }
+
+        System.Collections.Hashtable locations = new System.Collections.Hashtable();
     }
 }

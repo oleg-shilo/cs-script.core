@@ -891,7 +891,7 @@ namespace CSScriptLib
                         "which are not loaded from the file location.");
 
                 if (!CompilerSettings.MetadataReferences.OfType<PortableExecutableReference>()
-                    .Any(r => r.FilePath.IsSamePathAs(assembly.Location)))
+                    .Any(r => r.FilePath.SamePathAs(assembly.Location)))
                     //Future assembly aliases support:
                     //MetadataReference.CreateFromFile("asm.dll", new MetadataReferenceProperties().WithAliases(new[] { "lib_a", "external_lib_a" } })
                     CompilerSettings = CompilerSettings.AddReferences(assembly);

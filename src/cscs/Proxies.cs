@@ -528,12 +528,8 @@ namespace CSScripting.CodeDom
 
     public class CompilerParameters
     {
-        readonly List<string> linkedResources = new List<string>();
-        readonly List<string> embeddedResources = new List<string>();
-        readonly List<string> referencedAssemblies = new List<string>();
-
-        public List<string> LinkedResources { get => linkedResources; }
-        public List<string> EmbeddedResources { get => embeddedResources; }
+        public List<string> LinkedResources { get; } = new List<string>();
+        public List<string> EmbeddedResources { get; } = new List<string>();
         public string Win32Resource { get; set; }
         public string CompilerOptions { get; set; }
         public int WarningLevel { get; set; }
@@ -542,7 +538,7 @@ namespace CSScripting.CodeDom
         public string OutputAssembly { get; set; }
         public IntPtr UserToken { get; set; }
         public string MainClass { get; set; }
-        public List<string> ReferencedAssemblies { get => referencedAssemblies; }
+        public List<string> ReferencedAssemblies { get; } = new List<string>();
         public bool GenerateInMemory { get; set; }
         public bool GenerateExecutable { get; set; }
         public string CoreAssemblyFileName { get; set; }

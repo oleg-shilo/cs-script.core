@@ -6,8 +6,16 @@ using Microsoft.CodeAnalysis;
 
 namespace csscript
 {
+    /// <summary>
+    /// Various Reflection extensions
+    /// </summary>
     public static class ReflectionExtensions
     {
+        /// <summary>
+        /// Returns directory where the specified assembly file is.
+        /// </summary>
+        /// <param name="asm">The asm.</param>
+        /// <returns></returns>
         public static string Directory(this Assembly asm)
         {
             var file = asm.Location();
@@ -17,7 +25,12 @@ namespace csscript
                 return "";
         }
 
-        //to avoid throwing the exception
+        /// <summary>
+        /// Returns location of the specified assembly. Avoids throwing an exception in case
+        /// of dynamic assembly.
+        /// </summary>
+        /// <param name="asm">The asm.</param>
+        /// <returns></returns>
         public static string Location(this Assembly asm)
         {
             if (asm.IsDynamic())
@@ -32,6 +45,11 @@ namespace csscript
                 return asm.Location;
         }
 
+        /// <summary>
+        /// Gets the name of the type.
+        /// </summary>
+        /// <param name="type">The type.</param>
+        /// <returns></returns>
         public static string GetName(this Type type)
         {
             return type.GetTypeInfo().Name;
@@ -110,25 +128,18 @@ namespace csscript
                 .FirstOrDefault(x => typeof(T).IsAssignableFrom(x));
         }
 
+        /// <summary>
+        /// Determines whether the assembly is dynamic.
+        /// </summary>
+        /// <param name="asm">The asm.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified asm is dynamic; otherwise, <c>false</c>.
+        /// </returns>
         public static bool IsDynamic(this Assembly asm)
         {
             //http://bloggingabout.net/blogs/vagif/archive/2010/07/02/net-4-0-and-notsupportedexception-complaining-about-dynamic-assemblies.aspx
             //Will cover both System.Reflection.Emit.AssemblyBuilder and System.Reflection.Emit.InternalAssemblyBuilder
             return asm.GetType().FullName.EndsWith("AssemblyBuilder") || asm.Location == null || asm.Location == "";
-        }
-
-        public static Exception CaptureExceptionDispatchInfo(this Exception ex)
-        {
-            try
-            {
-                // on .NET 4.5 ExceptionDispatchInfo can be used
-                // ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
-
-                typeof(Exception).GetMethod("PrepForRemoting", BindingFlags.NonPublic | BindingFlags.Instance)
-                                 .Invoke(ex, new object[0]);
-            }
-            catch { }
-            return ex;
         }
     }
 }

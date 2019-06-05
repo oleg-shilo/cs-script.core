@@ -3,7 +3,10 @@ using System.Linq;
 
 namespace csscript
 {
-    public static class PathExtensions
+    /// <summary>
+    /// Various PATH extensions
+    /// </summary>
+    internal static class PathExtensions
     {
         public static string GetFileName(this string path) => Path.GetFileName(path);
 

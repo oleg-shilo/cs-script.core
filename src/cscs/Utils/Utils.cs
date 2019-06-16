@@ -348,9 +348,9 @@ namespace csscript
                         else
                         {
                             string sourceName(string path) =>
-                                path.GetFileName().Replace(".attr.g", "");
+                                path.GetFileNameWithoutExtension(); // remove `.dll` in `script.cs.dll`
 
-                            var sorceFiles = Directory.GetFiles(cacheDir, "*.attr.g.*")
+                            var sorceFiles = Directory.GetFiles(cacheDir, "*.dll")
                                                       .Select(x => new
                                                       {
                                                           Source = sourceDir.PathJoin(sourceName(x)),
@@ -361,7 +361,10 @@ namespace csscript
                             // jhkjhnk
                             sorceFiles.Where(x => !File.Exists(x.Source))
                                       .ForEach(file => Directory.GetFiles(cacheDir, $"{file.PureName}.*")
-                                                                .ForEach(FileDelete));
+                                                                .ForEach(x =>
+                                                                         {
+                                                                             FileDelete(x);
+                                                                         }));
                         }
                     }
                     catch { }
@@ -1249,7 +1252,7 @@ partial class dbg
                     else if (Args.Same(arg, AppArgs.cd)) // -cd
                     {
                         options.suppressExecution = true;
-                        options.DLLExtension = true;
+                        options.compileDLL = true;
                     }
                     else if (Args.Same(arg, AppArgs.tc)) // -tc
                     {
@@ -1511,9 +1514,6 @@ partial class dbg
                     else
                         asm = CompilePrecompilerScript(sourceFile, options.searchDirs);
 
-                    // var asmExtension = Runtime.IsMono ? ".dll" : ".compiled";
-                    // string precompilerAsm = Path.Combine(CSExecutor.GetCacheDirectory(sourceFile), Path.GetFileName(sourceFile) + asmExtension);
-
                     object precompilerObj = null;
 
                     // var executor = new LocalExecutor(ExecuteOptions.options.searchDirs);
@@ -1648,7 +1648,7 @@ partial class dbg
             // .NET Core team does not have any plans for CodeDOM
             try
             {
-                var asmExtension = Runtime.IsMono ? ".dll" : ".compiled";
+                var asmExtension = ".dll";
                 string precompilerAsm = Path.Combine(CSExecutor.GetCacheDirectory(sourceFile), Path.GetFileName(sourceFile) + asmExtension);
 
                 using (Mutex fileLock = new Mutex(false, "CSSPrecompiling." + CSSUtils.GetHashCodeEx(precompilerAsm))) //have to use hash code as path delimiters are illegal in the mutex name
@@ -1922,8 +1922,8 @@ partial class dbg
     /// The MetaDataItems class contains information about script dependencies (referenced local
     /// assemblies and imported scripts) and compiler options. This information is required when
     /// scripts are executed in a 'cached' mode (/c switch). On the base of this information the script
-    /// engine will compile new version of .compiled assembly if any of it's dependencies is changed. This
-    /// is required even for referenced local assemblies as it is possible that they are a strongly
+    /// engine will compile new version of <cache dir>/<script file>.dll assembly if any of it's dependencies is
+    /// changed. This is required even for referenced local assemblies as it is possible that they are a strongly
     /// named assemblies (recompiling is required for any compiled client of the strongly named assembly
     /// in case this assembly is changed).
     ///
@@ -2325,8 +2325,8 @@ partial class dbg
                             }
                             else
                             {
-                                // "path\script.cs.compiled"
-                                foreach (string file in Directory.GetFiles(cacheDir, "*.compiled"))
+                                // "path\script.cs.dll"
+                                foreach (string file in Directory.GetFiles(cacheDir, "*.dll"))
                                 {
                                     string name = Path.GetFileNameWithoutExtension(file);//script.cs
 

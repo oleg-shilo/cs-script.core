@@ -56,7 +56,7 @@ namespace csscript
         {
             try
             {
-                if (asmFile.EndsWith(".cs") || (!asmFile.EndsWith(".dll") && !asmFile.EndsWith(".exe") && !asmFile.EndsWith(".compiled")))
+                if (asmFile.EndsWith(".cs") || (!asmFile.EndsWith(".dll") && !asmFile.EndsWith(".exe")))
                     return null;
 
                 AssemblyName asmName = AssemblyName.GetAssemblyName(asmFile);
@@ -223,7 +223,7 @@ namespace csscript
                     if (Directory.Exists(Path.GetDirectoryName(asmFile)))
                     {
                         //test well-known assembly extensions first
-                        foreach (string ext in new string[] { "", ".dll", ".exe", ".compiled" })
+                        foreach (string ext in new string[] { "", ".dll", ".exe" })
                         {
                             string file = asmFile + ext; //just in case if user did not specify the extension
                             if (ignoreFileName != Path.GetFileName(file) && File.Exists(file))

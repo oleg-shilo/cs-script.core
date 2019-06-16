@@ -182,13 +182,13 @@ namespace csscript
             switch1Help[ew] = new ArgInfo("-ew",
                                           "Compiles script into Windows application executable.");
             switch1Help[c] = new ArgInfo("-c[:<0|1>]",
-                                         "Uses compiled file (cache file .compiled) if found (to improve performance).",
+                                         "Uses compiled file cache file (e.g. <cache dir>/script.cs.dll) if found (to improve performance).",
                                              "   -c:1|-c  enable caching",
-                                                 "   -c:0     disable caching (which might be enabled globally);");
+                                             "   -c:0     disable caching (which might be enabled globally)");
             switch1Help[ca] = new ArgInfo("-ca",
-                                          "Compiles script file into assembly (cache file .compiled) without execution.");
+                                          "Compiles script file into cache file (e.g. <cache dir>/script.cs.dll).");
             switch1Help[cd] = new ArgInfo("-cd",
-                                          "Compiles script file into assembly (.dll) without execution.");
+                                          "Compiles script file into assembly (.dll) in the script folder without execution.");
             switch1Help[check] = new ArgInfo("-check",
                                              "Checks script for errors without execution.");
             switch1Help[proj] = new ArgInfo("-proj",

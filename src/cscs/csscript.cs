@@ -911,7 +911,7 @@ namespace csscript
                 options.forceOutputAssembly = assemblyFile;
             else
             {
-                string cacheFile = Path.Combine(CSExecutor.GetCacheDirectory(scriptFile), Path.GetFileName(scriptFile) + ".compiled");
+                string cacheFile = Path.Combine(CSExecutor.GetCacheDirectory(scriptFile), Path.GetFileName(scriptFile) + ".dll");
                 options.forceOutputAssembly = cacheFile;
             }
             if (debugBuild)
@@ -949,7 +949,7 @@ namespace csscript
         public ExecuteOptions GetOptions() => options;
 
         /// <summary>
-        /// Checks/returns if compiled C# script file (ScriptName + ".compiled") available and valid.
+        /// Checks/returns if compiled C# script file (ScriptName + ".dll") available and valid.
         /// </summary>
         internal string GetAvailableAssembly(string scripFileName)
         {
@@ -959,8 +959,7 @@ namespace csscript
 
             if (asmFileName == null || asmFileName == "")
             {
-                var asmExtension = Runtime.IsMono && !Runtime.IsWin ? ".dll" : ".compiled";
-                // asmExtension = ".dll"; // testing
+                var asmExtension = ".dll";
 
                 asmFileName = options.hideTemp != Settings.HideOptions.DoNotHide ? Path.Combine(CSExecutor.ScriptCacheDir, Path.GetFileName(scripFileName) + asmExtension) : scripFileName + ".c";
             }
@@ -1405,14 +1404,11 @@ namespace csscript
                 {
                     assemblyFileName = Path.Combine(scriptDir, Path.GetFileNameWithoutExtension(scriptFileName) + ".exe");
                 }
-                else if (options.useCompiled || options.DLLExtension)
+                else if (options.useCompiled || options.compileDLL)
                 {
-                    var cachedAsmExtension = ".compiled";
+                    var cachedAsmExtension = ".dll";
 
-                    if (Runtime.IsMono)
-                        cachedAsmExtension = ".dll"; // mono cannot locate the symbols file (*.mbd) unless the assembly file is a .dll one
-
-                    if (options.DLLExtension)
+                    if (options.compileDLL)
                         assemblyFileName = Path.Combine(scriptDir, Path.GetFileNameWithoutExtension(scriptFileName) + ".dll");
                     else if (options.hideTemp != Settings.HideOptions.DoNotHide)
                         assemblyFileName = Path.Combine(CSExecutor.ScriptCacheDir, Path.GetFileName(scriptFileName) + cachedAsmExtension);

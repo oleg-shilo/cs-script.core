@@ -54,7 +54,7 @@ namespace csscript
             clone.useCompiled = this.useCompiled;
             clone.suppressTimestampAltering = this.suppressTimestampAltering;
             clone.useSmartCaching = this.useSmartCaching;
-            clone.DLLExtension = this.DLLExtension;
+            clone.compileDLL = this.compileDLL;
             clone.forceCompile = this.forceCompile;
             clone.suppressExecution = this.suppressExecution;
             clone.syntaxCheck = this.syntaxCheck;
@@ -169,7 +169,7 @@ namespace csscript
         public bool useSmartCaching = true; //hard-coded true but can be set from config file in the future
         public bool suppressTimestampAltering = false; //hard-coded true but can be set from config file in the future
         public string customConfigFileName = "";
-        public bool DLLExtension = false;
+        public bool compileDLL = false;
         public bool forceCompile = false;
         public bool suppressExecution = false;
         public bool syntaxCheck = false;

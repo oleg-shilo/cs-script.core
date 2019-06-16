@@ -45,6 +45,8 @@ using System.Threading;
 
  CS-Script obsolete features and limitations:
     - All builds are "Debug" builds
+    - Dropped all non `Settings.HideOptions.HideAll` scenarios
+    - Dropped the use of `.compiled` extension for the cache files. Now it is a simple `<script_file>.dll` pattern
     - Surrogate process support for x86 vs. x64 execution
     - Support for Settings.DefaultApartmentState (still needs to be tested)
     - Support for Settings.UsePostProcessor

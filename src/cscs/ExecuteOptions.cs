@@ -206,7 +206,7 @@ namespace csscript
         public bool versionOnly = false;
         public string compilerOptions = "";
         public string altConfig = "";
-        public Settings.HideOptions hideTemp = Settings.HideOptions.HideMostFiles;
+        public Settings.HideOptions hideTemp = Settings.HideOptions.HideAll;
         public uint doCleanupAfterNumberOfRuns = 20;
 
         public void AddSearchDir(string dir, string section)

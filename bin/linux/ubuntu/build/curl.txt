@@ -1,0 +1,38 @@
+curl -L https://github.com/oleg-shilo/cs-script/raw/master/bin/linux/ubuntu/version --output latest_cs-script.url --silent
+
+echo cs-script_ > latest_cs-script.url
+curl -L https://github.com/oleg-shilo/cs-script/raw/master/bin/linux/ubuntu/version.txt >> latest_cs-script.url 
+echo _all.deb >> latest_cs-script.url
+
+
+$ { echo first line; echo second line; } | grep "line"
+first line
+second line
+
+{ echo cs-script_; curl -L https://github.com/oleg-shilo/cs-script/raw/master/bin/linux/ubuntu/version.txt; }
+
+Working:
+echo $(echo "cs-script_")$(curl -L https://github.com/oleg-shilo/cs-script/raw/master/bin/linux/ubuntu/version.txt --silent)$(echo "_all.deb")
+
+
+repo=https://github.com/oleg-shilo/cs-script/raw/master/bin/linux/ubuntu/; echo $(echo $repo);
+
+repo=https://github.com/oleg-shilo/cs-script/raw/master/bin/linux/ubuntu/; url=echo $(echo cs-script_)$(curl -L $repo/version.txt --silent)$(echo _all.deb)
+cs-script_3.27.5.0_all.deb
+
+repo=https://github.com/oleg-shilo/cs-script/raw/master/bin/linux/ubuntu/; file=$(echo cs-script_)$(curl -L $repo/version.txt --silent)$(echo _all.deb); echo $repo$file
+
+```
+repo=https://github.com/oleg-shilo/cs-script/raw/master/bin/linux/ubuntu/; file=$(echo cs-script_)$(curl -L $repo/version.txt --silent)$(echo _all.deb);
+rm cs-script*.deb*; wget $repo$file
+sudo dpkg -i $file
+```
+
+```
+repo=https://github.com/oleg-shilo/cs-script/raw/master/bin/linux/ubuntu/; file=$(echo cs-script_)$(curl -L $repo/version.txt --silent)$(echo _all.deb); rm cs-script*.deb; wget $repo$file; sudo dpkg -i $file
+```
+Same but on GitHub pages
+```
+repo=http://oleg-shilo.github.io/cs-script/linux/ubuntu/; file=$(echo cs-script_)$(curl -L $repo/version.txt --silent)$(echo _all.deb); rm $file; wget $repo$file; sudo dpkg -i $file
+```
+

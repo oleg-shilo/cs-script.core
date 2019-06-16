@@ -447,6 +447,10 @@ namespace csscript
         /// <param name="probingDirs">Search directories for resolving wild card paths in //css_inc and //css_imp</param>
         void Init(string code, string file, string[] directivesToSearch, string[] probingDirs)
         {
+            probingDirs = probingDirs.Except(Settings.PseudoDirItems)
+                                     .Where(Directory.Exists)
+                                     .ToArray();
+
             string workingDir = Environment.CurrentDirectory;
             if (file != "")
                 workingDir = Path.GetDirectoryName(file);

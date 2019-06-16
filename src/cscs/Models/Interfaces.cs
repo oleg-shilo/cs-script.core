@@ -33,7 +33,7 @@ namespace csscript
 
         void DoCacheOperations(string command);
 
-        void ShowVersion();
+        void ShowVersion(string arg = null);
 
         void ShowPrecompilerSample();
 

@@ -1271,7 +1271,7 @@ partial class dbg
                     }
                     else if (Args.Same(arg, AppArgs.ver, AppArgs.v, AppArgs.version, AppArgs.version2)) // -ver -v -version --version
                     {
-                        executor.ShowVersion();
+                        executor.ShowVersion(arg);
                         CLIExitRequest.Throw();
                     }
                     else if (Args.ParseValuedArg(arg, AppArgs.nuget, out argValue)) // -nuget[:<package>]

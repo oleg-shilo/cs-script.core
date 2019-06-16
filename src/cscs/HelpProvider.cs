@@ -1036,63 +1036,66 @@ namespace csscript
             return builder.ToString();
         }
 
-        public static string BuildVersionInfo()
+        public static string BuildVersionInfo(string arg)
         {
             StringBuilder builder = new StringBuilder();
 
             string dotNetVer = null;
 
-            // if (Utils.IsWin)
-            //     dotNetVer = GetDotNetVersion.Get45PlusFromRegistry();
-
-            builder.Append(AppInfo.appLogo.TrimEnd() + " www.csscript.net (github.com/oleg-shilo/cs-script.core)\n");
-            builder.Append("\n");
-            builder.Append("   CLR:             " + Environment.Version + (dotNetVer != null ? " (.NET Framework v" + dotNetVer + ")" : "") + "\n");
-            builder.Append("   System:          " + Environment.OSVersion + "\n");
-            builder.Append("   Architecture:    " + (Environment.Is64BitProcess ? "x64" : "x86") + "\n");
-            builder.Append("   Install dir:     " + (Environment.GetEnvironmentVariable("CSSCRIPT_ROOT") ?? "<not integrated>") + "\n");
-
-            var asm_path = Assembly.GetExecutingAssembly().Location;
-            builder.Append("   Location:        " + asm_path + "\n");
-
-            builder.Append("   Config file:     " + (Settings.DefaultConfigFile.FileExists() ? Settings.DefaultConfigFile : "<none>") + "\n");
-            builder.Append("   Engine:          ");
-            var compiler = "<default>";
-            if (!string.IsNullOrEmpty(asm_path))
+            if (arg == "--version")
             {
-                //System.Diagnostics.Debug.Assert(false);
-                var alt_compiler = (Settings.Load(Settings.DefaultConfigFile, false) ?? new Settings()).ExpandUseAlternativeCompiler();
-                if (!string.IsNullOrEmpty(alt_compiler))
-                {
-                    builder.Append(alt_compiler + "\n");
-                    try
-                    {
-                        var asm = Assembly.LoadFrom(CSExecutor.LookupAltCompilerFile(alt_compiler));
-                        Type[] types = asm.GetModules()[0].FindTypes(Module.FilterTypeName, "CSSCodeProvider");
-
-                        MethodInfo method = types[0].GetMethod("GetCompilerInfo");
-                        if (method != null)
-                        {
-                            var info = (Dictionary<string, string>)method.Invoke(null, new object[0]);
-                            var maxLength = info.Keys.Max(x => x.Length);
-                            foreach (var key in info.Keys)
-                                builder.AppendLine("                    " + key + " - \n                        " + info[key]);
-                        }
-                    }
-                    catch { }
-                }
-                else
-                {
-                    builder.Append(compiler + "\n");
-                }
-                builder.Append($"                    {CSScripting.CodeDom.CSharpCompiler.csc_dll}\n");
+                builder.Append($"{Assembly.GetExecutingAssembly().GetName().Version}");
             }
             else
-                builder.Append(compiler + "\n");
+            {
+                builder.Append(AppInfo.appLogo.TrimEnd() + " www.csscript.net (github.com/oleg-shilo/cs-script.core)\n");
+                builder.Append("\n");
+                builder.Append("   CLR:             " + Environment.Version + (dotNetVer != null ? " (.NET Framework v" + dotNetVer + ")" : "") + "\n");
+                builder.Append("   System:          " + Environment.OSVersion + "\n");
+                builder.Append("   Architecture:    " + (Environment.Is64BitProcess ? "x64" : "x86") + "\n");
+                builder.Append("   Install dir:     " + (Environment.GetEnvironmentVariable("CSSCRIPT_ROOT") ?? "<not integrated>") + "\n");
 
-            builder.Append("   NuGet manager:   " + NuGet.NuGetExeView + "\n");
-            builder.Append("   NuGet cache:     " + NuGet.NuGetCacheView + "\n");
+                var asm_path = Assembly.GetExecutingAssembly().Location;
+                builder.Append("   Location:        " + asm_path + "\n");
 
+                builder.Append("   Config file:     " + (Settings.DefaultConfigFile.FileExists() ? Settings.DefaultConfigFile : "<none>") + "\n");
+                builder.Append("   Engine:          ");
+                var compiler = "<default>";
+                if (!string.IsNullOrEmpty(asm_path))
+                {
+                    //System.Diagnostics.Debug.Assert(false);
+                    var alt_compiler = (Settings.Load(Settings.DefaultConfigFile, false) ?? new Settings()).ExpandUseAlternativeCompiler();
+                    if (!string.IsNullOrEmpty(alt_compiler))
+                    {
+                        builder.Append(alt_compiler + "\n");
+                        try
+                        {
+                            var asm = Assembly.LoadFrom(CSExecutor.LookupAltCompilerFile(alt_compiler));
+                            Type[] types = asm.GetModules()[0].FindTypes(Module.FilterTypeName, "CSSCodeProvider");
+
+                            MethodInfo method = types[0].GetMethod("GetCompilerInfo");
+                            if (method != null)
+                            {
+                                var info = (Dictionary<string, string>)method.Invoke(null, new object[0]);
+                                var maxLength = info.Keys.Max(x => x.Length);
+                                foreach (var key in info.Keys)
+                                    builder.AppendLine("                    " + key + " - \n                        " + info[key]);
+                            }
+                        }
+                        catch { }
+                    }
+                    else
+                    {
+                        builder.Append(compiler + "\n");
+                    }
+                    builder.Append($"                    {CSScripting.CodeDom.CSharpCompiler.csc_dll}\n");
+                }
+                else
+                    builder.Append(compiler + "\n");
+
+                builder.Append("   NuGet manager:   " + NuGet.NuGetExeView + "\n");
+                builder.Append("   NuGet cache:     " + NuGet.NuGetCacheView + "\n");
+            }
             return builder.ToString();
         }
     }

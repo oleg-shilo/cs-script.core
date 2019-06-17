@@ -6,6 +6,13 @@ using Microsoft.CodeAnalysis;
 
 namespace csscript
 {
+    public partial class CSScript
+    {
+        static internal string DynamicWrapperClassName = "DynamicClass";
+        // static internal string RootClassName = "CSScriptCompiledClass";
+        static public string RootClassName = "Submission#0"; // Roslyn still does not support anything else but `Submission#0` (17 Jul 2019)
+    }
+
     /// <summary>
     /// Various Reflection extensions
     /// </summary>
@@ -85,18 +92,16 @@ namespace csscript
             //note typeName for FindTypes does not include namespace
             if (typeName == "*")
             {
-                //instantiate the first type found (but not auto-generated types)
-                //Ignore Roslyn internal type: "Submission#N"; real script class will be Submission#0+Script
-                foreach (Type type in asm.GetTypes())
-                {
-                    bool isMonoInternalType = (type.FullName == "<InteractiveExpressionClass>");
-                    bool isRoslynInternalType = (type.FullName.StartsWith("Submission#") && !type.FullName.Contains("+"));
+                //instantiate the user first type found (but not auto-generated types)
+                //Ignore Roslyn internal root type: "Submission#0"; real script class will be Submission#0+Script
 
-                    if (!isMonoInternalType && !isRoslynInternalType)
-                    {
-                        return Activator.CreateInstance(type, args);
-                    }
-                }
+                var firstUserTypes = asm.GetTypes()
+                                        .FirstOrDefault(x => x.FullName.StartsWith(CSScript.RootClassName) &&
+                                                             x.FullName != CSScript.RootClassName);
+
+                if (firstUserTypes != null)
+                    return Activator.CreateInstance(firstUserTypes, args);
+
                 return null;
             }
             else
@@ -104,10 +109,9 @@ namespace csscript
                 var name = typeName.Replace("*.", "");
 
                 Type[] types = asm.GetTypes()
-                                  .Where(t => t.FullName.None(char.IsDigit)
-                                              && (t.FullName == name
-                                                    || t.FullName == ("Submission#0+" + name)
-                                                    || t.Name == name))
+                                  .Where(t => (t.FullName == name
+                                               || t.FullName == ($"{CSScript.RootClassName}+{name}")
+                                               || t.Name == name))
                                       .ToArray();
 
                 if (types.Length == 0)
@@ -123,7 +127,7 @@ namespace csscript
             return asm
                 .ExportedTypes
                 .Where(t => t.FullName.None(char.IsDigit)           // 1 (yes Roslyn can generate class with this name)
-                       && t.FullName.StartsWith("Submission#0+")  // Submission#0+Script
+                       && t.FullName.StartsWith($"{CSScript.RootClassName}+")  // Submission#0+Script
                           && !t.FullName.Contains("<<Initialize>>")) // Submission#0+<<Initialize>>d__0
                 .FirstOrDefault(x => typeof(T).IsAssignableFrom(x));
         }

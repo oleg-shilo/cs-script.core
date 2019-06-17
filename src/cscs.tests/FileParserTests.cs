@@ -22,6 +22,7 @@ class TestFolder
     public TestFolder()
     {
         Directory.GetFiles(root, "*", SearchOption.AllDirectories)
+                 .ToList()
                  .ForEach(File.Delete);
 
         void create(string dir, string file) => File.WriteAllText(root.PathJoin(dir).EnsureDir().PathJoin(file), "");

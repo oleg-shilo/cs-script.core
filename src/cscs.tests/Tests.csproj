@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\cscs\cscs.csproj" />
+    <ProjectReference Include="..\CSScriptLib\src\CSScriptLib\CSScriptLib.csproj" />
   </ItemGroup>
 
 </Project>

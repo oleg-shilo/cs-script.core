@@ -8,7 +8,13 @@ namespace csscript
     /// <summary>
     /// Various LINQ extensions
     /// </summary>
-    public static class LinqExtensions
+#if class_lib
+    public
+#else
+
+#endif
+
+    static class LinqExtensions
     {
         internal static List<T> AddIfNotThere<T>(this List<T> items, T item)
         {

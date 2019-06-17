@@ -380,10 +380,11 @@ namespace CSScriptLib
                 var compilation = CSharpScript.Create(scriptText, CompilerSettings)
                                               .GetCompilation();
 
+                // compilation.Options
                 if (this.IsDebug)
-                    compilation = compilation.WithOptions(compilation.Options
-                                             .WithOptimizationLevel(OptimizationLevel.Debug)
-                                             .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
+                    compilation = compilation.WithOptions(compilation.Options.WithOptimizationLevel(OptimizationLevel.Debug)
+                                                                             .WithScriptClassName(CSScript.RootClassName)
+                                                                             .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
 
                 using (var pdb = new MemoryStream())
                 using (var asm = new MemoryStream())
@@ -784,8 +785,7 @@ namespace CSScriptLib
         public object LoadMethod(string code)
         {
             string scriptText = CSScript.WrapMethodToAutoClass(code, false, false);
-
-            return LoadCodeByName(scriptText, ExtractClassName(scriptText));
+            return LoadCodeByName(scriptText, $"*.{CSScript.DynamicWrapperClassName}");
         }
 
         /// <summary>

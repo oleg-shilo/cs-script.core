@@ -182,6 +182,10 @@ namespace CSScriptLib
 
         static Lazy<RoslynEvaluator> roslynEvaluator = new Lazy<RoslynEvaluator>();
 
+        static internal string DynamicWrapperClassName = "DynamicClass";
+        // static internal string RootClassName = "CSScriptCompiledClass";
+        static public string RootClassName = "Submission#0"; // Roslyn still does not support anything else but `Submission#0` (17 Jul 2019)
+
         static internal string WrapMethodToAutoClass(string methodCode, bool injectStatic, bool injectNamespace, string inheritFrom = null)
         {
             var code = new StringBuilder(4096);
@@ -209,9 +213,9 @@ namespace CSScriptLib
                             }
 
                             if (inheritFrom != null)
-                                code.Append("   public class DynamicClass : " + inheritFrom + "\r\n");
+                                code.Append($"   public class {DynamicWrapperClassName} : " + inheritFrom + "\r\n");
                             else
-                                code.Append("   public class DynamicClass\r\n");
+                                code.Append($"   public class {DynamicWrapperClassName}\r\n");
 
                             code.Append("   {\r\n");
                             string[] tokens = line.Split("\t ".ToCharArray(), 3, StringSplitOptions.RemoveEmptyEntries);

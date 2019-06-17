@@ -7,9 +7,9 @@ class Script
 {
     static public void Main()
     {
-        var version = "1.1.2.0";
+        var version = "1.2.0.0";
 
-        var src_dir = Path.GetFullPath(@"..\..\out\.NET Core");
+        var src_dir = Path.GetFullPath(@"..\..\..\..\src\out\.NET Core");
         var dest_dir = $"cs-script.core_{version}";
 
         void copy(string file, string new_file_name = null)
@@ -31,6 +31,7 @@ class Script
         {
             copy(Path.GetFileName(file));
         }
+
         copy(@"..\-update.deb.cs", "-update.cs");
         copy(@"..\css.deb.sh", "css");
 
@@ -47,11 +48,11 @@ class Script
                                text => text.Replace("${version}", version));
 
         Process.Start(editor, "readme.md");
-        Process.Start("7z.exe", @"a -r -tzip .\..\build.core.zip .\*");
+        Process.Start("7z.exe", @"a -r -tzip .\..\build.zip .\*");
 
         Console.WriteLine("=====================");
         Console.WriteLine("Prepared for building package cs-script_" + version);
-        Console.WriteLine("The build folder '.\\..\\build.core.zip' is ready.");
+        Console.WriteLine("The build folder '.\\..\\build.zip' is ready.");
     }
 
     static string editor

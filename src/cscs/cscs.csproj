@@ -6,25 +6,27 @@
     <AssemblyName>cscs</AssemblyName>
     <RootNamespace>CSScripting</RootNamespace>
     <StartupObject />
-    <Version>1.1.2.0</Version>
+    <Version>1.2.0.0</Version>
     <Authors>Oleg Shilo</Authors>
     <Product>CS-Script</Product>
     <Copyright>(C) 2004-2018 Oleg Shilo</Copyright>
     <Description>C# Script engine .NET Core executable</Description>
-    <PackageLicenseUrl>https://github.com/oleg-shilo/cs-script/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/oleg-shilo/cs-script</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/oleg-shilo/cs-script/master/Source/wiki/images/css_logo_codeplex_256x256_2.png</PackageIconUrl>
     <RepositoryUrl>https://github.com/oleg-shilo/cs-script</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>C# script dynamic</PackageTags>
-    <AssemblyVersion>1.1.2.0</AssemblyVersion>
-    <FileVersion>1.1.2.0</FileVersion>
-    <PackageReleaseNotes>
-      C# Script engine library (.NET Standard 2)
-      =========
-      - `csc.dll` made a default compiler
-      - Fixed problem with cache being accidentally cleared after every run
-      </PackageReleaseNotes>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
+    <PackageReleaseNotes>C# Script engine library (.NET Standard 2)
+=========
+- `csc.dll` made a default compiler
+- Fixed problem with cache being accidentally cleared after every run
+- Added support for CLI argument `--version`
+- Added support for .NET Core 3 (when present)
+</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

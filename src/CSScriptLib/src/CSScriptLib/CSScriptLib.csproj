@@ -13,11 +13,11 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>-->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.2.0-pre</Version>
+    <Version>1.2.0.0</Version>
     <Authors>Oleg Shilo</Authors>
     <Description>CS-Script engine Class Library for .NET Core</Description>
     <Copyright>(C) 2018-2019 Oleg Shilo</Copyright>
-    <PackageLicenseUrl>https://github.com/oleg-shilo/cs-script/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/oleg-shilo/cs-script</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/oleg-shilo/cs-script/master/Source/Logo/css_logo.ico</PackageIconUrl>
     <RepositoryUrl>https://github.com/oleg-shilo/cs-script.git</RepositoryUrl>
@@ -28,8 +28,9 @@
 - net-core-3 migration: refactoring
 - Added support for VSCode debugging (pdb:portable)</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>1.1.2.0</AssemblyVersion>
-    <FileVersion>1.1.2.0</FileVersion>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
 </PropertyGroup>
 

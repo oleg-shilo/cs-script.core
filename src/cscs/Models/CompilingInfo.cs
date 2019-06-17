@@ -1,5 +1,5 @@
 using CSScripting.CodeDom;
-using CSScriptLibrary;
+using CSScriptLib;
 
 namespace csscript
 {

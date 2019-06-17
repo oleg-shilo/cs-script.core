@@ -1,6 +1,6 @@
 using System;
 
-namespace CSScriptLibrary
+namespace CSScriptLib
 {
     /// <summary>
     /// Information about the script parsing result.

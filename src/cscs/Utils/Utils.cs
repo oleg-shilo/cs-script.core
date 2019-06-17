@@ -43,7 +43,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using CSScripting.CodeDom;
-using CSScriptLibrary;
+using CSScriptLib;
 
 namespace csscript
 {

@@ -6,8 +6,14 @@ using System.Reflection;
 using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using csscript;
 
+#if class_lib
+
+namespace CSScriptLib
+#else
 namespace csscript
+#endif
 {
     internal static class CoreExtensions
     {

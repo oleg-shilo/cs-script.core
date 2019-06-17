@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using csscript;
+using CSScriptLib;
 
-namespace CSScriptLibrary
+namespace CSScriptLib
 {
     /// <summary>
     /// Class that manages parsing the main and all imported (if any) C# Script files

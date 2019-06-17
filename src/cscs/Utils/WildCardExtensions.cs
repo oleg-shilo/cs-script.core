@@ -3,7 +3,12 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 
+#if class_lib
+
+namespace CSScriptLib
+#else
 namespace csscript
+#endif
 {
     internal static class WildCardExtensions
     {

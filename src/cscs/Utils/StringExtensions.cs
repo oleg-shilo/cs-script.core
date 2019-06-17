@@ -2,7 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+#if class_lib
+
+namespace CSScriptLib
+#else
 namespace csscript
+#endif
 {
     /// <summary>
     /// Various string extensions

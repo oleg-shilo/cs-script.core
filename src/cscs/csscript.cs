@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using CSScripting.CodeDom;
-using CSScriptLibrary;
+using CSScriptLib;
 
 namespace csscript
 {

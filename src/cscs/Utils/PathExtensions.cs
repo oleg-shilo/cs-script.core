@@ -1,7 +1,12 @@
 using System.IO;
 using System.Linq;
 
+#if class_lib
+
+namespace CSScriptLib
+#else
 namespace csscript
+#endif
 {
     /// <summary>
     /// Various PATH extensions

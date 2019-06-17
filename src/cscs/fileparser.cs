@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using csscript;
 
-namespace CSScriptLibrary
+namespace CSScriptLib
 {
     /// <summary>
     /// ParsingParams is a class that holds parsing parameters (parameters that controls how file is to be parsed).

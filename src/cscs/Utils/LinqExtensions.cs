@@ -3,18 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
+#if class_lib
+
+namespace CSScriptLib
+#else
 namespace csscript
+#endif
 {
     /// <summary>
     /// Various LINQ extensions
     /// </summary>
-#if class_lib
-    public
-#else
-
-#endif
-
-    static class LinqExtensions
+    public static class LinqExtensions
     {
         internal static List<T> AddIfNotThere<T>(this List<T> items, T item)
         {

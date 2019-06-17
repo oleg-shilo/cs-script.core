@@ -4,13 +4,18 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 
+#if class_lib
+
+namespace CSScriptLib
+#else
 namespace csscript
+#endif
 {
     public partial class CSScript
     {
         static internal string DynamicWrapperClassName = "DynamicClass";
         // static internal string RootClassName = "CSScriptCompiledClass";
-        static public string RootClassName = "Submission#0"; // Roslyn still does not support anything else but `Submission#0` (17 Jul 2019)
+        static internal string RootClassName = "Submission#0"; // Roslyn still does not support anything else but `Submission#0` (17 Jul 2019)
     }
 
     /// <summary>

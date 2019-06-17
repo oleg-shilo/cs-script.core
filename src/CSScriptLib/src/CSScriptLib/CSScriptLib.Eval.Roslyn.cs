@@ -580,7 +580,7 @@ namespace CSScriptLib
         {
             var retval = new List<string>();
 
-            var parser = new csscript.CSharpParser(code);
+            var parser = new CSharpParser(code);
 
             var globalProbingDirs = CSScript.GlobalSettings.SearchDirs
                                                            .Select(Environment.ExpandEnvironmentVariables)

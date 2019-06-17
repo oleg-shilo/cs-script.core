@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using csscript;
-using CSScriptLibrary;
+using CSScriptLib;
 using Mono.Reflection;
 using Xunit;
 using static System.Reflection.BindingFlags;

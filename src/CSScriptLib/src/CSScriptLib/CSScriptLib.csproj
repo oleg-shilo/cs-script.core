@@ -13,7 +13,7 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>-->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.1.0</Version>
+    <Version>1.1.2.0-pre</Version>
     <Authors>Oleg Shilo</Authors>
     <Description>CS-Script engine Class Library for .NET Core</Description>
     <Copyright>(C) 2018-2019 Oleg Shilo</Copyright>
@@ -23,10 +23,13 @@
     <RepositoryUrl>https://github.com/oleg-shilo/cs-script.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>C#, scripting, script, dynamic, .NET. .NET Core</PackageTags>
-    <PackageReleaseNotes>- Added support for _gitignore_ syntax in `//css_` directives</PackageReleaseNotes>
+    <PackageReleaseNotes>- Issue #4: 'Constructor not found' when creating array with three or more non-zero elements
+- Dropped the use of `.compiled` extension for the cache files. Now it is a simple `&lt;script_file&gt;.dll` pattern
+- net-core-3 migration: refactoring
+- Added support for VSCode debugging (pdb:portable)</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>1.1.1.0</AssemblyVersion>
-    <FileVersion>1.1.1.0</FileVersion>
+    <AssemblyVersion>1.1.2.0</AssemblyVersion>
+    <FileVersion>1.1.2.0</FileVersion>
 
 </PropertyGroup>
 

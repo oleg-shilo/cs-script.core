@@ -164,6 +164,9 @@ namespace csscript
             return text.ToConsoleLines(indent);
         }
 
+        internal const string section_sep = "------------------------------------"; // section separator
+        internal const string alias_prefix = "Alias - ";
+
         static AppArgs()
         {
             //http://www.csscript.net/help/Online/index.html
@@ -363,7 +366,7 @@ namespace csscript
             switch2Help[pc] =
             switch2Help[precompiler] = new ArgInfo("-precompiler[:<file 1>,<file N>]",
                                                    "Specifies custom precompiler. This can be either script or assembly file.",
-                                                   "Alias - pc[:<file 1>,<file N>]",
+                                                   alias_prefix + "pc[:<file 1>,<file N>]",
                                                    "If no file(s) specified prints the code template for the custom precompiler. The spacial value 'print' has " +
                                                    "the same effect (e.g. " + AppInfo.appName + " -pc:print).",
                                                    "There is a special reserved word '" + CSSUtils.noDefaultPrecompilerSwitch + "' to be used as a file name. " +
@@ -373,7 +376,7 @@ namespace csscript
             switch2Help[pvdr] =
             switch2Help[provider] = new ArgInfo("-pvdr|-provider:<file>",
                                                 "Location of the alternative/custom code provider assembly.",
-                                                    "Alias - pvdr:<file>",
+                                                    alias_prefix + "pvdr:<file>",
                                                     "If set it forces script engine to use an alternative code compiler.",
                                                     " ",
                                                     "C#7 support is implemented via Roslyn based provider: '-pvdr:CSSRoslynProvider.dll'." +
@@ -410,8 +413,6 @@ namespace csscript
 
             #region SyntaxHelp
 
-            const string section_sep = "------------------------------------"; // section_sep separator
-
             syntaxHelp = fromLines(
                          "**************************************",
                          "Script specific syntax",
@@ -428,7 +429,7 @@ namespace csscript
                          section_sep, //------------------------------------
                          "//css_include <file>;",
                          " ",
-                         "Alias - //css_inc",
+                         alias_prefix + "//css_inc",
                          "file - name of a script file to be included at compile-time.",
                          " ",
                          "This directive is used to include one script into another one. It is a logical equivalent of '#include' in C++. " +
@@ -450,7 +451,7 @@ namespace csscript
                          section_sep, //------------------------------------
                          "//css_import <file>[, preserve_main][, rename_namespace(<oldName>, <newName>)];",
                          " ",
-                         "Alias - //css_imp",
+                         alias_prefix + "//css_imp",
                          "There are also another two aliases //css_include and //css_inc. They are equivalents of //css_import <file>, preserve_main",
                          "If $this (or $this.name) is specified as part of <file> it will be replaced at execution time with the main script full name (or file name only).",
                          " ",
@@ -499,7 +500,7 @@ namespace csscript
                          section_sep, //------------------------------------
                          "//css_reference <file>;",
                          " ",
-                         "Alias - //css_ref",
+                         alias_prefix + "//css_ref",
                          "file - name of the assembly file to be loaded at run-time.",
                          "",
                          "This directive is used to reference assemblies required at run time.",
@@ -513,7 +514,7 @@ namespace csscript
                          section_sep, //------------------------------------
                          "//css_precompiler <file 1>,<file 2>;",
                          " ",
-                         "Alias - //css_pc",
+                         alias_prefix + "//css_pc",
                          "file - name of the script or assembly file implementing precompiler.",
                          " ",
                          "This directive is used to specify the CS-Script precompilers to be loaded and exercised against script at run time just " +
@@ -523,7 +524,7 @@ namespace csscript
                          section_sep, //------------------------------------
                          "//css_searchdir <directory>;",
                          " ",
-                         "Alias - //css_dir",
+                         alias_prefix + "//css_dir",
                          "directory - name of the directory to be used for script and assembly probing at run-time.",
                          " ",
                          "This directive is used to extend set of search directories (script and assembly probing).",
@@ -533,9 +534,80 @@ namespace csscript
                          "${<=4}//css_dir packages\\ServiceStack*.1.0.21\\lib\\net40",
                          "${<=4}//css_dir packages\\**",
                          section_sep, //------------------------------------
+                         "//css_autoclass [style]",
+                         " ",
+                         alias_prefix + "//css_ac",
+                         "Automatically generates 'static entry point' class if the script doesn't define any.",
+                         " ",
+                         "    //css_ac",
+                         "    using System;",
+                         " ",
+                         "    void Main()",
+                         "    {",
+                         "        Console.WriteLine(\"Hello World!\");",
+                         "    }",
+                         " ",
+                         "Using an alternative 'instance entry point' is even more convenient (and reliable).",
+                         "The acceptable 'instance entry point' signatures are:",
+                         " ",
+                         "    void main()",
+                         "    void main(string[] args)",
+                         "    int main()",
+                         "    int main(string[] args)",
+                         " ",
+                         "The convention for the classless (auto-class) code structure is as follows:",
+                         " - set of 'using' statements" +
+                         " - classless 'main' " +
+                         " - user code " +
+                         " - optional //css_ac_end directive" +
+                         " - optional user code that is not a subject of auto-class decoration" +
+                         "(see https://github.com/oleg-shilo/cs-script/wiki/CLI---User-Guide#command-auto-class)",
+                         " ",
+                         "A special case of auto-class use case is a free style C# code that has no entry point 'main' at all:",
+                         " ",
+                         "    //css_autoclass freestyle",
+                         "    using System;",
+                         " ",
+                         "    Console.WriteLine(Environment.Version);",
+                         " ",
+                         "Since it's problematic to reliable auto-detect free style auto-classes, they must be defined with the " +
+                         "special parameter 'freestyle' after the '//css_ac' directive",
+                         " ",
+                         "By default CS-Script decorates the script by adding a class declaration statement to the " +
+                         "start of the script routine and a class closing bracket to the end. This may have an unintended " +
+                         "effect as any class declared in the script becomes a 'nested class'. While it is acceptable " +
+                         "for practically all use-cases it may be undesired for just a few scenarios. For example, any " +
+                         "class containing method extensions must be a top level static class, what conflicts with the " +
+                         "auto-class decoration algorithm.",
+                         " ",
+                         "An additional '//css_autoclass_end' ('//css_ac_end') directive can be used to solve this problem.",
+                         " ",
+                         "It's nothing else but a marker indicating the end of the code that needs to be decorated as (wrapped " +
+                         "into) an auto-class.",
+                         "This directive allows defining top level static classes in the class-less scripts, which is required for " +
+                         "implementing extension methods.",
+                         " ",
+                         " //css_ac",
+                         " using System;",
+                         " ",
+                         " void main()",
+                         " {",
+                         "     ...",
+                         " }",
+                         " ",
+                         " //css_ac_end",
+                         " ",
+                         " static class Extensions",
+                         " {",
+                         "     static public string Convert(this string text)",
+                         "     {",
+                         "         ...",
+                         "     }",
+                         " }",
+                         section_sep, //------------------------------------
                          "//css_resource <file>[, <out_file>];",
                          " ",
-                         "Alias - //css_res",
+                         alias_prefix + "//css_res",
                          "file     - name of the compiled resource file (.resources) to be used with the script.",
                          "           ${<==}Alternatively it can be the name of the XML resource file (.resx) that will be compiled on-fly.",
                          "out_file - ${<==}Optional name of the compiled resource file (.resources) to be generated form the .resx input." +
@@ -559,7 +631,7 @@ namespace csscript
                          section_sep, //------------------------------------
                          "//css_ignore_namespace <namespace>;",
                          " ",
-                         "Alias - //css_ignore_ns",
+                         alias_prefix + "//css_ignore_ns",
                          "namespace - name of the namespace. Use '*' to completely disable namespace resolution",
                          " ",
                          "This directive is used to prevent CS-Script from resolving the referenced namespace into assembly.",
@@ -728,6 +800,7 @@ namespace csscript
     {
         public static string ShowHelp(string helpType, params object[] context)
         {
+            context = context.Where(x => x != null).ToArray();
             switch (helpType)
             {
                 case AppArgs.dir:
@@ -745,7 +818,29 @@ namespace csscript
                         builder.Append(string.Format("{0}\n", typeof(HelpProvider).Assembly.GetAssemblyDirectoryName()));
                         return builder.ToString();
                     }
-                case AppArgs.syntax: return AppArgs.SyntaxHelp;
+                case AppArgs.syntax:
+                    {
+                        if (context.Any())
+                        {
+                            var directive = context.First().ToString();
+                            var alias = AppArgs.alias_prefix + directive;
+
+                            var lines = AppArgs.SyntaxHelp.GetLines();
+
+                            var top_lines = lines.TakeWhile(x => !x.StartsWith(directive) && !x.StartsWith(alias));
+                            var bottom_lines = lines.Skip(top_lines.Count())
+                                                    .TakeWhile(x => x != AppArgs.section_sep);
+
+                            var help = top_lines.Reverse()
+                                                .TakeWhile(x => x != AppArgs.section_sep)
+                                                .Reverse()
+                                                .Concat(bottom_lines.TakeWhile(x => x != AppArgs.section_sep))
+                                                .JoinBy("\n");
+                            return help;
+                        }
+                        // else
+                        return AppArgs.SyntaxHelp;
+                    }
                 case AppArgs.cmd:
                 case AppArgs.commands:
                     {

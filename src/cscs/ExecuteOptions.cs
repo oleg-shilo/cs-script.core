@@ -200,7 +200,7 @@ namespace csscript
         public string forceOutputAssembly = "";
         public bool noConfig = false;
         public bool customHashing = true;
-        public bool autoClass = false;
+        public bool autoClass = true;
         public string compilerEngine = null;
         public bool autoClass_InjectBreakPoint = false;
         public bool versionOnly = false;

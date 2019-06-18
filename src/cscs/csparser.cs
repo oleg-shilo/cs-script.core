@@ -481,9 +481,9 @@ namespace csscript
                 args.AddRange(statement.SplitCommandLine());
 
             // analyse auto-class decoration mode
-            foreach (string statement in GetRawStatements("//css_ac", endCodePos))
+            foreach (string statement in GetRawStatements("//css_ac", endCodePos, canBeEmpty: true))
                 autoClassMode = statement;
-            foreach (string statement in GetRawStatements("//css_autoclass", endCodePos))
+            foreach (string statement in GetRawStatements("//css_autoclass", endCodePos, canBeEmpty: true))
                 autoClassMode = statement;
 
             // analyse compiler options
@@ -822,12 +822,12 @@ namespace csscript
         /// </summary>
         public static bool OpenEndDirectiveSyntax = true;
 
-        string[] GetRawStatements(string pattern, int endIndex)
+        string[] GetRawStatements(string pattern, int endIndex, bool canBeEmpty = false)
         {
-            return GetRawStatements(this.Code, pattern, endIndex, false);
+            return GetRawStatements(this.Code, pattern, endIndex, false, canBeEmpty);
         }
 
-        string[] GetRawStatements(string codeToAnalyse, string pattern, int endIndex, bool ignoreComments)
+        string[] GetRawStatements(string codeToAnalyse, string pattern, int endIndex, bool ignoreComments, bool canBeEmpty = false)
         {
             List<string> retval = new List<string>();
 
@@ -854,7 +854,7 @@ namespace csscript
             }
             return retval
                 .Select(ProcessConditionalSymbols)
-                .Where(x => x.IsNotEmpty())
+                .Where(x => canBeEmpty || x.IsNotEmpty())
                 .ToArray();
         }
 

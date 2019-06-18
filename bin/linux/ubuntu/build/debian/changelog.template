@@ -1,6 +1,5 @@
 cs-script.core (${version}) stable; urgency=medium
 
-  * Initial Release.
-  * Second Release.
+  * Initial Ubuntu release.
 
  -- Oleg Shilo (Oleg Shilo) <oshilo@gmail.com>  ${date}

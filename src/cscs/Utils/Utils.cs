@@ -1310,7 +1310,7 @@ partial class dbg
                     }
                     else if (Args.Same(arg, AppArgs.syntax)) // -syntax
                     {
-                        executor.ShowHelp(AppArgs.syntax);
+                        executor.ShowHelp(AppArgs.syntax, nextArg);
                         CLIExitRequest.Throw();
                     }
                     else if (Args.Same(arg, AppArgs.cmd, AppArgs.commands)) // -cmd -commands

@@ -7,9 +7,11 @@ class Script
 {
     static public void Main()
     {
-        var version = "1.2.0.0";
-
         var src_dir = Path.GetFullPath(@"..\..\..\..\src\out\.NET Core");
+
+        // var version = "1.2.0.0";
+        var version = FileVersionInfo.GetVersionInfo(Path.Combine(src_dir, "cscs.dll")).FileVersion.ToString();
+
         var dest_dir = $"cs-script.core_{version}";
 
         void copy(string file, string new_file_name = null)
@@ -26,10 +28,16 @@ class Script
             Process.Start(editor, file);
         }
 
+        void replace_in_file(string file, Func<string, string> generator)
+        {
+            File.WriteAllText(file, generator(File.ReadAllText(file)));
+        }
+
         Directory.CreateDirectory(dest_dir);
         foreach (var file in Directory.GetFiles(src_dir))
         {
-            copy(Path.GetFileName(file));
+            if (!file.EndsWith("css") && !file.EndsWith("css.exe"))
+                copy(Path.GetFileName(file));
         }
 
         copy(@"..\-update.deb.cs", "-update.cs");
@@ -46,6 +54,9 @@ class Script
 
         generate_from_template(@"debian\install",
                                text => text.Replace("${version}", version));
+
+        replace_in_file($@"cs-script.core_{version}\css",
+                        text => text.Replace("${version}", version));
 
         Process.Start(editor, "readme.md");
         Process.Start("7z.exe", @"a -r -tzip .\..\build.zip .\*");

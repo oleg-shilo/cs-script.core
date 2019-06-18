@@ -2,7 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "--version"
+      "commandLineArgs": "-syntax //css_ac"
     }
   }
 }

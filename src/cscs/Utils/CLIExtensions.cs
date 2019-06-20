@@ -95,4 +95,32 @@ public static class CLIExtensions
                           .Where(arg => !string.IsNullOrEmpty(arg))
                           .ToArray();
     }
+
+    public static string[] SplitMergedArgs(this string[] args)
+    {
+        //because Linux shebang does not properly split arguments we need to take care of this
+        //http://www.daniweb.com/software-development/c/threads/268382
+
+        // !!! the solution is not reliable
+        // All #! args come as a single args item:
+        // #! /home/user/tmp/app -1 -2 -3 -4
+        // cmd: script.sh ./script -z
+        // argv[0]-> /home/user/tmp/app
+        // argv[1]-> -1 -2 -3 -4
+        // argv[2]-> ./script
+        // argv[3]-> -z
+
+        // The real problem is that we do not know if an item needs splitting or it has been already done
+        // script.sh "-1 -2 -3 -4"
+        // argv[0]-> /home/user/tmp/app
+        // argv[1]-> -1 -2 -3 -4
+        // argv[2]-> -1 -2 -3 -4
+
+        // `argv[1]` should be split and `argv[2]` should not but the decision about it cannot be made based on
+        // the args content
+
+        var result = args.SelectMany(SplitCommandLine)
+                         .ToArray();
+        return result;
+    }
 }

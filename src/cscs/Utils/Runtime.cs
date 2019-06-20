@@ -6,6 +6,7 @@ using System.Linq;
 
 namespace CSScriptLib
 #else
+
 namespace csscript
 #endif
 {
@@ -28,13 +29,13 @@ namespace csscript
         /// <value>
         ///   <c>true</c> if the host OS is Windows; otherwise, <c>false</c>.
         /// </value>
-        public static bool IsWin { get; } = !isLinux;
+        public static bool IsWin => !IsLinux;
 
         /// <summary>
         /// Note it is not about OS being exactly Linux but rather about OS having Linux type of file system.
         /// For example path being case sensitive
         /// </summary>
-        public static bool isLinux { get; } = (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX);
+        public static bool IsLinux { get; } = (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX);
 
         /// <summary>
         /// Gets a value indicating whether the runtime is Mono.

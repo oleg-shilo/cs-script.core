@@ -12,10 +12,11 @@ using csscript;
 
 namespace CSScriptLib
 #else
+
 namespace csscript
 #endif
 {
-    internal static class CoreExtensions
+    public static class CoreExtensions
     {
         public static XElement SelectFirst(this XContainer element, string path)
         {
@@ -56,19 +57,6 @@ namespace csscript
         public static bool IsSharedAssembly(this string path) => path.StartsWith(sdk_root, StringComparison.OrdinalIgnoreCase);
 
         public static bool ToBool(this string text) => text.ToLower() == "true";
-
-        public static string[] SplitMergedArgs(this string[] args)
-        {
-            //because Linux shebang does not properly split arguments we need to take care of this
-            //http://www.daniweb.com/software-development/c/threads/268382
-
-            var result = args.SelectMany(arg => arg.Split('-')
-                                                   .Select(x => x.Trim())
-                                                   .Where(x => x != "")
-                                                   .Select(x => "-" + arg))
-                                                   .ToArray();
-            return result;
-        }
 
         public static string RemoveAssemblyExtension(this string asmName)
         {
@@ -183,4 +171,34 @@ namespace csscript
         internal static string UnescapeExpandTrim(this string text) =>
             CSharpParser.UnescapeDirectiveDelimiters(Environment.ExpandEnvironmentVariables(text)).Trim();
     }
+
+    // internal static class CLIExtensions
+    // {
+    //     public static string[] Split(this string str, params string[] separators) =>
+    //            str.Split(separators, str.Length, StringSplitOptions.None);
+
+    //     public static string[] Split(this string str, string[] separators, int count) =>
+    //         str.Split(separators, count, StringSplitOptions.None);
+
+    //     public static string[] SplitCommandLine(this string commandLine)
+    //     {
+    //         bool inQuotes = false;
+    //         bool isEscaping = false;
+
+    //         return commandLine.Split(c =>
+    //         {
+    //             if (c == '\\' && !isEscaping) { isEscaping = true; return false; }
+
+    //             if (c == '\"' && !isEscaping)
+    //                 inQuotes = !inQuotes;
+
+    //             isEscaping = false;
+
+    //             return !inQuotes && Char.IsWhiteSpace(c)/*c == ' '*/;
+    //         })
+    //             .Select(arg => arg.Trim().TrimMatchingQuotes('\"').Replace("\\\"", "\""))
+    //                            .Where(arg => !string.IsNullOrEmpty(arg))
+    //                            .ToArray();
+    //     }
+    // }
 }

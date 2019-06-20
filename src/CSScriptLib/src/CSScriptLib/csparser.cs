@@ -517,7 +517,7 @@ namespace CSScriptLib
             foreach (string statement in GetRawStatements("//css_co", endCodePos))
                 compilerOptions.Add(statement.UnescapeExpandTrim());
 
-            if (!Runtime.isLinux)
+            if (!Runtime.IsLinux)
                 foreach (string statement in GetRawStatements("//css_host", endCodePos))
                     hostOptions.Add(statement.UnescapeExpandTrim());
 

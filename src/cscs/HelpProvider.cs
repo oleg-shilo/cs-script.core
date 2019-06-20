@@ -1190,6 +1190,8 @@ namespace csscript
 
                 builder.Append("   NuGet manager:   " + NuGet.NuGetExeView + "\n");
                 builder.Append("   NuGet cache:     " + NuGet.NuGetCacheView + "\n");
+                // builder.Append("   Runtime isLinux:     " + Runtime.IsLinux + "\n");
+                // builder.Append("   Runtime isWin:     " + Runtime.IsWin + "\n");
             }
             return builder.ToString();
         }

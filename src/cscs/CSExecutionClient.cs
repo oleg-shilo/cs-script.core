@@ -90,7 +90,9 @@ namespace csscript
             {
                 // because Linux shebang does not properly split arguments we need to take care of this
                 // http://www.daniweb.com/software-development/c/threads/268382
-                args = args.SplitMergedArgs();
+
+                // disabled for now based on the reasons described in the `SplitMergedArgs` implementation
+                // args = args.SplitMergedArgs();
             }
 
             return args;

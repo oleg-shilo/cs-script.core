@@ -26,6 +26,7 @@ namespace csscript
         static NuGetCore nuget = new NuGetCore();
 
         static public string NuGetCacheView => Directory.Exists(nuget.NuGetCache) ? nuget.NuGetCache : "<not found>";
+        static public string NuGetCache => nuget.NuGetCache;
 
         static public string NuGetExeView
             => (nuget.NuGetExe.FileExists() || nuget.NuGetExe == "dotnet") ? nuget.NuGetExe : "<not found>";
@@ -53,7 +54,7 @@ namespace csscript
         // .NET Mono, .NET Core
         public string NuGetCache => Runtime.IsWin ?
                                             Environment.ExpandEnvironmentVariables(@"%userprofile%\.nuget\packages") :
-                                            "~/.nuget/packages";
+                                            "/home/user/.nuget/packages";
 
         public string NuGetExe => "dotnet";
 

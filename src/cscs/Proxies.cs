@@ -80,6 +80,7 @@ namespace CSScripting.CodeDom
 
                 default:
                     return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
+                    // return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
             }
         }
 
@@ -188,7 +189,12 @@ namespace CSScripting.CodeDom
 
             common_args += "-define:TRACE;NETCORE ";
 
-            foreach (string file in Directory.GetFiles(gac, "System.*.dll"))
+            var gac_asms = Directory.GetFiles(gac, "System.*.dll").ToList();
+            gac_asms.AddRange(Directory.GetFiles(gac, "netstandard.dll"));
+            // Microsoft.DiaSymReader.Native.amd64.dll is a native dll
+            gac_asms.AddRange(Directory.GetFiles(gac, "Microsoft.*.dll").Where(x => !x.Contains("Native")));
+
+            foreach (string file in gac_asms)
                 refs_args += $"/r:\"{file}\" ";
 
             foreach (string file in ref_assemblies)
@@ -424,7 +430,7 @@ namespace CSScripting.CodeDom
                     if (line.StartsWith("Build FAILED.") || line.StartsWith("Build succeeded."))
                         isErrroSection = true;
 
-                    if (line.Contains("): error "))
+                    if (line.Contains("): error ") || line.StartsWith("error CS"))
                     {
                         var error = CompilerError.Parser(line);
                         if (error != null)
@@ -475,6 +481,10 @@ namespace CSScripting.CodeDom
             // script.cs(11,8): error CS1029: #error: 'this is the error...' [C:\Users\%username%\AppData\Local\Temp\csscript.core\cache\1822444284\.build\script.cs\script.csproj]
             // script.cs(10,10): warning CS1030: #warning: 'DEBUG is defined' [C:\Users\%username%\AppData\Local\Temp\csscript.core\cache\1822444284\.build\script.cs\script.csproj]
             // MSBUILD : error MSB1001: Unknown switch.
+
+            if (compilerOutput.StartsWith("error CS"))
+                compilerOutput = "(0,0): " + compilerOutput;
+
             bool isError = compilerOutput.Contains("): error ");
             bool isWarning = compilerOutput.Contains("): warning ");
             bool isBuildError = compilerOutput.Contains("MSBUILD : error");

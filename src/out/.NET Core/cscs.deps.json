@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v2.1": {
-      "cscs/1.2.0.0": {
+      "cscs/1.2.1.0": {
         "dependencies": {
           "Microsoft.CodeAnalysis.CSharp.Scripting": "3.2.0-beta1-final"
         },
@@ -474,7 +474,7 @@
     }
   },
   "libraries": {
-    "cscs/1.2.0.0": {
+    "cscs/1.2.1.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

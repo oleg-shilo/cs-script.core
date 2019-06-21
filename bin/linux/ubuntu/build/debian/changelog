@@ -1,5 +1,5 @@
-cs-script.core (1.2.0.0) stable; urgency=medium
+cs-script.core (1.2.1.0) stable; urgency=medium
 
   * Initial Ubuntu release.
 
- -- Oleg Shilo (Oleg Shilo) <oshilo@gmail.com>  Tue, 18 Jun 2019 11:37:49 +1000 
+ -- Oleg Shilo (Oleg Shilo) <oshilo@gmail.com>  Fri, 21 Jun 2019 03:42:41 +1000 

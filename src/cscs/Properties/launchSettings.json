@@ -2,7 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "-syntax //css_ac"
+      "commandLineArgs": "\"D:\\dev\\TMS\\taipan-bond-events\\transforms-common\\Scripts\\csv_to_json.cs\""
     }
   }
 }

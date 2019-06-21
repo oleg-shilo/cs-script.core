@@ -264,7 +264,7 @@ namespace csscript
         {
             //work around of nasty Win7x64 problem.
             //http://superuser.com/questions/527728/cannot-resolve-windir-cannot-modify-path-or-path-being-reset-on-boot
-            if (Environment.GetEnvironmentVariable("windir") == null)
+            if (Environment.GetEnvironmentVariable("windir") == null && Runtime.IsWin)
                 Utils.SetEnvironmentVariable("windir", Environment.GetEnvironmentVariable("SystemRoot"));
 
             Utils.SetEnvironmentVariable("pid", Process.GetCurrentProcess().Id.ToString());

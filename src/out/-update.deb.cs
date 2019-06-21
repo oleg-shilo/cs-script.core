@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 
-static string rootUrl = "http://oleg-shilo.github.io/cs-script.core/linux/ubuntu/";
+static string rootUrl = "http://oleg-shilo.github.io/cs-script.core/linux/ubuntu";
 static string versionUrl = rootUrl + "/version.txt";
 static string help = @"Install/Update CS-Script.Core with the latest Ubuntu package available from product GitHub repository.
  -i (or no args) - installs the latest version of cs-script.core package

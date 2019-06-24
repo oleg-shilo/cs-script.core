@@ -34,7 +34,7 @@
         <copyright>Oleg Shilo</copyright>
         <tags>cs-script C# script dynamic hosting</tags>
         <dependencies>
-            <dependency id="dotnetcore" version="2.1.0" />
+            <dependency id="dotnetcore" version="2.2.5" />
         </dependencies>
     </metadata>
     <files>

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>cs-script.core</id>
-        <version>1.1.1.0</version>
+        <version>1.2.1.0</version>
         <title>CS-Script.Core</title>
         <authors>Oleg Shilo</authors>
         <owners>Oleg Shilo</owners>
@@ -23,18 +23,21 @@
 </description>
         <summary>CS-Script.Core</summary>
         <releaseNotes>
-# Release v1.1.1.0
-- Added support for handling quotation chars in //css_* "&lt;args&gt;" directives
-- Issue #25 (cs-script.full): Feature request to support conditional directives
-- Added processing precompilers output for -proj option
-- Added support for gitignore syntax in //css_ directives
-
+# Release v1.2.1.0
+- csc.dll made a default compiler
+- Dropped the use of .compiled extension for the cache files. Now it is a simple &lt;script_file&gt;.dll pattern
+- Fixed compilation of dynamic
+- Fixed problem with cache being accidentally cleared after every run
+- Added support for CLI argument --version
+- Added support for context/directive specific -syntax CLI argument
+- Added compiling against .NET Core 3 (when present)
+- Added Debian package
 
         </releaseNotes>
         <copyright>Oleg Shilo</copyright>
         <tags>cs-script C# script dynamic hosting</tags>
         <dependencies>
-            <dependency id="dotnetcore" version="2.2.5" />
+            <dependency id="dotnetcore" />
         </dependencies>
     </metadata>
     <files>

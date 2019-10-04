@@ -1,3 +1,5 @@
+extern alias lib;
+
 using System;
 using System.IO;
 using System.Linq;
@@ -144,4 +146,28 @@ public class FileParserTests : IClassFixture<TestFolder>
         Assert.Contains(matches, x => x.EndsWith(@"a\b\c1\d\script_d1_1.cs"));
         Assert.Contains(matches, x => x.EndsWith(@"a\b\c2\d\script_d1_2.cs"));
     }
+
+    [Fact]
+    public void Testpad()
+    {
+        var evaluator = lib::CSScriptLib.CSScript.Evaluator;
+        ICodeVariable script =
+            evaluator.ReferenceAssemblyOf<ICodeVariable>()
+                     .LoadCode<ICodeVariable>(@"
+                                    using System;
+
+                                     public class Test : ICodeVariable
+                                     {
+                                         public object Evaluate(){
+											return ""Hello World"";
+										 }
+                                     }");
+
+        var x = script.Evaluate();
+    }
+}
+
+public interface ICodeVariable
+{
+    object Evaluate();
 }

@@ -1,7 +1,8 @@
 {
   "profiles": {
     "cscs.exe.core": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "\"E:\\PrivateData\\Galos\\Projects\\cs-script.core(master)\\cs-script.core\\src\\out\\.NET Core\\test.cs\""
     }
   }
 }

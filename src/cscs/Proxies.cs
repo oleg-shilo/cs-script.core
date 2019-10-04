@@ -44,7 +44,10 @@ namespace CSScripting.CodeDom
             throw new NotImplementedException();
         }
 
-        static string dotnet { get; } = Runtime.IsCore ? Process.GetCurrentProcess().MainModule.FileName : "dotnet";
+        static string dotnet { get; } = Runtime.IsCore ?
+            "dotnet"
+            :
+            Process.GetCurrentProcess().MainModule.FileName;
 
         static string InitBuildTools()
         {
@@ -79,8 +82,9 @@ namespace CSScripting.CodeDom
                     return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
 
                 default:
-                    return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
-                    // return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
+                    // return RoslynService.CompileAssemblyFromFileBatch_with_roslyn(options, fileNames);
+                    // return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
+                    return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
             }
         }
 
@@ -92,8 +96,6 @@ namespace CSScripting.CodeDom
                 // win: program_files/dotnet/sdk/<version>/Roslyn/csc.exe
                 var dotnet_root = "".GetType().Assembly.Location;
 
-                // dotnet_root:"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\2.1.11\System.Private.CoreLib.dll"
-
                 // find first "dotnet" parent dir by trimming till the last "dotnet" token
                 dotnet_root = dotnet_root.Split(Path.DirectorySeparatorChar)
                                          .Reverse()
@@ -104,7 +106,8 @@ namespace CSScripting.CodeDom
                 var dirs = dotnet_root.PathJoin("sdk")
                                       .PathGetDirs("*")
                                       .Where(dir => char.IsDigit(dir.GetFileName()[0]))
-                                      // .Where(dir => !dir.GetFileName().Contains('-')) // 2.0.3-preview
+                                      // .Where(dir => !dir.GetFileName().Contains('-')) // ignoring all preview
+                                      .Where(dir => !dir.GetFileName().Contains("3.0.100-preview")) // ignoring v3 preview
                                       .OrderBy(x => Version.Parse(x.GetFileName().Split('-').First()))
                                       .SelectMany(dir => dir.PathGetDirs("Roslyn"))
                                       .ToArray();
@@ -112,7 +115,6 @@ namespace CSScripting.CodeDom
                 var csc_exe = dirs.Select(dir => dir.PathJoin("bincore", "csc.dll"))
                               .LastOrDefault(File.Exists);
 
-                // C:\Program Files\dotnet\sdk\2.0.3\Roslyn";
                 return csc_exe;
             }
         }

@@ -23,10 +23,8 @@
     <RepositoryUrl>https://github.com/oleg-shilo/cs-script.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>C#, scripting, script, dynamic, .NET. .NET Core</PackageTags>
-    <PackageReleaseNotes>- Issue #4: 'Constructor not found' when creating array with three or more non-zero elements
-- Dropped the use of `.compiled` extension for the cache files. Now it is a simple `&lt;script_file&gt;.dll` pattern
-- net-core-3 migration: refactoring
-- Added support for VSCode debugging (pdb:portable)</PackageReleaseNotes>
+    <PackageReleaseNotes>- .NET Core 3 Migration (#176)
+- Fixed broken `Evaluator.LoadCode&lt;T&gt;()`</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AssemblyVersion>1.2.2.0</AssemblyVersion>
     <FileVersion>1.2.2.0</FileVersion>

@@ -18,6 +18,12 @@ namespace csscript
 {
     public static class CoreExtensions
     {
+        /// <summary>
+        /// Selects the first element that satisfies the specified path.
+        /// </summary>
+        /// <param name="element">The element.</param>
+        /// <param name="path">The path.</param>
+        /// <returns></returns>
         public static XElement SelectFirst(this XContainer element, string path)
         {
             string[] parts = path.Split('/');

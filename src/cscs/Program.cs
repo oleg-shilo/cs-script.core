@@ -9,7 +9,7 @@ namespace cscs
     {
         static void Main(string[] args)
         {
-            Environment.SetEnvironmentVariable("css_nuget", null);
+            Environment.SetEnvironmentVariable(@$"css_nuget", null);
 
             if (args.Contains("-server:stop"))
                 BuildServer.Stop();

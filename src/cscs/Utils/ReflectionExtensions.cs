@@ -132,9 +132,9 @@ namespace csscript
             // exclude Roslyn internal types
             return asm
                 .ExportedTypes
-                .Where(t => t.FullName.None(char.IsDigit)           // 1 (yes Roslyn can generate class with this name)
-                       && t.FullName.StartsWith($"{CSScript.RootClassName}+")  // Submission#0+Script
-                          && !t.FullName.Contains("<<Initialize>>")) // Submission#0+<<Initialize>>d__0
+                .Where(t => t.FullName.StartsWith($"{CSScript.RootClassName}+")  // Submission#0+Script
+                            && !t.FullName.Contains("<<Initialize>>")) // Submission#0+<<Initialize>>d__0
+
                 .FirstOrDefault(x => typeof(T).IsAssignableFrom(x));
         }
 

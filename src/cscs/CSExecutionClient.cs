@@ -216,7 +216,7 @@ namespace csscript
 
         public static string appLogo =>
             $"C# Script execution engine (.NET Core). Version {Assembly.GetExecutingAssembly().GetName().Version}.\n" +
-            "Copyright (C) 2004-2019 Oleg Shilo.\n";
+            "Copyright (C) 2004-2020 Oleg Shilo.\n";
 
         public static string appLogoShort =>
             $"C# Script execution engine (.NET Core). Version{Assembly.GetExecutingAssembly().GetName().Version}.\n";

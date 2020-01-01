@@ -69,7 +69,7 @@ namespace CSScriptLib
         string assemblyFile;
 
         /// <summary>
-        /// The assembly file path. If not specified it will be composed as "<RootClass>.dll".
+        /// The assembly file path. If not specified it will be composed as "&lt;RootClass&gt;.dll".
         /// </summary>
         public string AssemblyFile
         {

@@ -2,11 +2,11 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <AssemblyName>cscs</AssemblyName>
     <RootNamespace>CSScripting</RootNamespace>
     <StartupObject />
-    <Version>1.2.1.0</Version>
+    <Version>1.2.2.0</Version>
     <Authors>Oleg Shilo</Authors>
     <Product>CS-Script</Product>
     <Copyright>(C) 2004-2018 Oleg Shilo</Copyright>
@@ -17,8 +17,8 @@
     <RepositoryUrl>https://github.com/oleg-shilo/cs-script</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>C# script dynamic</PackageTags>
-    <AssemblyVersion>1.2.1.0</AssemblyVersion>
-    <FileVersion>1.2.1.0</FileVersion>
+    <AssemblyVersion>1.2.2.0</AssemblyVersion>
+    <FileVersion>1.2.2.0</FileVersion>
     <PackageReleaseNotes>C# Script engine library (.NET Standard 2)
 =========
 - `csc.dll` made a default compiler

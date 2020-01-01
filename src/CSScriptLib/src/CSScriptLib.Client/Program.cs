@@ -42,13 +42,13 @@ namespace EvalTest
             // CSScript.EvaluatorConfig.DebugBuild = true;
 
             // Test.ReferencingPackagesCode(); //return;
-            // Test.CompileCode();
-            // Test.CompileMethod();
-            // Test.CompileCSharp_7();
-            // Test.CompileDelegate();
-            // Test.CompileDelegate1();
-            // Test.LoadCode();
-            // Test.LoadCode2();
+            Client.Test.CompileCode();
+            Client.Test.CompileMethod();
+            Client.Test.CompileCSharp_7();
+            Client.Test.CompileDelegate();
+            Client.Test.CompileDelegate1();
+            Client.Test.LoadCode();
+            Client.Test.LoadCode2();
             // Test.CrossReferenceCode();
 
             // dynamic func1 = CSScript.Evaluator.LoadMethod(

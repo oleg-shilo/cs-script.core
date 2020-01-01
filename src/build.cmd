@@ -1,8 +1,9 @@
 cd cscs
 md "..\out\.NET Core"
 "..\out\.NET Core\css.exe" -server:stop
-dotnet publish -c Release -f netcoreapp2.1 -o "..\out\.NET Core"
+dotnet publish -c Release -f netcoreapp3.0 -o "..\out\.NET Core"
 copy ..\css\bin\Release\css.exe "..\out\.NET Core\css.exe"
+rem copy ..\cscs\bin\Debug\netcoreapp3.0\cscs.exe "..\out\.NET Core\cscs.exe"
 cd ..\out\.NET Core
 del *.dbg
 del *.pdb

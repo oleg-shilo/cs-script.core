@@ -66,10 +66,22 @@ namespace CSScriptLib
     /// </summary>
     public class CompileInfo
     {
+        string assemblyFile;
+
         /// <summary>
-        /// The assembly file path.
+        /// The assembly file path. If not specified it will be composed as "<RootClass>.dll".
         /// </summary>
-        public string AssemblyFile;
+        public string AssemblyFile
+        {
+            get
+            {
+                if (assemblyFile == null)
+                    return $"{RootClass}.dll".GetFullPath();
+                else
+                    return assemblyFile.GetFullPath();
+            }
+            set => assemblyFile = value;
+        }
 
         /// <summary>
         /// The PDB file path.
@@ -77,7 +89,22 @@ namespace CSScriptLib
         /// <see cref="CSScript.EvaluatorConfig"/>.DebugBuild is set to <c>true</c>.
         /// </para>
         /// </summary>
-        public string PdbFile;
+        public string PdbFile { set; get; }
+
+        /// <summary>
+        /// Gets or sets the root class name.
+        /// <para>This setting is required as Roslyn cannot produce compiled scripts with the user script class defined as
+        /// a top level class. Thus all user defined classes are in fact nested classes with the root class
+        /// named by Roslyn as "Submission#0". This leads to the complications when user wants to reference script class in
+        /// another script. Specifically because C# treats "Submission#0" as an illegal class name. </para>
+        /// <para>C# helps the situation by allowing user specified root name <see cref="CSScriptLib.CompileInfo.RootClass"/>,
+        /// which is by default is "css_root".
+        /// </para>
+        /// </summary>
+        /// <value>
+        /// The root class name.
+        /// </value>
+        public string RootClass { set; get; } = CSScript.RootClassName;
     }
 
     /// <summary>
@@ -382,9 +409,10 @@ namespace CSScriptLib
 
                 // compilation.Options
                 if (this.IsDebug)
-                    compilation = compilation.WithOptions(compilation.Options.WithOptimizationLevel(OptimizationLevel.Debug)
-                                                                             .WithScriptClassName(CSScript.RootClassName)
-                                                                             .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
+                    compilation = compilation.WithOptions(compilation.Options.WithOptimizationLevel(OptimizationLevel.Debug));
+
+                compilation = compilation.WithOptions(compilation.Options.WithScriptClassName(info?.RootClass ?? CSScript.RootClassName)
+                                                                         .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
 
                 using (var pdb = new MemoryStream())
                 using (var asm = new MemoryStream())
@@ -882,7 +910,7 @@ namespace CSScriptLib
         /// <returns>The instance of the <see cref="CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
         public IEvaluator ReferenceAssembly(Assembly assembly)
         {
-            if (assembly != null)//this check is needed when trying to load partial name assembalies that result in null
+            if (assembly != null)//this check is needed when trying to load partial name assemblies that result in null
             {
                 //Microsoft.Net.Compilers.1.2.0 - beta
                 if (assembly.Location.IsEmpty())

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>CSScriptLib</AssemblyName>
     <PackageId>CS-Script.Core</PackageId>
     <!--<NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>-->
@@ -13,34 +13,33 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>-->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.2.3.0</Version>
+    <Version>1.2.3.1</Version>
     <Authors>Oleg Shilo</Authors>
     <Description>CS-Script engine Class Library for .NET Core</Description>
-    <Copyright>(C) 2018-2019 Oleg Shilo</Copyright>
+    <Copyright>(C) 2018-2020 Oleg Shilo</Copyright>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/oleg-shilo/cs-script</PackageProjectUrl>
     <PackageIconUrl>https://raw.githubusercontent.com/oleg-shilo/cs-script/master/Source/Logo/css_logo.ico</PackageIconUrl>
     <RepositoryUrl>https://github.com/oleg-shilo/cs-script.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>C#, scripting, script, dynamic, .NET. .NET Core</PackageTags>
-    <PackageReleaseNotes>
-      - Issue #185: Load compiled assembly in CS-Script
-    </PackageReleaseNotes>
+    <PackageReleaseNotes>- Issue #185: Load compiled assembly in CS-Script
+</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>1.2.3.0</AssemblyVersion>
-    <FileVersion>1.2.3.0</FileVersion>
+    <AssemblyVersion>1.2.3.1</AssemblyVersion>
+    <FileVersion>1.2.3.1</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
 </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>E:\PrivateData\Galos\Projects\CS-Script\GitHub\cs-script\Source\.NET Core\CSScriptLib\src\CSScriptLib\CSScriptLib.xml</DocumentationFile>
+    <DocumentationFile>CSScriptLib.xml</DocumentationFile>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DefineConstants>TRACE;class_lib</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>E:\PrivateData\Galos\Projects\CS-Script\GitHub\cs-script\Source\.NET Core\CSScriptLib\src\CSScriptLib\CSScriptLib.xml</DocumentationFile>
+    <DocumentationFile>CSScriptLib.xml</DocumentationFile>
     <DefineConstants>TRACE;class_lib</DefineConstants>
   </PropertyGroup>
 

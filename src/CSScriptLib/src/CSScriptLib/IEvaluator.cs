@@ -264,8 +264,10 @@ namespace CSScriptLib
         /// </code>
         /// </example>
         /// <param name="scriptText">The C# script text.</param>
+        /// <param name="info">The information about compilation context (e.g. location of the compiler output -
+        /// assembly and pdb file).</param>
         /// <returns>The compiled assembly.</returns>
-        Assembly CompileCode(string scriptText);
+        Assembly CompileCode(string scriptText, CompileInfo info = null);
 
         /// <summary>
         /// Compiles the specified script text without loading it into the AppDomain or

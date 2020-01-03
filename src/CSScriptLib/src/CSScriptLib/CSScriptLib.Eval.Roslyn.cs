@@ -105,6 +105,15 @@ namespace CSScriptLib
         /// The root class name.
         /// </value>
         public string RootClass { set; get; } = CSScript.RootClassName;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to prefer loading compiled script from the assembly file when
+        /// it is available.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [prefer loading from file]; otherwise, <c>false</c>.
+        /// </value>
+        public bool PreferLoadingFromFile { set; get; } = true;
     }
 
     /// <summary>
@@ -249,7 +258,7 @@ namespace CSScriptLib
         /// </summary>
         /// <example>
         /// <code>
-        /// var info = new RoslynEvaluator.CompileInfo
+        /// var info = new CompileInfo
         /// {
         ///     AssemblyFile = @"E:\temp\asm.dll"
         /// };
@@ -273,7 +282,7 @@ namespace CSScriptLib
         /// <param name="scriptText">The C# script text.</param>
         /// <param name="info"></param>
         /// <returns>The compiled assembly.</returns>
-        public Assembly CompileCode(string scriptText, CompileInfo info)
+        public Assembly CompileCode(string scriptText, CompileInfo info = null)
         {
             return CompileCode(scriptText, null, info);
         }
@@ -284,10 +293,17 @@ namespace CSScriptLib
 
             (byte[] asm, byte[] pdb) = Compile(scriptText, scriptFile, info);
 
-            if (pdb != null)
-                return AppDomain.CurrentDomain.Load(asm, pdb);
+            if (info?.PreferLoadingFromFile == true && info?.AssemblyFile.IsNotEmpty() == true)
+            {
+                return Assembly.LoadFrom(info.AssemblyFile);
+            }
             else
-                return AppDomain.CurrentDomain.Load(asm);
+            {
+                if (pdb != null)
+                    return AppDomain.CurrentDomain.Load(asm, pdb);
+                else
+                    return AppDomain.CurrentDomain.Load(asm);
+            }
         }
 
         /// <summary>
@@ -377,7 +393,7 @@ namespace CSScriptLib
             Compile(scriptText, null, null);
         }
 
-        private (byte[] asm, byte[] pdb) Compile(string scriptText, string scriptFile, CompileInfo info = null)
+        private (byte[] asm, byte[] pdb) Compile(string scriptText, string scriptFile, CompileInfo info)
         {
             // http://www.michalkomorowski.com/2016/10/roslyn-how-to-create-custom-debuggable_27.html
 
@@ -464,6 +480,9 @@ namespace CSScriptLib
                         {
                             pdb.Seek(0, SeekOrigin.Begin);
                             byte[] pdbBuffer = pdb.GetBuffer();
+
+                            if (info != null && info.PdbFile.IsEmpty() && info.AssemblyFile.IsNotEmpty())
+                                info.PdbFile = Path.ChangeExtension(info.AssemblyFile, ".pdb");
 
                             if (info?.PdbFile != null)
                                 File.WriteAllBytes(info.PdbFile, pdbBuffer);

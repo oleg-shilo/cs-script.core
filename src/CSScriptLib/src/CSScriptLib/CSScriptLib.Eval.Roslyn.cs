@@ -740,7 +740,7 @@ namespace CSScriptLib
         /// </summary>
         ///  <example>
         /// <code>
-        /// var Product = CSScript.RoslynEvaluator
+        /// var Product = CSScript.Evaluator
         ///                       .LoadDelegate&lt;Func&lt;int, int, int&gt;&gt;(
         ///                                   @"int Product(int a, int b)
         ///                                     {
@@ -754,7 +754,7 @@ namespace CSScriptLib
         /// <returns>Instance of <c>T</c> delegate.</returns>
         public T LoadDelegate<T>(string code) where T : class
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException("You may want to consider using interfaces with LoadCode/LoadMethod or use CreateDelegate instead.");
             //string scriptText = CSScript.WrapMethodToAutoClass(code, true, false);
             //Assembly asm = CompileCode(scriptText);
             //var method = asm.GetTypes().First(t => t.Name == "DynamicClass").GetMethods().First();
@@ -867,8 +867,7 @@ namespace CSScriptLib
         /// <returns>Aligned to the <c>T</c> interface instance of the auto-generated class defined in the script.</returns>
         public T LoadMethod<T>(string code) where T : class
         {
-            string scriptText = CSScript.WrapMethodToAutoClass(code, false, false);
-
+            string scriptText = CSScript.WrapMethodToAutoClass(code, false, false, typeof(T).FullName);
             return LoadCode<T>(scriptText);
         }
 

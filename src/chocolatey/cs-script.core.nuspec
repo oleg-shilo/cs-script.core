@@ -29,7 +29,7 @@
         <copyright>Oleg Shilo</copyright>
         <tags>cs-script C# script dynamic hosting</tags>
         <dependencies>
-            <dependency id="dotnetcore" />
+            <dependency id="dotnetcore-sdk" />
         </dependencies>
     </metadata>
     <files>

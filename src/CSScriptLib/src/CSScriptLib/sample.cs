@@ -21,7 +21,7 @@ class ScriptHost
         dynamic calc = CSScript.Evaluator
                                .LoadCode(
                                    @"using System;
-                                     public class Script : ICalc
+                                     public class Script 
                                      {
                                          public int Sum(int a, int b)
                                          {

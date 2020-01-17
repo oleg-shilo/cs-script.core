@@ -18,16 +18,16 @@ class ScriptHost
 {
     void LoadCode()
     {
-        ICalc calc = CSScript.Evaluator
-                             .LoadCode<ICalc>(
-                                 @"using System;
-                                   public class Script
-                                   {
-                                       public int Sum(int a, int b)
-                                       {
-                                           return a+b;
-                                       }
-                                   }");
+        dynamic calc = CSScript.Evaluator
+                               .LoadCode(
+                                   @"using System;
+                                     public class Script : ICalc
+                                     {
+                                         public int Sum(int a, int b)
+                                         {
+                                             return a+b;
+                                         }
+                                     }");
         int result = calc.Sum(1, 2);
     }
 

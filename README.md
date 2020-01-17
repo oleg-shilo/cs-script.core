@@ -14,8 +14,9 @@ Also, some of the early CS-Script features, which demonstrated little traction w
     Support for custom app.config files is not available for .NET Core due to the API limitations
   - No building "*.exe"
 
-#### CS-Script obsolete features and limitations:
-  - All scripts are compiled with debug symbols generated
+#### CS-Script obsolete features, limitations and constrains:
+  - All scripts are compiled with debug symbols generated.
+    _This has no practical impact on user experience though._
   - No surrogate process support (`//css_host`) for x86 vs. x64 execution
     _The CPU-specific engine executable must be used._
   - No support for deprecated settings:

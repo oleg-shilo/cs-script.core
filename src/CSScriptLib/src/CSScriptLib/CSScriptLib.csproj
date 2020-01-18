@@ -45,6 +45,8 @@
 
   <ItemGroup>
     <Compile Remove="output\Test.cs" />
+    <Compile Remove="sample.cs" />
+    <Compile Remove="samples.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -67,6 +69,10 @@
 
   <ItemGroup>
     <Folder Include="Utils\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="samples.cs" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

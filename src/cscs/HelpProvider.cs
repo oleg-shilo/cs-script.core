@@ -976,6 +976,7 @@ namespace csscript
             { "auto", CSharp_auto_Sample},
             { "winform", CSharp_winforms_Sample},
             { "wpf", CSharp_wpf_Sample },
+            { "wpf-cm", CSharp_wpf_ss_Sample },
         };
 
         public static string BuildSampleHelp()
@@ -990,6 +991,7 @@ namespace csscript
                 .AppendLine("console        Console script application")
                 .AppendLine("winforms       Windows Forms (WinForms) script application")
                 .AppendLine("wpf            WPF script application")
+                .AppendLine("wpf-cm            Cliburm.Micro based WPF script application")
                 .AppendLine("auto           Auto-class (classless) script application")
                 .AppendLine("freestyle      Free style (no entry point) script application")
                 .AppendLine()
@@ -998,6 +1000,7 @@ namespace csscript
                 .AppendLine("    cscs -new:auto script.cs")
                 .AppendLine("    cscs -new:console console.cs")
                 .AppendLine("    cscs -new:winform myapp.cs")
+                .AppendLine("    cscs -new:wpf hello")
                 .ToString();
         }
 
@@ -1031,6 +1034,89 @@ namespace csscript
             return new[]
             {
                 new SampleInfo (cs,".cs")
+            };
+        }
+
+        static SampleInfo[] CSharp_wpf_ss_Sample(string context)
+        {
+            var xaml = new StringBuilder()
+                    .AppendLine("<Window x:Class=\"MainWindow\"")
+                    .AppendLine("    xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"")
+                    .AppendLine("    xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\"")
+                    .AppendLine("    Width=\"200\"")
+                    .AppendLine("    Height=\"150\">")
+                    .AppendLine("    <StackPanel>")
+                    .AppendLine("        <TextBox x:Name=\"Name\" Margin=\"10\" />")
+                    .AppendLine("        <Button x:Name=\"SayHello\" Width=\"100\" Height=\"30\" Content=\"Click Me\" />")
+                    .AppendLine("    </StackPanel>")
+                    .AppendLine("</Window>")
+                    .ToString();
+
+            var cs = new StringBuilder()
+                .AppendLine("//css_nuget -ver:3.2.0 -noref Caliburn.Micro")
+                .AppendLine(@"//css_dir %css_nuget%\caliburn.micro\3.2.0\lib\net45")
+                .AppendLine(@"//css_dir %css_nuget%\caliburn.micro.core\3.2.0\lib\net45")
+                .AppendLine("//css_dir %WINDOWS_DESKTOP_APP%")
+                .AppendLine($"//css_inc {Path.GetFileNameWithoutExtension(context)}.xaml")
+                .AppendLine("//css_ref PresentationFramework")
+                .AppendLine("//css_ref Caliburn.Micro.dll;")
+                .AppendLine("//css_ref Caliburn.Micro.Platform.dll")
+                .AppendLine("//css_ref Caliburn.Micro.Platform.Core.dll")
+                .AppendLine("")
+                .AppendLine("using System;")
+                .AppendLine("using System.Windows;")
+                .AppendLine("using Caliburn.Micro;")
+                .AppendLine("")
+                .AppendLine("public partial class MainWindow : Window")
+                .AppendLine("{")
+                .AppendLine("    [STAThread]")
+                .AppendLine("    static void Main()")
+                .AppendLine("    {")
+                .AppendLine("        var view = new MainWindow();")
+                .AppendLine("        var model = new MainWindowViewModel();")
+                .AppendLine("")
+                .AppendLine("        ViewModelBinder.Bind(model, view, null);")
+                .AppendLine("")
+                .AppendLine("        view.ShowDialog();")
+                .AppendLine("    }")
+                .AppendLine("")
+                .AppendLine("    public MainWindow()")
+                .AppendLine("    {")
+                .AppendLine("        InitializeComponent();")
+                .AppendLine("    }")
+                .AppendLine("}")
+                .AppendLine("")
+                .AppendLine("public class MainWindowViewModel : PropertyChangedBase")
+                .AppendLine("{")
+                .AppendLine("    string name;")
+                .AppendLine("")
+                .AppendLine("    public string Name")
+                .AppendLine("    {")
+                .AppendLine("        get { return name; }")
+                .AppendLine("        set")
+                .AppendLine("        {")
+                .AppendLine("            name = value;")
+                .AppendLine("            NotifyOfPropertyChange(() => Name);")
+                .AppendLine("            NotifyOfPropertyChange(() => CanSayHello);")
+                .AppendLine("        }")
+                .AppendLine("    }")
+                .AppendLine("")
+                .AppendLine("    public bool CanSayHello")
+                .AppendLine("    {")
+                .AppendLine("        get { return !string.IsNullOrWhiteSpace(Name); }")
+                .AppendLine("    }")
+                .AppendLine("")
+                .AppendLine("    public void SayHello()")
+                .AppendLine("    {")
+                .AppendLine("        MessageBox.Show($\"Hello {name}!\");")
+                .AppendLine("    }")
+                .AppendLine("}")
+                .ToString();
+
+            return new[]
+            {
+                new SampleInfo (cs,".cs"),
+                new SampleInfo (xaml, ".xaml")
             };
         }
 

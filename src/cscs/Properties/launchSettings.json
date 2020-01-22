@@ -2,7 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "E:\\PrivateData\\Galos\\Projects\\cs-script.core.active\\src\\spike\\WpfApp1\\MainWindow.xaml.cs"
+      "commandLineArgs": "-c:0 E:\\PrivateData\\Galos\\Projects\\cs-script.core.active\\src\\spike\\WpfApp1\\MainWindow.xaml.cs"
     }
   }
 }

@@ -193,7 +193,7 @@ namespace csscript
 
                 public ImportInfo[] Resolve(string statement)
                 {
-                    return ImportInfo.ResolveStatement(Utils.Expand(statement), parentScript, dirs);
+                    return ImportInfo.ResolveStatement(statement.Expand(), parentScript, dirs);
                 }
             }
 
@@ -522,10 +522,10 @@ namespace csscript
                 imports.AddRange(infos.Resolve(statement));
             foreach (string statement in GetRawStatements("//css_include", endCodePos))
                 if (!string.IsNullOrEmpty(statement))
-                    imports.AddRange(infos.Resolve(Utils.Expand(statement) + ",preserve_main"));
+                    imports.AddRange(infos.Resolve(statement.Expand() + ",preserve_main"));
             foreach (string statement in GetRawStatements("//css_inc", endCodePos))
                 if (!string.IsNullOrEmpty(statement))
-                    imports.AddRange(infos.Resolve(Utils.Expand(statement) + ",preserve_main"));
+                    imports.AddRange(infos.Resolve(statement.Expand() + ",preserve_main"));
 
             //analyse assembly references
             foreach (string statement in GetRawStatements("//css_reference", endCodePos))

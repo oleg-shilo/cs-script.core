@@ -149,11 +149,6 @@ namespace csscript
                 return new Exception(message, childException);
         }
 
-        internal static string Expand(this string text)
-        {
-            return Environment.ExpandEnvironmentVariables(text).Trim();
-        }
-
         internal static string NormaliseAsDirectiveOf(this string statement, string parentScript)
         {
             var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
@@ -161,7 +156,7 @@ namespace csscript
             if (text.Length > 1 && (text[0] == '.' && text[1] != '.')) // just a single-dot start dir
                 text = parentScript.GetDirName().PathJoin(text).GetFullPath();
 
-            return Expand(text).Trim();
+            return text.Expand().Trim();
         }
 
         internal static string NormaliseAsDirective(this string statement)
@@ -1306,6 +1301,11 @@ partial class dbg
                     else if (Args.Same(arg, AppArgs.question, AppArgs.help, AppArgs.help2)) // -? -help --help
                     {
                         executor.ShowHelpFor(nextArg);
+                        CLIExitRequest.Throw();
+                    }
+                    else if (Args.ParseValuedArg(arg, AppArgs.wpf, out argValue)) // -s:<C# version>
+                    {
+                        executor.EnableWpf(argValue);
                         CLIExitRequest.Throw();
                     }
                     else if (Args.Same(arg, AppArgs.syntax)) // -syntax

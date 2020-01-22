@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using csscript;
 
@@ -63,6 +64,19 @@ namespace CSScripting.CodeDom
                 build_root.PathJoin("Program.cs").DeleteIfExists();
             }
 
+            if (!File.Exists(proj_template)) // sdk may not be available
+            {
+                File.WriteAllLines(proj_template, new[]
+                {
+                    "<Project Sdk=\"Microsoft.NET.Sdk\">",
+                    "  <PropertyGroup>",
+                    "    <OutputType>Exe</OutputType>",
+                    "    <TargetFramework>netcoreapp3.1</TargetFramework>",
+                    "  </PropertyGroup>",
+                    "</Project>"
+                });
+            }
+
             return proj_template;
         }
 
@@ -103,19 +117,21 @@ namespace CSScripting.CodeDom
                                          .Reverse()
                                          .JoinBy(Path.DirectorySeparatorChar.ToString());
 
-                var dirs = dotnet_root.PathJoin("sdk")
-                                      .PathGetDirs("*")
-                                      .Where(dir => char.IsDigit(dir.GetFileName()[0]))
-                                      // .Where(dir => !dir.GetFileName().Contains('-')) // ignoring all preview
-                                      .Where(dir => !dir.GetFileName().Contains("3.0.100-preview")) // ignoring v3 preview
-                                      .OrderBy(x => Version.Parse(x.GetFileName().Split('-').First()))
-                                      .SelectMany(dir => dir.PathGetDirs("Roslyn"))
-                                      .ToArray();
-
-                var csc_exe = dirs.Select(dir => dir.PathJoin("bincore", "csc.dll"))
-                              .LastOrDefault(File.Exists);
-
-                return csc_exe;
+                if (dotnet_root.PathJoin("sdk").DirExists()) // need to check as otherwise it will throw
+                {
+                    var dirs = dotnet_root.PathJoin("sdk")
+                                          .PathGetDirs("*")
+                                          .Where(dir => char.IsDigit(dir.GetFileName()[0]))
+                                          // .Where(dir => !dir.GetFileName().Contains('-'))            // ignoring all preview
+                                          .Where(dir => !dir.GetFileName().Contains("3.0.100-preview")) // ignoring v3 preview
+                                          .OrderBy(x => Version.Parse(x.GetFileName().Split('-').First()))
+                                          .SelectMany(dir => dir.PathGetDirs("Roslyn"))
+                                          .ToArray();
+                    var csc_exe = dirs.Select(dir => dir.PathJoin("bincore", "csc.dll"))
+                                      .LastOrDefault(File.Exists);
+                    return csc_exe;
+                }
+                return null;
             }
         }
 
@@ -261,19 +277,29 @@ namespace CSScripting.CodeDom
             build_dir.DeleteDir()
                      .EnsureDir();
 
-            var project_content = File.ReadAllText(template);
+            //  <Project Sdk ="Microsoft.NET.Sdk">
+            //    <PropertyGroup>
+            //      <OutputType>Exe</OutputType>
+            //      <TargetFramework>netcoreapp3.1</TargetFramework>
+            //    </PropertyGroup>
+            //  </Project>
+            var project_element = XElement.Parse(File.ReadAllText(template));
 
-            var constants = $@"  <PropertyGroup>
-    <DefineConstants>TRACE;NETCORE</DefineConstants>
-  </PropertyGroup>
-</Project>";
-            project_content = project_content.Replace("</Project>", constants);
+            project_element.Add(new XElement("PropertyGroup",
+                                    new XElement("DefineConstants", "TRACE;NETCORE")));
 
             if (!options.GenerateExecutable || !Runtime.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
             {
-                project_content = project_content.Replace("<OutputType>Exe</OutputType>", "");
-                project_content = project_content.Replace("<TargetFramework>netcoreapp2.1</TargetFramework>",
-                                                          "<TargetFramework>netstandard2.0</TargetFramework>");
+                project_element.Element("PropertyGroup")
+                               .Element("OutputType")
+                               .Remove();
+            }
+
+            if (!Runtime.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
+            {
+                project_element.Element("PropertyGroup")
+                               .Element("OutputType")
+                               .SetAttributeValue("TargetFramework", "netstandard2.0");
             }
 
             // In .NET all references including GAC assemblies must be passed to the compiler.
@@ -286,14 +312,47 @@ namespace CSScripting.CodeDom
 
             bool not_in_engine_dir(string asm) => (asm.GetDirName() != this.GetType().Assembly.Location.GetDirName());
 
-            var refs = new StringBuilder();
             var ref_assemblies = options.ReferencedAssemblies.Where(x => !x.IsSharedAssembly())
                                                              .Where(Path.IsPathRooted)
                                                              .Where(not_in_engine_dir)
                                                              .ToList();
+            // ref_assemblies
+            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.dll");
+            // options.ReferencedAssemblies.Add(@"C:\Users\oleg.shilo\.nuget\packages\caliburn.micro.core\4.0.62-alpha\lib\netstandard1.1\Caliburn.Micro.Core.dll");
+            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.Platform.Core.dll");
+            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.Platform.dll");
+            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\System.Windows.Interactivity.dll");
+            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.dll");
+            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.Platform.Core.dll");
+            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.Platform.dll");
+            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\System.Windows.Interactivity.dll");
+
+            var refWinForms = ref_assemblies.Any(x => x.EndsWith("System.Windows.Forms") ||
+                                                      x.EndsWith("System.Windows.Forms.dll"));
+            if (refWinForms)
+            {
+                project_element.SetAttributeValue("Sdk", "Microsoft.NET.Sdk.WindowsDesktop");
+                project_element.Element("PropertyGroup")
+                               .Add(new XElement("UseWindowsForms", "true"));
+            }
+
+            var refWpf = ref_assemblies.Any(x => x.EndsWith("PresentationFramework") ||
+                                                 x.EndsWith("PresentationFramework.dll"));
+            if (refWpf)
+            {
+                Environment.SetEnvironmentVariable("UseWPF", "true");
+                project_element.SetAttributeValue("Sdk", "Microsoft.NET.Sdk.WindowsDesktop");
+                project_element.Element("PropertyGroup")
+                               .Add(new XElement("UseWPF", "true"));
+            }
 
             if (CSExecutor.options.enableDbgPrint)
                 ref_assemblies.Add(Assembly.GetExecutingAssembly().Location());
+
+            // ref_assemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.dll");
+            // ref_assemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.Platform.Core.dll");
+            // ref_assemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.Platform.dll");
+            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\System.Windows.Interactivity.dll");
 
             void CopySourceToBuildDir(string source)
             {
@@ -307,7 +366,9 @@ namespace CSScripting.CodeDom
                 // The only solution (ugly one) is to inject the full file path at startup with #line directive
 
                 var new_file = build_dir.PathJoin(source.GetFileName());
-                var sourceText = $"#line 1 \"{source}\"{Environment.NewLine}" + File.ReadAllText(source);
+                var sourceText = File.ReadAllText(source);
+                if (!source.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+                    sourceText = $"#line 1 \"{source}\"{Environment.NewLine}" + sourceText;
                 File.WriteAllText(new_file, sourceText);
             }
 
@@ -316,17 +377,18 @@ namespace CSScripting.CodeDom
                 // var logger = NLog.LogManager.GetCurrentClassLogger();
                 // logger.Info("Hello World");
 
-                foreach (string asm in ref_assemblies)
-                    refs.AppendLine($@"<Reference Include=""{asm.GetFileName()}""><HintPath>{asm}</HintPath></Reference>");
+                var refs1 = new XElement("ItemGroup");
+                project_element.Add(refs1);
 
-                project_content = project_content.Replace("</Project>",
-                                                        $@"  <ItemGroup>
-                                                                    {refs.ToString()}
-                                                                 </ItemGroup>
-                                                              </Project>");
+                foreach (string asm in ref_assemblies)
+                {
+                    refs1.Add(new XElement("Reference",
+                                  new XAttribute("Include", asm.GetFileName()),
+                                  new XElement("HintPath", asm)));
+                }
             }
 
-            File.WriteAllText(build_dir.PathJoin(projectShortName + ".csproj"), project_content);
+            File.WriteAllText(build_dir.PathJoin(projectShortName + ".csproj"), project_element.ToString());
 
             fileNames.ForEach(CopySourceToBuildDir);
 
@@ -338,7 +400,7 @@ namespace CSScripting.CodeDom
             var config = options.IncludeDebugInformation ? "--configuration Debug" : "--configuration Release";
 
             Profiler.get("compiler").Start();
-            result.NativeCompilerReturnValue = Utils.Run(dotnet, $"build {config} -o {output} {options.CompilerOptions}", build_dir, x => result.Output.Add(x));
+            result.NativeCompilerReturnValue = Utils.Run(dotnet, $"build {config} -o {output} {options.CompilerOptions}", build_dir, x => result.Output.Add(x), x => Console.WriteLine("error> " + x));
             Profiler.get("compiler").Stop();
 
             if (CSExecutor.options.verbose)

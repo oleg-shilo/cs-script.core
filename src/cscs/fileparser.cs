@@ -344,6 +344,9 @@ namespace CSScriptLib
 
         static string[] _ResolveFiles(string file, string[] extraDirs, string extension)
         {
+            if (Path.IsPathRooted(file))
+                return new[] { file };
+
             string fileName = file;
 
             //current directory

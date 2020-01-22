@@ -112,14 +112,30 @@ namespace csscript
         /// <summary>
         /// Show sample C# script file.
         /// </summary>
-        public void Sample(string version, string outFile)
+        public void Sample(string appType, string outFile)
         {
-            var code = HelpProvider.BuildSampleCode(version);
+            if (appType == null)
+            {
+                print?.Invoke(HelpProvider.BuildSampleHelp());
+            }
+            else
+            {
+                foreach (var sample in HelpProvider.BuildSampleCode(appType, outFile))
+                {
+                    if (outFile.IsNotEmpty())
+                    {
+                        var file = Path.GetFullPath(outFile).ChangeExtension(sample.FileExtension);
 
-            if (outFile.IsNotEmpty())
-                File.WriteAllText(outFile, code);
-            else if (print != null)
-                print(code);
+                        print?.Invoke($"Created: {file}");
+                        File.WriteAllText(file, sample.Code);
+                    }
+                    else
+                    {
+                        print?.Invoke($"\nsample{sample.FileExtension}:");
+                        print?.Invoke(sample.Code);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -192,6 +208,25 @@ namespace csscript
         public void ShowHelp(string helpType, params object[] context)
         {
             print?.Invoke(HelpProvider.ShowHelp(helpType, context.Where(x => x != null).ToArray()));
+        }
+
+        public void EnableWpf(string arg)
+        {
+            const string console_type = "\"name\": \"Microsoft.NETCore.App\"";
+            const string win_type = "\"name\": \"Microsoft.WindowsDesktop.App\"";
+
+            var configFile = Path.ChangeExtension(Assembly.GetExecutingAssembly().Location, ".runtimeconfig.json");
+
+            var content = File.ReadAllText(configFile);
+
+            if (arg == "enable" || arg == "1")
+                content = content.Replace(console_type, win_type);
+            else if (arg == "disabled" || arg == "0")
+                content = content.Replace(win_type, console_type);
+
+            CSExecutor.print($"WPF support is {(content.Contains(win_type) ? "enabled" : "disabled")}");
+
+            File.WriteAllText(configFile, content);
         }
     }
 }

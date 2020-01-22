@@ -13,7 +13,7 @@
     <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>-->
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.2.3.3-pre</Version>
+    <Version>1.2.4.0</Version>
     <Authors>Oleg Shilo</Authors>
     <Description>CS-Script engine Class Library for .NET Core</Description>
     <Copyright>(C) 2018-2020 Oleg Shilo</Copyright>
@@ -23,11 +23,11 @@
     <RepositoryUrl>https://github.com/oleg-shilo/cs-script.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>C#, scripting, script, dynamic, .NET. .NET Core</PackageTags>
-    <PackageReleaseNotes>- Issue #185: Load compiled assembly in CS-Script
-</PackageReleaseNotes>
+    <PackageReleaseNotes>- Issue #6: benefit from AssemblyLoadContext 
+- Added samples.cs to the `CS-Script.Core.Samples` package.</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>1.2.3.3</AssemblyVersion>
-    <FileVersion>1.2.3.3</FileVersion>
+    <AssemblyVersion>1.2.4.0</AssemblyVersion>
+    <FileVersion>1.2.4.0</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
 
 </PropertyGroup>

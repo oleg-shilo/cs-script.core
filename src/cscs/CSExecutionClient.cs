@@ -114,7 +114,7 @@ namespace csscript
                         args = exec.PreprocessArgs(args);
                     }
 
-                    exec.Execute(args, Console.WriteLine, null);
+                    exec.Execute(args, CSExecutor.print, null);
                 }
                 catch (CLIException e)
                 {
@@ -287,7 +287,11 @@ namespace csscript
             AppInfo.appName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
             // CSSUtils.DbgInjectionCode = embedded_strings.dbg_source;
 
+#if WIN_APP
+            CSExecutor.print = msg => System.Windows.MessageBox.Show(msg, "CS-Script");
+#else
             CSExecutor.print = Console.WriteLine;
+#endif
         }
 
         public static string ProcessNewEncoding(string requestedEncoding)

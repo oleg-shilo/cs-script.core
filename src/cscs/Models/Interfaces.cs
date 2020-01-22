@@ -29,7 +29,9 @@ namespace csscript
 
         void ShowProjectFor(string arg);
 
-        void ShowHelp(string helpTyp, params object[] context);
+        void EnableWpf(string arg);
+
+        void ShowHelp(string helpType, params object[] context);
 
         void DoCacheOperations(string command);
 

@@ -7,9 +7,12 @@ namespace cscs
 {
     class Program
     {
+        [STAThread]
         static void Main(string[] args)
         {
-            Environment.SetEnvironmentVariable(@$"css_nuget", null);
+            Environment.SetEnvironmentVariable("DOTNET_SHARED", typeof(string).Assembly.Location.GetDirName().GetDirName());
+            Environment.SetEnvironmentVariable("WINDOWS_DESKTOP_APP", typeof(string).Assembly.Location.GetDirName().Replace("Microsoft.NETCore.App", "Microsoft.WindowsDesktop.App"));
+            Environment.SetEnvironmentVariable("css_nuget", null);
 
             if (args.Contains("-server:stop"))
                 BuildServer.Stop();

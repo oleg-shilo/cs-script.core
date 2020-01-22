@@ -103,7 +103,7 @@ namespace csscript
                     options.scriptFileName = defaultCmdArgs[firstDefaultScriptArg];
                     for (int i = firstDefaultScriptArg + 1; i < defaultCmdArgs.Length; i++)
                         if (defaultCmdArgs[i].Trim().Length != 0)
-                            appArgs.Add(defaultCmdArgs[i]);
+                            appArgs?.Add(defaultCmdArgs[i]);
                 }
             }
             return settings;
@@ -137,11 +137,12 @@ namespace csscript
                 if (attchDebugger)
                     code = code.Substring(0, code.Length - 3).TrimEnd();
 
-                code = Utils.Expand(code.Substring(pos + (AppArgs.code.Length + 1))
-                                        .Replace("``", "\"")
-                                        .Replace("`n", "\n")
-                                        .Replace("`r", "\r")
-                                        .Trim(" \"".ToCharArray()));
+                code = code.Substring(pos + (AppArgs.code.Length + 1))
+                           .Replace("``", "\"")
+                           .Replace("`n", "\n")
+                           .Replace("`r", "\r")
+                           .Trim(" \"".ToCharArray())
+                           .Expand();
 
                 var commonHeader = "//css_ac freestyle\nusing System; using System.Diagnostics; using System.IO;\n";
                 var customHeaderFile = this.GetType().Assembly.Location.GetDirName().PathJoin("-code.header");
@@ -331,7 +332,7 @@ namespace csscript
                             var code_probing_dirs = parser.ExtraSearchDirs.Select<string, string>(Path.GetFullPath);
 
                             foreach (string dir in code_probing_dirs)
-                                newSearchDirs.AddIfNotThere(dir, Settings.code_dirs_section);
+                                newSearchDirs.AddIfNotThere(dir, Settings.code_dirs_section.Expand());
 
                             foreach (string file in parser.RefAssemblies)
                             {
@@ -482,6 +483,7 @@ namespace csscript
                 }
                 else
                 {
+                    Settings settings = LoadSettings((List<string>)null);
                     ShowVersion();
                 }
             }
@@ -537,7 +539,7 @@ namespace csscript
                 if (options.processFile)
                 {
                     var initInfo = options.initContext as CSharpParser.InitInfo;
-                    // from here
+
                     if (options.local)
                         Environment.CurrentDirectory = Path.GetDirectoryName(Path.GetFullPath(options.scriptFileName));
 
@@ -864,10 +866,23 @@ namespace csscript
                     Environment.ExitCode = 1;
                     if (!CSSUtils.IsRuntimeErrorReportingSuppressed)
                     {
+                        string message;
+
                         if (options.reportDetailedErrorInfo)
-                            print(ex.ToString());
+                            message = ex.ToString();
                         else
-                            print(ex.Message); //Mono friendly
+                            message = ex.Message; //Mono friendly
+
+                        if (Runtime.IsWin &&
+                            ex is System.Reflection.ReflectionTypeLoadException &&
+                            Assembly.GetExecutingAssembly().GetName().Name == "cscs" && // console app
+                            message.Contains("'System.Windows.DependencyObject'"))
+                        {
+                            message += "\n\nNOTE: If you are trying to use WPF ensure you have enabled WPF support " +
+                                "with `dotnet cscs.dll -wpf:enable`";
+                        }
+
+                        print(message);
                     }
                 }
             }

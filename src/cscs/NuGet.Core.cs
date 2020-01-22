@@ -195,15 +195,19 @@ namespace csscript
             // netstandard?.?
             // netcoreapp?.?
             // net?? | net???
+            // ""  (no framework element, meaning "any framework")
             // Though packages use Upper case with '.' preffix: '<group targetFramework=".NETStandard2.0">'
 
             XElement findMatch(Predicate<string> matchTest)
             {
-                var items = freameworks.Select(x => new { Name = x.Attribute("targetFramework").Value, Element = x })
+                var items = freameworks.Select(x => new { Name = x.Attribute("targetFramework")?.Value, Element = x })
                             .OrderByDescending(x => x.Name)
                             .ToArray();
 
-                return items.FirstOrDefault(x => matchTest(x.Name ?? ""))?.Element;
+                var match = items.FirstOrDefault(x => matchTest(x.Name ?? ""))?.Element ??   // exact match
+                            items.FirstOrDefault(x => x.Name == null)?.Element;               // universal dependency specified by not supplying targetFramework element
+
+                return match;
             }
 
             if (package.PreferredRuntime != null)
@@ -305,7 +309,7 @@ namespace csscript
 
         PackageInfo FindPackage(string name, string version)
         {
-            return Directory.GetDirectories(NuGetCache)
+            return Directory.GetDirectories(NuGetCache, name, SearchOption.TopDirectoryOnly)
                             .SelectMany(x =>
                             {
                                 return Directory.GetFiles(x, "*.nuspec", SearchOption.AllDirectories)

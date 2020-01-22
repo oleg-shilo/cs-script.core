@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -24,6 +25,7 @@ namespace csscript
         public const string question = "?";
         public const string question2 = "-?";
         public const string ver = "ver";
+        public const string wpf = "wpf";
         public const string cmd = "cmd";
         public const string syntax = "syntax";
         public const string commands = "commands";
@@ -212,9 +214,9 @@ namespace csscript
                                              " -s:7    - prints C# 7 sample. Otherwise it prints the default canonical 'Hello World' sample.",
                                                  "(e.g. " + AppInfo.appName + " -s:7 > sample.cs).");
 
-            switch1Help[@new] = new ArgInfo("-new <script name>",
+            switch1Help[@new] = new ArgInfo("-new[:<type>] [<script name>]",
                                             "Creates a sample script file with a given name. This command is similar to '-sample'.",
-                                                "(e.g. " + AppInfo.appName + " -new sample.cs");
+                                                "(e.g. " + AppInfo.appName + " -new: sample.cs");
 
             switch1Help[code] = new ArgInfo("-code <script code>",
                                             "Executes script code directly without using a script file.",
@@ -320,6 +322,15 @@ namespace csscript
             switch2Help[tc] = new ArgInfo("-tc",
                                           "Trace compiler input produced by CS-Script code provider CSSRoslynProvider.dll.",
                                               "It's useful when troubleshooting custom compilers (e.g. Roslyn on Linux).");
+
+            if (Runtime.IsWin)
+                switch2Help[wpf] = new ArgInfo("-wpf[:<enable|disable|1|0>]",
+                                               "Enables/disables WPF support on Windows by updating the framework name " +
+                                               "in the *.runtimeconfig.json file",
+                                                   " -wpf               - ${<==}prints current enabled status",
+                                                   " -wpf:<enable|1>    - ${<==}enables WPF support",
+                                                   " -wpf:<disable|0>   - ${<==}disables WPF support");
+
             switch2Help[config] = new ArgInfo("-config[:<option>]",
                                               "Performs various CS-Script config operations",
                                                   " -config:none               - ${<==}ignores config file (uses default settings)",
@@ -946,21 +957,129 @@ namespace csscript
             return builder.ToString();
         }
 
-        public static string BuildSampleCode(string version)
+        internal class SampleInfo
         {
-            if (version == "7")
-                return DefaultSample();
-            if (version == "4")
-                return CSharp4_Sample();
-            if (version == "freestyle")
-                return CSharp_freestyle_Sample();
-            if (version == "auto")
-                return CSharp_auto_Sample();
-            else
-                return CSharp7_Sample();
+            public SampleInfo(string code, string fileExtension)
+            {
+                Code = code;
+                FileExtension = fileExtension;
+            }
+
+            public string Code;
+            public string FileExtension;
         }
 
-        static string CSharp_freestyle_Sample()
+        static Dictionary<string, Func<string, SampleInfo[]>> sampleBuilders = new Dictionary<string, Func<string, SampleInfo[]>>
+        {
+            { "", DefaultSample},
+            { "freestyle", CSharp_freestyle_Sample},
+            { "auto", CSharp_auto_Sample},
+            { "winform", CSharp_winforms_Sample},
+            { "wpf", CSharp_wpf_Sample },
+        };
+
+        public static string BuildSampleHelp()
+        {
+            return new StringBuilder()
+                .AppendLine("Usage: -new[:<type>] [<otput file>]")
+                .AppendLine("  type - script template based on available types.")
+                .AppendLine("  output - location to place the generated script file(s).")
+                .AppendLine()
+                .AppendLine("Type           Template")
+                .AppendLine("---------------------------------------------------")
+                .AppendLine("console        Console script application")
+                .AppendLine("winforms       Windows Forms (WinForms) script application")
+                .AppendLine("wpf            WPF script application")
+                .AppendLine("auto           Auto-class (classless) script application")
+                .AppendLine("freestyle      Free style (no entry point) script application")
+                .AppendLine()
+                .AppendLine("Examples:")
+                .AppendLine("    cscs -new script")
+                .AppendLine("    cscs -new:auto script.cs")
+                .AppendLine("    cscs -new:console console.cs")
+                .AppendLine("    cscs -new:winform myapp.cs")
+                .ToString();
+        }
+
+        internal static SampleInfo[] BuildSampleCode(string appType, string context)
+        {
+            if (appType == null)
+                throw new Exception($"Unknown script type '{appType}'");
+            else if (sampleBuilders.ContainsKey(appType))
+                return sampleBuilders[appType](context);
+            else
+                throw new Exception($"Specified unknown script type '{appType}'");
+        }
+
+        static SampleInfo[] CSharp_winforms_Sample(string context)
+        {
+            var cs = new StringBuilder()
+                .AppendLine(@"//css_dir %WINDOWS_DESKTOP_APP%")
+                .AppendLine("using System;")
+                .AppendLine("using System.Windows.Forms;")
+                .AppendLine("")
+                .AppendLine("class Program")
+                .AppendLine("{")
+                .AppendLine("    [STAThread]")
+                .AppendLine("    static void Main()")
+                .AppendLine("    {")
+                .AppendLine("        Application.Run(new Form());")
+                .AppendLine("    }")
+                .AppendLine("}")
+                .ToString();
+
+            return new[]
+            {
+                new SampleInfo (cs,".cs")
+            };
+        }
+
+        static SampleInfo[] CSharp_wpf_Sample(string context)
+        {
+            var xaml = new StringBuilder()
+                    .AppendLine("<Window x:Class=\"MainWindow\"")
+                    .AppendLine("    xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"")
+                    .AppendLine("    xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\"")
+                    .AppendLine("    Width=\"400\"")
+                    .AppendLine("    Height=\"225\">")
+                    .AppendLine("    <Grid>")
+                    .AppendLine("        <Button x:Name=\"button\" Width=\"100\" Height=\"30\">Say hello</Button>")
+                    .AppendLine("    </Grid>")
+                    .AppendLine("</Window>")
+                    .ToString();
+
+            var cs = new StringBuilder()
+                .AppendLine("//css_dir %WINDOWS_DESKTOP_APP%")
+                .AppendLine($"//css_inc {Path.GetFileNameWithoutExtension(context)}.xaml")
+                .AppendLine("//css_ref PresentationFramework")
+                .AppendLine("")
+                .AppendLine("using System;")
+                .AppendLine("using System.Windows;")
+                .AppendLine("")
+                .AppendLine("public partial class MainWindow : Window")
+                .AppendLine("{")
+                .AppendLine("    [STAThread]")
+                .AppendLine("    static void Main()")
+                .AppendLine("    {")
+                .AppendLine("        new MainWindow().ShowDialog();")
+                .AppendLine("    }")
+                .AppendLine("")
+                .AppendLine("    public MainWindow()")
+                .AppendLine("    {")
+                .AppendLine("        InitializeComponent();")
+                .AppendLine("        button.Click += (s, e) => MessageBox.Show(\"Hello World!\");")
+                .AppendLine("    }")
+                .AppendLine("}")
+                .ToString();
+
+            return new[]
+            {
+                new SampleInfo (cs,".cs"),
+                new SampleInfo (xaml, ".xaml")
+            };
+        }
+
+        static SampleInfo[] CSharp_freestyle_Sample(string context)
         {
             StringBuilder builder = new StringBuilder();
             if (!Runtime.IsWin)
@@ -975,46 +1094,40 @@ namespace csscript
             builder.AppendLine("Directory.GetFiles(@\".\\\").print();");
             builder.AppendLine("");
 
-            return builder.ToString();
+            return new[] { new SampleInfo(builder.ToString(), ".cs") };
         }
 
-        static string CSharp_auto_Sample()
+        static SampleInfo[] CSharp_auto_Sample(string context)
         {
-            StringBuilder builder = new StringBuilder();
+            var cs = new StringBuilder();
             if (!Runtime.IsWin)
-            {
-                builder.AppendLine("// #!/usr/local/bin/cscs");
-            }
+                cs.AppendLine("// #!/usr/local/bin/cscs");
 
-            builder.AppendLine("//css_ac");
-            builder.AppendLine("using System;");
-            builder.AppendLine("using System.IO;");
+            cs.AppendLine("//css_ac")
+              .AppendLine("using System;")
+              .AppendLine("using System.IO;");
             if (CSExecutor.options.compilerEngine != Directives.compiler_roslyn)
-                builder.AppendLine("using static dbg; // to use 'print' instead of 'dbg.print'");
-            builder.AppendLine("");
-            builder.AppendLine("void main(string[] args)");
-            builder.AppendLine("{");
-            builder.AppendLine("    (string message, int version) setup_say_hello()");
-            builder.AppendLine("    {");
-            builder.AppendLine("        return (\"Hello from C#\", 7);");
-            builder.AppendLine("    }");
-            builder.AppendLine("");
-            builder.AppendLine("    var info = setup_say_hello();");
-            builder.AppendLine("");
+                cs.AppendLine("using static dbg; // to use 'print' instead of 'dbg.print'");
+            cs.AppendLine("")
+              .AppendLine("void main(string[] args)")
+              .AppendLine("{")
+              .AppendLine("    (string message, int version) setup_say_hello()")
+              .AppendLine("    {")
+              .AppendLine("        return (\"Hello from C#\", 7);")
+              .AppendLine("    }")
+              .AppendLine("")
+              .AppendLine("    var info = setup_say_hello();")
+              .AppendLine("");
             if (CSExecutor.options.compilerEngine == Directives.compiler_roslyn)
-            {
-                builder.AppendLine("    Console.WriteLine(info);");
-            }
+                cs.AppendLine("    Console.WriteLine(info);");
             else
-            {
-                builder.AppendLine("    print(info);");
-            }
-            builder.AppendLine("}");
+                cs.AppendLine("    print(info);");
+            cs.AppendLine("}");
 
-            return builder.ToString();
+            return new[] { new SampleInfo(cs.ToString(), ".cs") };
         }
 
-        static string CSharp7_Sample()
+        static SampleInfo[] CSharp7_Sample(string context)
         {
             var builder = new StringBuilder();
             if (!Runtime.IsWin)
@@ -1054,39 +1167,10 @@ namespace csscript
             builder.AppendLine("    }");
             builder.AppendLine("}");
 
-            return builder.ToString();
+            return new[] { new SampleInfo(builder.ToString(), ".cs") };
         }
 
-        static string CSharp4_Sample()
-        {
-            StringBuilder builder = new StringBuilder();
-            if (!Runtime.IsWin)
-            {
-                builder.AppendLine("#!<cscs.exe path> " + CSSUtils.Args.DefaultPrefix + "nl ");
-                // builder.AppendLine("//css_ref System.Windows.Forms;"); // core does not support forms yet
-            }
-
-            builder.AppendLine("using System;");
-            // builder.AppendLine("using System.Windows.Forms;");
-            builder.AppendLine();
-            builder.AppendLine("class Script");
-            builder.AppendLine("{");
-            builder.AppendLine("    static void Main(string[] args)");
-            builder.AppendLine("    {");
-            builder.AppendLine("        Console.WriteLine(\"Hello World!\");");
-            builder.AppendLine("");
-            builder.AppendLine("        for (int i = 0; i < args.Length; i++)");
-            builder.AppendLine("            Console.WriteLine(args[i]);");
-            builder.AppendLine("    }");
-            builder.AppendLine("}");
-
-            return builder.ToString();
-        }
-
-        static string DefaultSample()
-        {
-            return CSharp7_Sample();
-        }
+        static SampleInfo[] DefaultSample(string context) => CSharp7_Sample(context);
 
         public static string BuildPrecompilerSampleCode()
         {

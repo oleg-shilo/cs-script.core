@@ -16,6 +16,9 @@ namespace CSScriptLib
 namespace csscript
 #endif
 {
+    /// <summary>
+    ///
+    /// </summary>
     public static class CoreExtensions
     {
         /// <summary>
@@ -41,6 +44,12 @@ namespace csscript
                 return e.Current.SelectFirst(path.Substring(parts[0].Length + 1)); //be careful RECURSION
         }
 
+        /// <summary>
+        /// Removes the duplicated file system path items from the collection.The duplicates are identified
+        /// based on the path being case sensitive depending on the hosting OS file system.
+        /// </summary>
+        /// <param name="list">The list.</param>
+        /// <returns></returns>
         public static string[] RemovePathDuplicates(this string[] list)
         {
             return list.Where(x => x.IsNotEmpty())
@@ -60,10 +69,27 @@ namespace csscript
 
         static string sdk_root = "".GetType().Assembly.Location.GetDirName();
 
+        /// <summary>
+        /// Determines whether [is shared assembly].
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns>
+        ///   <c>true</c> if [is shared assembly] [the specified path]; otherwise, <c>false</c>.
+        /// </returns>
         public static bool IsSharedAssembly(this string path) => path.StartsWith(sdk_root, StringComparison.OrdinalIgnoreCase);
 
+        /// <summary>
+        /// Converts to bool.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <returns></returns>
         public static bool ToBool(this string text) => text.ToLower() == "true";
 
+        /// <summary>
+        /// Removes the assembly extension.
+        /// </summary>
+        /// <param name="asmName">Name of the asm.</param>
+        /// <returns></returns>
         public static string RemoveAssemblyExtension(this string asmName)
         {
             if (asmName.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase) || asmName.EndsWith(".exe", StringComparison.CurrentCultureIgnoreCase))
@@ -72,9 +98,20 @@ namespace csscript
                 return asmName;
         }
 
+        /// <summary>
+        /// Compares two path strings. Handles path being case-sensitive based on the OS file system.
+        /// </summary>
+        /// <param name="path1">The path1.</param>
+        /// <param name="path2">The path2.</param>
+        /// <returns></returns>
         public static bool SamePathAs(this string path1, string path2) =>
             string.Compare(path1, path2, Runtime.IsWin) == 0;
 
+        /// <summary>
+        /// Captures the exception dispatch information.
+        /// </summary>
+        /// <param name="ex">The ex.</param>
+        /// <returns></returns>
         public static Exception CaptureExceptionDispatchInfo(this Exception ex)
         {
             try
@@ -177,34 +214,4 @@ namespace csscript
         internal static string UnescapeExpandTrim(this string text) =>
             CSharpParser.UnescapeDirectiveDelimiters(Environment.ExpandEnvironmentVariables(text)).Trim();
     }
-
-    // internal static class CLIExtensions
-    // {
-    //     public static string[] Split(this string str, params string[] separators) =>
-    //            str.Split(separators, str.Length, StringSplitOptions.None);
-
-    //     public static string[] Split(this string str, string[] separators, int count) =>
-    //         str.Split(separators, count, StringSplitOptions.None);
-
-    //     public static string[] SplitCommandLine(this string commandLine)
-    //     {
-    //         bool inQuotes = false;
-    //         bool isEscaping = false;
-
-    //         return commandLine.Split(c =>
-    //         {
-    //             if (c == '\\' && !isEscaping) { isEscaping = true; return false; }
-
-    //             if (c == '\"' && !isEscaping)
-    //                 inQuotes = !inQuotes;
-
-    //             isEscaping = false;
-
-    //             return !inQuotes && Char.IsWhiteSpace(c)/*c == ' '*/;
-    //         })
-    //             .Select(arg => arg.Trim().TrimMatchingQuotes('\"').Replace("\\\"", "\""))
-    //                            .Where(arg => !string.IsNullOrEmpty(arg))
-    //                            .ToArray();
-    //     }
-    // }
 }

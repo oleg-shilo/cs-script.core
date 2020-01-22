@@ -60,36 +60,68 @@ public class Samples
 
     public static void LoadAndUnload()
     {
-        var asmFile = Path.GetTempFileName();
-        try
+        // Based on https://github.com/dotnet/samples/blob/master/core/tutorials/Unloading/Host/Program.cs
+        //
+        // Limitations: the "accuracy" of the unloading is determined by the quality of the
+        // .NET Core's `AssemblyLoadContext` implementation. For example using variable of `dynamic` type to keep the
+        // reference to the script object is problematic. Thus the loaded assembly file stays locked
+        // even though the runtime successfully reports unloading the assembly and collecting the weak reference
+        // of `AssemblyLoadContext` object.
+        //
+        // However using interfaces (e.g. `ICalc`) or raw Reflection does not exhibit this problem.
+        //
+        // Having a debugger attached to the process can also affect the outcome of the unloading.
+
+        WeakReference assemblyHost;
+
+        var asmFile = Path.GetFullPath("Script.dll");
+
+        Samples.LoadAndUnloadImpl(asmFile, out assemblyHost);
+
+        // Poll and run GC until the AssemblyLoadContext is unloaded.
+        // You don't need to do that unless you want to know when the context
+        // got unloaded. You can just leave it to the regular GC.
+        for (int i = 0; assemblyHost.IsAlive && (i < 10); i++)
         {
-            CSScript.Evaluator.CompileAssemblyFromCode(
-                               @"using System;
-                                 public class Script
-                                 {
-                                     public int Sum(int a, int b)
-                                     {
-                                         return a+b;
-                                     }
-                                 }", asmFile);
-
-            var asmContext = new AssemblyLoadContext(null, isCollectible: true);
-            asmContext.Unloading += x => Console.WriteLine("Unloading script");
-
-            dynamic script = asmContext.LoadFromAssemblyPath(asmFile).CreateInstance("css_root+Script");
-
-            int result = script.Sum(1, 2);
-
-            asmContext.Unload();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
-        finally
-        {
-            try
-            {
-                File.Delete(asmFile);
-            }
-            catch { }
-        }
+
+        Console.WriteLine($"Unload success: {!assemblyHost.IsAlive}");
+
+        File.Delete(asmFile); // prove that the assembly is unloaded
+    }
+
+    public static void LoadAndUnloadImpl(string asmFile, out WeakReference alcWeakRef)
+    {
+        CSScript.Evaluator
+                .ReferenceAssemblyOf<ICalc>()
+                .CompileAssemblyFromCode(
+                    @"using System;
+                      public class Script : ICalc
+                      {
+                          public int Sum(int a, int b)
+                          {
+                              return a+b;
+                          }
+                      }", asmFile);
+
+        var asm = new UnloadableAssembly();
+
+        alcWeakRef = new WeakReference(asm);
+
+        ICalc script = (ICalc)asm.LoadFromAssemblyPath(asmFile)
+                                 .CreateObject("*"); // or `CreateInstance("css_root+Script")`
+
+        int result = script.Sum(1, 3);
+
+        asm.Unload();
+    }
+
+    class UnloadableAssembly : AssemblyLoadContext
+    {
+        public UnloadableAssembly(string name = null) : base(name ?? Guid.NewGuid().ToString(), isCollectible: true)
+            => this.Unloading += x => Console.WriteLine("Unloading " + this.Name);
     }
 
     public static void LoadMethod()

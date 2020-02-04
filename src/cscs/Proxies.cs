@@ -316,16 +316,6 @@ namespace CSScripting.CodeDom
                                                              .Where(Path.IsPathRooted)
                                                              .Where(not_in_engine_dir)
                                                              .ToList();
-            // ref_assemblies
-            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.dll");
-            // options.ReferencedAssemblies.Add(@"C:\Users\oleg.shilo\.nuget\packages\caliburn.micro.core\4.0.62-alpha\lib\netstandard1.1\Caliburn.Micro.Core.dll");
-            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.Platform.Core.dll");
-            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.Platform.dll");
-            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\System.Windows.Interactivity.dll");
-            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.dll");
-            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.Platform.Core.dll");
-            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.Platform.dll");
-            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\System.Windows.Interactivity.dll");
 
             var refWinForms = ref_assemblies.Any(x => x.EndsWith("System.Windows.Forms") ||
                                                       x.EndsWith("System.Windows.Forms.dll"));
@@ -349,11 +339,6 @@ namespace CSScripting.CodeDom
             if (CSExecutor.options.enableDbgPrint)
                 ref_assemblies.Add(Assembly.GetExecutingAssembly().Location());
 
-            // ref_assemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.dll");
-            // ref_assemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.Platform.Core.dll");
-            // ref_assemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\Caliburn.Micro.Platform.dll");
-            // options.ReferencedAssemblies.Add(@"E:\PrivateData\Galos\Projects\cs-script.core.active\src\spike\WpfApp1\bin\Debug\netcoreapp3.1\System.Windows.Interactivity.dll");
-
             void CopySourceToBuildDir(string source)
             {
                 // As per dotnet.exe v2.1.26216.3 the pdb get generated as PortablePDB, which is the only format that is supported
@@ -363,7 +348,8 @@ namespace CSScripting.CodeDom
                 // .Core scenario where the all sources are in the root directory but if they are not (e.g. scripting or desktop app) then
                 // debugger cannot resolve sources without user input.
 
-                // The only solution (ugly one) is to inject the full file path at startup with #line directive
+                // The only solution (ugly one) is to inject the full file path at startup with #line directive. And loose the possibility
+                // to use path-based source files in the project file instead of copying all files in the build dir as we do.
 
                 var new_file = build_dir.PathJoin(source.GetFileName());
                 var sourceText = File.ReadAllText(source);
@@ -388,9 +374,30 @@ namespace CSScripting.CodeDom
                 }
             }
 
-            File.WriteAllText(build_dir.PathJoin(projectShortName + ".csproj"), project_element.ToString());
+            var linkSources = true;
+            if (linkSources)
+            {
+                var includs = new XElement("ItemGroup");
+                project_element.Add(includs);
+                fileNames.ForEach(x =>
+                {
+                    // <Compile Include="..\..\..\cscs\fileparser.cs" Link="fileparser.cs" />
 
-            fileNames.ForEach(CopySourceToBuildDir);
+                    if (x.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+                        includs.Add(new XElement("Page",
+                                        new XAttribute("Include", x),
+                                        new XAttribute("Link", Path.GetFileName(x)),
+                                        new XElement("Generator", "MSBuild:Compile")));
+                    else
+                        includs.Add(new XElement("Compile",
+                                        new XAttribute("Include", x),
+                                        new XAttribute("Link", Path.GetFileName(x))));
+                });
+            }
+            else
+                fileNames.ForEach(CopySourceToBuildDir);
+
+            File.WriteAllText(build_dir.PathJoin(projectShortName + ".csproj"), project_element.ToString());
 
             var output = "bin";
             var assembly = build_dir.PathJoin(output, projectShortName + ".dll");

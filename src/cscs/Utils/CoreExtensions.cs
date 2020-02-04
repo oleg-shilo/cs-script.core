@@ -19,7 +19,7 @@ namespace csscript
     /// <summary>
     ///
     /// </summary>
-    public static class CoreExtensions
+    static class CoreExtensions
     {
         /// <summary>
         /// Selects the first element that satisfies the specified path.

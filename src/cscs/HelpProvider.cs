@@ -640,6 +640,27 @@ namespace csscript
                          " Example: //css_co /d:TRACE pass /d:TRACE option to C# compiler",
                          "          //css_co /platform:x86 to produce Win32 executable\n",
                          section_sep, //------------------------------------
+                         "//css_compiler <csc|roslyn|dotnet>;",
+                         " ",
+                         "WARNING: this is an experimental feature that may not work as expected in some cases.",
+                         "This directive is used to select compiler cervices for building a script into an assembly.",
+                         "  dotnet - use `dotnet.exe` and on-fly .NET Core projects.",
+                         "           ${<==}This is a default compiler engine that handles well even complicated " +
+                         "heterogeneous multi-file scripts like WPF scripts.",
+                         "  csc    - use `csc.exe` (Roslyn C# compiler application). ",
+                         "           ${<==}This compiler sometimes show a somewhat better performance. Not suitable for WPF scripts.",
+                         "  roslyn - use hosted Roslyn C# compiler service.",
+                         "           ${<==}This option triggers staring a build server, which dispatches the build requests via a socket channel. " +
+                         "This feature is conceptually similar to the VBCSCompiler.exe build server, which is not included in yet in .NET Core. " +
+                         "Even though available on .NET. If for whatever reason build server fails to compile the supplied script the script engine " +
+                         "falls back to local (in-process) compilation.",
+                         "           ${<==}Using this option can in order of magnitude improve compilation speed. However it's not suitable for " +
+                         "compiling WPF scripts and potentially other multi-script scenarios.",
+                         "           ${<==}While this feature useful it is to be deprecated when .NET Core starts distributing its own properly" +
+                         "working build server VBCSCompiler.exe." +
+                         " ",
+                         " Example: //css_compiler roslyn\n",
+                         section_sep, //------------------------------------
                          "//css_ignore_namespace <namespace>;",
                          " ",
                          alias_prefix + "//css_ignore_ns",
@@ -857,6 +878,7 @@ namespace csscript
                     {
                         Dictionary<string, string> map = new Dictionary<string, string>();
                         int longestArg = 0;
+
                         foreach (FieldInfo info in typeof(AppArgs).GetFields())
                         {
                             if (info.IsPublic && info.IsLiteral && info.IsStatic && info.FieldType == typeof(string))
@@ -874,6 +896,7 @@ namespace csscript
                                 if (map.ContainsKey(description))
                                 {
                                     string capturedArg = map[description];
+
                                     if (capturedArg.Length > arg.Length)
                                         map[description] = capturedArg + "|" + arg;
                                     else
@@ -887,6 +910,7 @@ namespace csscript
                         }
 
                         StringBuilder builder = new StringBuilder();
+
                         foreach (string key in map.Keys)
                         {
                             string arg = map[key].Trim();
@@ -1043,8 +1067,7 @@ namespace csscript
                     .AppendLine("<Window x:Class=\"MainWindow\"")
                     .AppendLine("    xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\"")
                     .AppendLine("    xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\"")
-                    .AppendLine("    Width=\"200\"")
-                    .AppendLine("    Height=\"150\">")
+                    .AppendLine("    Width=\"200\" Height=\"150\" WindowStartupLocation=\"CenterScreen\">")
                     .AppendLine("    <StackPanel>")
                     .AppendLine("        <TextBox x:Name=\"Name\" Margin=\"10\" />")
                     .AppendLine("        <Button x:Name=\"SayHello\" Width=\"100\" Height=\"30\" Content=\"Click Me\" />")
@@ -1168,6 +1191,7 @@ namespace csscript
         static SampleInfo[] CSharp_freestyle_Sample(string context)
         {
             StringBuilder builder = new StringBuilder();
+
             if (!Runtime.IsWin)
             {
                 builder.AppendLine("// #!/usr/local/bin/cscs");
@@ -1186,6 +1210,7 @@ namespace csscript
         static SampleInfo[] CSharp_auto_Sample(string context)
         {
             var cs = new StringBuilder();
+
             if (!Runtime.IsWin)
                 cs.AppendLine("// #!/usr/local/bin/cscs");
 
@@ -1216,6 +1241,7 @@ namespace csscript
         static SampleInfo[] CSharp7_Sample(string context)
         {
             var builder = new StringBuilder();
+
             if (!Runtime.IsWin)
             {
                 builder.AppendLine("// #!/usr/local/bin/cscs");
@@ -1327,10 +1353,12 @@ namespace csscript
                 builder.Append("   Config file:     " + (Settings.DefaultConfigFile.FileExists() ? Settings.DefaultConfigFile : "<none>") + "\n");
                 builder.Append("   Engine:          ");
                 var compiler = "<default>";
+
                 if (!string.IsNullOrEmpty(asm_path))
                 {
                     //System.Diagnostics.Debug.Assert(false);
                     var alt_compiler = (Settings.Load(Settings.DefaultConfigFile, false) ?? new Settings()).ExpandUseAlternativeCompiler();
+
                     if (!string.IsNullOrEmpty(alt_compiler))
                     {
                         builder.Append(alt_compiler + "\n");
@@ -1340,10 +1368,12 @@ namespace csscript
                             Type[] types = asm.GetModules()[0].FindTypes(Module.FilterTypeName, "CSSCodeProvider");
 
                             MethodInfo method = types[0].GetMethod("GetCompilerInfo");
+
                             if (method != null)
                             {
                                 var info = (Dictionary<string, string>)method.Invoke(null, new object[0]);
                                 var maxLength = info.Keys.Max(x => x.Length);
+
                                 foreach (var key in info.Keys)
                                     builder.AppendLine("                    " + key + " - \n                        " + info[key]);
                             }

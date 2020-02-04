@@ -1,7 +1,12 @@
 cd cscs
+
 md "..\out\.NET Core"
 "..\out\.NET Core\css.exe" -server:stop
-dotnet publish -c Release -f netcoreapp3.0 -o "..\out\.NET Core"
+
+dotnet publish cscs.csproj -c Release -f netcoreapp3.1 -o "..\out\.NET Core"
+dotnet publish csws.csproj -c Release -f netcoreapp3.1 -o "..\out\.NET Core"
+
+
 copy ..\css\bin\Release\css.exe "..\out\.NET Core\css.exe"
 rem copy ..\cscs\bin\Debug\netcoreapp3.0\cscs.exe "..\out\.NET Core\cscs.exe"
 cd ..\out\.NET Core
@@ -22,5 +27,18 @@ css -code var version = Assembly.LoadFrom(@``cscs.dll``).GetName().Version.ToStr
 del ..\cs-script.core.7z
 
 cd ..\..
+
+cd CSScriptLib\src\CSScriptLib
+
+rem nuget fails with the endless loop :) so need to do it manually
+rem nuget pack CS-Script.Core.Samples.nuspec
+echo .
+echo .
+echo .
+echo !!!! DON'T forgert to build HELP  manually !!!!
+echo .
+echo !!!! DON'T forgert to package nuget manually !!!!
+echo .
+
 
 pause

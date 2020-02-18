@@ -205,7 +205,7 @@ namespace CSScripting.CodeDom
             if (options.CompilerOptions.IsNotEmpty())
                 common_args += $"{options.CompilerOptions} ";
 
-            common_args += "-define:TRACE;NETCORE ";
+            common_args += "-define:TRACE;NETCORE;CS_SCRIPT";
 
             var gac_asms = Directory.GetFiles(gac, "System.*.dll").ToList();
             gac_asms.AddRange(Directory.GetFiles(gac, "netstandard.dll"));
@@ -286,7 +286,7 @@ namespace CSScripting.CodeDom
             var project_element = XElement.Parse(File.ReadAllText(template));
 
             project_element.Add(new XElement("PropertyGroup",
-                                    new XElement("DefineConstants", "TRACE;NETCORE")));
+                                    new XElement("DefineConstants", "TRACE;NETCORE;CS_SCRIPT")));
 
             if (!options.GenerateExecutable || !Runtime.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
             {

@@ -106,6 +106,7 @@ namespace CSScripting.CodeDom
             }
 
             combinedScript.Add($"#define NETCORE");
+            combinedScript.Add($"#define CS_SCRIPT");
             combinedScript.Add($"#line 1 \"{firstScript}\"");
             add_code(firstScript, File.ReadAllLines(firstScript), 0);
 

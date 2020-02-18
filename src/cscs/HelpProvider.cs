@@ -438,6 +438,13 @@ namespace csscript
                          "  //css_dir #if (DEBUG) .\\bin\\Debug",
                          "  //css_reference #if PRODUCTION_PC d:\\temp\\build\\certificates.dll",
                          section_sep, //------------------------------------
+                         "The script engine also always defines special compiler conditional symbol `CS_SCRIPT`:",
+                         "  #if CS_SCRIPT",
+                         "       Console.WriteLine(\"Running as a script...\");",
+                         "  #endif",
+                         "The script engine also defines another conditional symbol `NETCORE` to allow user" +
+                         "to distinguish between executions under .NET (full) and .NET Core",
+                         section_sep, //------------------------------------
                          "//css_include <file>;",
                          " ",
                          alias_prefix + "//css_inc",

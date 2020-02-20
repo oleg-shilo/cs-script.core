@@ -148,13 +148,14 @@ public class EvaluatorTests
                 }");
         result = ccc.Sum(13, 2);
 
-        Func<int, int, int> add = css.CSScript.Evaluator
-                                               .LoadDelegate<Func<int, int, int>>(
-                                                   @"int add(int a, int b)
-                                                      {
-                                                          return a + b;
-                                                      }");
-        result = add(4, 5);
+        // LoadDelegate is not implemented for .NET Core
+        // Func<int, int, int> add = css.CSScript.Evaluator
+        //                                        .LoadDelegate<Func<int, int, int>>(
+        //                                            @"int add(int a, int b)
+        //                                               {
+        //                                                   return a + b;
+        //                                               }");
+        // result = add(4, 5);
     }
 }
 

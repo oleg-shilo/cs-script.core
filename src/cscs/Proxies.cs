@@ -46,9 +46,7 @@ namespace CSScripting.CodeDom
         }
 
         static string dotnet { get; } = Runtime.IsCore ?
-            "dotnet"
-            :
-            Process.GetCurrentProcess().MainModule.FileName;
+                                        "dotnet" : Process.GetCurrentProcess().MainModule.FileName;
 
         static string InitBuildTools()
         {
@@ -501,7 +499,7 @@ namespace CSScripting.CodeDom
                     if (line.StartsWith("Build FAILED.") || line.StartsWith("Build succeeded."))
                         isErrroSection = true;
 
-                    if (line.Contains("): error ") || line.StartsWith("error CS"))
+                    if (line.Contains("): error ") || line.StartsWith("error CS") || line.Contains("MSBUILD : error "))
                     {
                         var error = CompilerError.Parser(line);
                         if (error != null)

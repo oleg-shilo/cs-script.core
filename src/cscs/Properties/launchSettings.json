@@ -2,7 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "-c:0 -dbg E:\\PrivateData\\Galos\\Projects\\cs-script.core\\src\\cscs\\bin\\Debug\\netcoreapp3.1\\hello_wpf.cs",
+      "commandLineArgs": "-proj e:\\PrivateData\\Galos\\Projects\\cs-script.core\\src\\cscs\\bin\\Debug\\netcoreapp3.1\\.temp..cs",
       "workingDirectory": "E:\\PrivateData\\Galos\\Projects\\cs-script.core\\src\\cscs\\bin\\Debug\\netcoreapp3.1"
     }
   }

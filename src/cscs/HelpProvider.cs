@@ -70,6 +70,7 @@ namespace csscript
         public const string proj = "proj";
 
         internal const string proj_dbg = "proj:dbg";    // for internal use only
+        internal const string proj_csproj = "proj:csproj";    // for internal use only
         static public string SyntaxHelp { get { return syntaxHelp.ToConsoleLines(0); } }
         static string syntaxHelp = "";
 

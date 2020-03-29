@@ -61,7 +61,7 @@ namespace csscript
 
         static public Project GenerateProjectFor(string script)
         {
-            // Debug.Assert(false);
+            // System.Diagnostics.Debug.Assert(false);
             // ********************************************************************************************
             // * Extremely important to keep the project building algorithm in sync with CSExecutor.Compile
             // ********************************************************************************************

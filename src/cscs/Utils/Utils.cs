@@ -1223,6 +1223,10 @@ partial class dbg
                         options.nonExecuteOpRquest = AppArgs.proj;
                         if (argValue == "dbg")
                             options.nonExecuteOpRquest = AppArgs.proj_dbg;
+
+                        if (argValue == "csproj")
+                            options.nonExecuteOpRquest = AppArgs.proj_csproj;
+
                         options.processFile = false;
                         //options.processFile = false;
                         //options.forceOutputAssembly = ;

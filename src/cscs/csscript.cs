@@ -29,21 +29,34 @@ namespace csscript
         {
             var request = (options.nonExecuteOpRquest as string);
 
-            if (request == AppArgs.proj || request == AppArgs.proj_dbg)
+            if (request == AppArgs.proj || request == AppArgs.proj_dbg || request == AppArgs.proj_csproj)
             {
                 var project = Project.GenerateProjectFor(options.scriptFileName);
 
-                foreach (string file in project.Files)
-                    print("file:" + file);
+                if (request == AppArgs.proj_csproj)
+                {
+                    var compileParams = new CompilerParameters();
+                    compileParams.ReferencedAssemblies.AddRange(project.Refs);
+                    compileParams.GenerateExecutable = true;
 
-                if (request == AppArgs.proj_dbg && options.enableDbgPrint)
-                    print("file:" + CSSUtils.CreateDbgInjectionInterfaceCode(null));
+                    var projectFile = CSharpCompiler.CreateProject(compileParams, project.Files);
+                    print("project:" + projectFile);
+                    // print(File.ReadAllText(projectFile));
+                }
+                else
+                {
+                    foreach (string file in project.Files)
+                        print("file:" + file);
 
-                foreach (string file in project.Refs)
-                    print("ref:" + file);
+                    if (request == AppArgs.proj_dbg && options.enableDbgPrint)
+                        print("file:" + CSSUtils.CreateDbgInjectionInterfaceCode(null));
 
-                foreach (string file in project.SearchDirs)
-                    print("searchDir:" + file);
+                    foreach (string file in project.Refs)
+                        print("ref:" + file);
+
+                    foreach (string file in project.SearchDirs)
+                        print("searchDir:" + file);
+                }
             }
         }
 

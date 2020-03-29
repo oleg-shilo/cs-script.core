@@ -262,15 +262,15 @@ namespace CSScripting.CodeDom
             return result;
         }
 
-        CompilerResults CompileAssemblyFromFileBatch_with_Build(CompilerParameters options, string[] fileNames)
+        internal static string CreateProject(CompilerParameters options, string[] fileNames, string outDir = null)
         {
             string projectName = fileNames.First().GetFileName();
             string projectShortName = Path.GetFileNameWithoutExtension(projectName);
 
             var template = InitBuildTools();
 
-            var cache_dir = CSExecutor.ScriptCacheDir; // C:\Users\user\AppData\Local\Temp\csscript.core\cache\1822444284
-            var build_dir = cache_dir.PathJoin(".build", projectName);
+            var out_dir = outDir ?? CSExecutor.ScriptCacheDir; // C:\Users\user\AppData\Local\Temp\csscript.core\cache\1822444284
+            var build_dir = out_dir.PathJoin(".build", projectName);
 
             build_dir.DeleteDir()
                      .EnsureDir();
@@ -308,15 +308,14 @@ namespace CSScripting.CodeDom
             // Though we still need to keep shared assembly resolving in the host as the future compiler
             // require ALL ref assemblies to be pushed to the compiler.
 
-            bool not_in_engine_dir(string asm) => (asm.GetDirName() != this.GetType().Assembly.Location.GetDirName());
+            bool not_in_engine_dir(string asm) => (asm.GetDirName() != Assembly.GetExecutingAssembly().Location.GetDirName());
 
             var ref_assemblies = options.ReferencedAssemblies.Where(x => !x.IsSharedAssembly())
                                                              .Where(Path.IsPathRooted)
                                                              .Where(not_in_engine_dir)
                                                              .ToList();
 
-            var refWinForms = ref_assemblies.Any(x => x.EndsWith("System.Windows.Forms") ||
-                                                      x.EndsWith("System.Windows.Forms.dll"));
+            bool refWinForms = AddFrameworkAssemblies(ref_assemblies);
             if (refWinForms)
             {
                 project_element.SetAttributeValue("Sdk", "Microsoft.NET.Sdk.WindowsDesktop");
@@ -395,10 +394,26 @@ namespace CSScripting.CodeDom
             else
                 fileNames.ForEach(CopySourceToBuildDir);
 
-            File.WriteAllText(build_dir.PathJoin(projectShortName + ".csproj"), project_element.ToString());
+            var projectFile = build_dir.PathJoin(projectShortName + ".csproj");
+            File.WriteAllText(projectFile, project_element.ToString());
+
+            return projectFile;
+
+            static bool AddFrameworkAssemblies(List<string> ref_assemblies)
+            {
+                return ref_assemblies.Any(x => x.EndsWith("System.Windows.Forms") ||
+                                                          x.EndsWith("System.Windows.Forms.dll"));
+            }
+        }
+
+        CompilerResults CompileAssemblyFromFileBatch_with_Build(CompilerParameters options, string[] fileNames)
+        {
+            var projectFile = CreateProject(options, fileNames);
 
             var output = "bin";
-            var assembly = build_dir.PathJoin(output, projectShortName + ".dll");
+            var build_dir = projectFile.GetDirName();
+
+            var assembly = build_dir.PathJoin(output, projectFile.GetFileNameWithoutExtension() + ".dll");
 
             var result = new CompilerResults();
 
@@ -447,6 +462,192 @@ namespace CSScripting.CodeDom
 
             return result;
         }
+
+        // CompilerResults CompileAssemblyFromFileBatch_with_BuildEx(CompilerParameters options, string[] fileNames)
+        // {
+        //     string projectName = fileNames.First().GetFileName();
+        //     string projectShortName = Path.GetFileNameWithoutExtension(projectName);
+
+        //     var template = InitBuildTools();
+
+        //     var cache_dir = CSExecutor.ScriptCacheDir; // C:\Users\user\AppData\Local\Temp\csscript.core\cache\1822444284
+        //     var build_dir = cache_dir.PathJoin(".build", projectName);
+
+        //     build_dir.DeleteDir()
+        //              .EnsureDir();
+
+        //     //  <Project Sdk ="Microsoft.NET.Sdk">
+        //     //    <PropertyGroup>
+        //     //      <OutputType>Exe</OutputType>
+        //     //      <TargetFramework>netcoreapp3.1</TargetFramework>
+        //     //    </PropertyGroup>
+        //     //  </Project>
+        //     var project_element = XElement.Parse(File.ReadAllText(template));
+
+        //     project_element.Add(new XElement("PropertyGroup",
+        //                             new XElement("DefineConstants", "TRACE;NETCORE;CS_SCRIPT")));
+
+        //     if (!options.GenerateExecutable || !Runtime.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
+        //     {
+        //         project_element.Element("PropertyGroup")
+        //                        .Element("OutputType")
+        //                        .Remove();
+        //     }
+
+        //     if (!Runtime.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
+        //     {
+        //         project_element.Element("PropertyGroup")
+        //                        .Element("OutputType")
+        //                        .SetAttributeValue("TargetFramework", "netstandard2.0");
+        //     }
+
+        //     // In .NET all references including GAC assemblies must be passed to the compiler.
+        //     // In .NET Core this creates a problem as the compiler does not expect any default (shared)
+        //     // assemblies to be passed. So we do need to exclude them.
+        //     // Note: .NET project that uses 'standard' assemblies brings facade/full .NET Core assemblies in the working folder (engine dir)
+        //     //
+        //     // Though we still need to keep shared assembly resolving in the host as the future compiler
+        //     // require ALL ref assemblies to be pushed to the compiler.
+
+        //     bool not_in_engine_dir(string asm) => (asm.GetDirName() != this.GetType().Assembly.Location.GetDirName());
+
+        //     var ref_assemblies = options.ReferencedAssemblies.Where(x => !x.IsSharedAssembly())
+        //                                                      .Where(Path.IsPathRooted)
+        //                                                      .Where(not_in_engine_dir)
+        //                                                      .ToList();
+
+        //     var refWinForms = ref_assemblies.Any(x => x.EndsWith("System.Windows.Forms") ||
+        //                                               x.EndsWith("System.Windows.Forms.dll"));
+        //     if (refWinForms)
+        //     {
+        //         project_element.SetAttributeValue("Sdk", "Microsoft.NET.Sdk.WindowsDesktop");
+        //         project_element.Element("PropertyGroup")
+        //                        .Add(new XElement("UseWindowsForms", "true"));
+        //     }
+
+        //     var refWpf = ref_assemblies.Any(x => x.EndsWith("PresentationFramework") ||
+        //                                          x.EndsWith("PresentationFramework.dll"));
+        //     if (refWpf)
+        //     {
+        //         Environment.SetEnvironmentVariable("UseWPF", "true");
+        //         project_element.SetAttributeValue("Sdk", "Microsoft.NET.Sdk.WindowsDesktop");
+        //         project_element.Element("PropertyGroup")
+        //                        .Add(new XElement("UseWPF", "true"));
+        //     }
+
+        //     if (CSExecutor.options.enableDbgPrint)
+        //         ref_assemblies.Add(Assembly.GetExecutingAssembly().Location());
+
+        //     void CopySourceToBuildDir(string source)
+        //     {
+        //         // As per dotnet.exe v2.1.26216.3 the pdb get generated as PortablePDB, which is the only format that is supported
+        //         // by both .NET debugger (VS) and .NET Core debugger (VSCode).
+
+        //         // However PortablePDB does not store the full source path but file name only (at least for now). It works fine in typical
+        //         // .Core scenario where the all sources are in the root directory but if they are not (e.g. scripting or desktop app) then
+        //         // debugger cannot resolve sources without user input.
+
+        //         // The only solution (ugly one) is to inject the full file path at startup with #line directive. And loose the possibility
+        //         // to use path-based source files in the project file instead of copying all files in the build dir as we do.
+
+        //         var new_file = build_dir.PathJoin(source.GetFileName());
+        //         var sourceText = File.ReadAllText(source);
+        //         if (!source.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+        //             sourceText = $"#line 1 \"{source}\"{Environment.NewLine}" + sourceText;
+        //         File.WriteAllText(new_file, sourceText);
+        //     }
+
+        //     if (ref_assemblies.Any())
+        //     {
+        //         // var logger = NLog.LogManager.GetCurrentClassLogger();
+        //         // logger.Info("Hello World");
+
+        //         var refs1 = new XElement("ItemGroup");
+        //         project_element.Add(refs1);
+
+        //         foreach (string asm in ref_assemblies)
+        //         {
+        //             refs1.Add(new XElement("Reference",
+        //                           new XAttribute("Include", asm.GetFileName()),
+        //                           new XElement("HintPath", asm)));
+        //         }
+        //     }
+
+        //     var linkSources = true;
+        //     if (linkSources)
+        //     {
+        //         var includs = new XElement("ItemGroup");
+        //         project_element.Add(includs);
+        //         fileNames.ForEach(x =>
+        //         {
+        //             // <Compile Include="..\..\..\cscs\fileparser.cs" Link="fileparser.cs" />
+
+        //             if (x.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+        //                 includs.Add(new XElement("Page",
+        //                                 new XAttribute("Include", x),
+        //                                 new XAttribute("Link", Path.GetFileName(x)),
+        //                                 new XElement("Generator", "MSBuild:Compile")));
+        //             else
+        //                 includs.Add(new XElement("Compile",
+        //                                 new XAttribute("Include", x),
+        //                                 new XAttribute("Link", Path.GetFileName(x))));
+        //         });
+        //     }
+        //     else
+        //         fileNames.ForEach(CopySourceToBuildDir);
+
+        //     File.WriteAllText(build_dir.PathJoin(projectShortName + ".csproj"), project_element.ToString());
+
+        //     var output = "bin";
+        //     var assembly = build_dir.PathJoin(output, projectShortName + ".dll");
+
+        //     var result = new CompilerResults();
+
+        //     var config = options.IncludeDebugInformation ? "--configuration Debug" : "--configuration Release";
+
+        //     Profiler.get("compiler").Start();
+        //     result.NativeCompilerReturnValue = Utils.Run(dotnet, $"build {config} -o {output} {options.CompilerOptions}", build_dir, x => result.Output.Add(x), x => Console.WriteLine("error> " + x));
+        //     Profiler.get("compiler").Stop();
+
+        //     if (CSExecutor.options.verbose)
+        //     {
+        //         var timing = result.Output.FirstOrDefault(x => x.StartsWith("Time Elapsed"));
+        //         if (timing != null)
+        //             Console.WriteLine("    dotnet: " + timing);
+        //     }
+
+        //     result.ProcessErrors();
+
+        //     result.Errors
+        //           .ForEach(x =>
+        //           {
+        //               // by default x.FileName is a file name only
+        //               x.FileName = fileNames.FirstOrDefault(f => f.EndsWith(x.FileName ?? "")) ?? x.FileName;
+        //           });
+
+        //     if (result.NativeCompilerReturnValue == 0 && File.Exists(assembly))
+        //     {
+        //         result.PathToAssembly = options.OutputAssembly;
+        //         File.Copy(assembly, result.PathToAssembly, true);
+
+        //         if (options.IncludeDebugInformation)
+        //             File.Copy(assembly.ChangeExtension(".pdb"),
+        //                       result.PathToAssembly.ChangeExtension(".pdb"),
+        //                       true);
+        //     }
+        //     else
+        //     {
+        //         if (result.Errors.IsEmpty())
+        //         {
+        //             // unknown error; e.g. invalid compiler params
+        //             result.Errors.Add(new CompilerError { ErrorText = "Unknown compiler error" });
+        //         }
+        //     }
+
+        //     build_dir.DeleteDir();
+
+        //     return result;
+        // }
 
         public CompilerResults CompileAssemblyFromSource(CompilerParameters options, string source)
         {

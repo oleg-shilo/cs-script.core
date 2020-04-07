@@ -216,8 +216,7 @@ namespace csscript
                                                  "(e.g. " + AppInfo.appName + " -s:7 > sample.cs).");
 
             switch1Help[@new] = new ArgInfo("-new[:<type>] [<script name>]",
-                                            "Creates a sample script file with a given name. This command is similar to '-sample'.",
-                                                "(e.g. " + AppInfo.appName + " -new: sample.cs");
+                                            HelpProvider.BuildSampleHelp());
 
             switch1Help[code] = new ArgInfo("-code <script code>",
                                             "Executes script code directly without using a script file.",
@@ -1038,9 +1037,9 @@ namespace csscript
 
         internal static SampleInfo[] BuildSampleCode(string appType, string context)
         {
-            if (appType == null)
-                throw new Exception($"Unknown script type '{appType}'");
-            else if (sampleBuilders.ContainsKey(appType))
+            appType = appType ?? "";
+
+            if (sampleBuilders.ContainsKey(appType))
                 return sampleBuilders[appType](context);
             else
                 throw new Exception($"Specified unknown script type '{appType}'");

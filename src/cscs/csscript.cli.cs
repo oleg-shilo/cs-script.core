@@ -114,7 +114,7 @@ namespace csscript
         /// </summary>
         public void Sample(string appType, string outFile)
         {
-            if (appType == null)
+            if (appType == null && outFile == null)
             {
                 print?.Invoke(HelpProvider.BuildSampleHelp());
             }

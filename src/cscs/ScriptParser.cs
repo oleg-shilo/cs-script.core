@@ -414,11 +414,15 @@ namespace CSScriptLib
             var refPkAsms = this.ResolvePackages(true); //suppressDownloading
 
             var refCodeAsms = this.ReferencedAssemblies
-                                  .SelectMany(asm => AssemblyResolver.FindAssembly(asm.Replace("\"", ""), probingDirs));
+                                  .SelectMany(asm => AssemblyResolver.FindAssembly(asm.Replace("\"", ""), probingDirs)).ToArray();
+
+            // need to add default CLR assemblies as there will be no namespace->GAC assembly resolving as it is .NET Core
+            var clrDefaultAssemblies = AppDomain.CurrentDomain.GetAssemblies().Where(x => x.FullName.StartsWith("System.")).Select(x => x.Location).ToArray();
 
             var refAsms = refPkAsms.Union(refPkAsms)
                                    .Union(refCodeAsms)
                                    .Union(defaultRefAsms.SelectMany(name => AssemblyResolver.FindAssembly(name, probingDirs)))
+                                   .Union(clrDefaultAssemblies)
                                    .Distinct()
                                    .ToArray();
 

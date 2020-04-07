@@ -1,17 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using csscript;
 using CSScripting.CodeDom;
 
 namespace cscs
 {
-    class Program
+    static class Program
     {
         [STAThread]
         static void Main(string[] args)
         {
-            // var tt = Project.GenerateProjectFor(@"e:\PrivateData\Galos\Projects\cs-script.core\src\cscs\bin\Debug\netcoreapp3.1\.temp..cs");
-
             Environment.SetEnvironmentVariable("DOTNET_SHARED", typeof(string).Assembly.Location.GetDirName().GetDirName());
             Environment.SetEnvironmentVariable("WINDOWS_DESKTOP_APP", typeof(string).Assembly.Location.GetDirName().Replace("Microsoft.NETCore.App", "Microsoft.WindowsDesktop.App"));
             Environment.SetEnvironmentVariable("css_nuget", null);

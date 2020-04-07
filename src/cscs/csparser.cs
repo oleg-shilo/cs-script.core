@@ -324,7 +324,7 @@ namespace csscript
         List<int[]> stringRegions = new List<int[]>();
         List<int[]> commentRegions = new List<int[]>();
 
-        static bool NeedInitEnvironment = true;
+        internal static bool NeedInitEnvironment = true;
 
         static void InitEnvironment()
         {

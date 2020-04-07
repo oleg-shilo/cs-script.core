@@ -55,6 +55,12 @@ namespace csscript
 
     internal class ProjectBuilder
     {
+        static ProjectBuilder()
+        {
+            if (CSharpParser.NeedInitEnvironment)
+                Environment.SetEnvironmentVariable("css_nuget", null);
+        }
+
         static public string DefaultSearchDirs;
         static public string DefaultRefAsms;
         static public string DefaultNamespaces;

@@ -192,7 +192,7 @@ namespace CSScriptLib
         /// </summary>
         public class ImportInfo
         {
-            internal static ImportInfo[] ResolveStatement(string statement, string parentScript, string[] probinghDirs)
+            internal static ImportInfo[] Resolve(string statement, string parentScript, string[] probinghDirs)
             {
                 if (statement.Length > 1 && (statement[0] == '.' && statement[1] != '.')) //just a single-dot start dir
                     statement = Path.Combine(Path.GetDirectoryName(parentScript), statement);
@@ -492,13 +492,13 @@ namespace CSScriptLib
 
             //analyze script imports/includes
             foreach (string statement in GetRawStatements("//css_import", endCodePos))
-                imports.AddRange(ImportInfo.ResolveStatement(statement.Expand().Trim(), file, probingDirs));
+                imports.AddRange(ImportInfo.Resolve(statement.Expand().Trim(), file, probingDirs));
             foreach (string statement in GetRawStatements("//css_imp", endCodePos))
-                imports.AddRange(ImportInfo.ResolveStatement(statement.Expand().Trim(), file, probingDirs));
+                imports.AddRange(ImportInfo.Resolve(statement.Expand().Trim(), file, probingDirs));
             foreach (string statement in GetRawStatements("//css_include", endCodePos))
-                imports.AddRange(ImportInfo.ResolveStatement(statement.Expand().Trim() + ",preserve_main", file, probingDirs));
+                imports.AddRange(ImportInfo.Resolve(statement.Expand().Trim() + ",preserve_main", file, probingDirs));
             foreach (string statement in GetRawStatements("//css_inc", endCodePos))
-                imports.AddRange(ImportInfo.ResolveStatement(statement.Expand().Trim() + ",preserve_main", file, probingDirs));
+                imports.AddRange(ImportInfo.Resolve(statement.Expand().Trim() + ",preserve_main", file, probingDirs));
 
             //analyze assembly references
             foreach (string statement in GetRawStatements("//css_reference", endCodePos))
@@ -1090,13 +1090,13 @@ namespace CSScriptLib
             return true;
         }
 
-        /// <summary>
+        //// <summary>
         /// Escapes the CS-Script directive (e.g. //css_*) delimiters.
         /// <para>All //css_* directives should escape any internal CS-Script delimiters by doubling the delimiter character.
         /// For example //css_include for 'script(today).cs' should escape brackets as they are the directive delimiters.
         /// The correct syntax would be as follows '//css_include script((today)).cs;'</para>
         /// <remarks>The delimiters characters are ';,(){}'.
-        /// <para>However you should check <see cref="CSScriptLib.CSharpParser.DirectiveDelimiters"/> for the accurate list of all delimiters.
+        /// <para>However you should check <see cref="csscript.CSharpParser.DirectiveDelimiters"/> for the accurate list of all delimiters.
         /// </para>
         /// </remarks>
         /// </summary>
@@ -1106,6 +1106,39 @@ namespace CSScriptLib
         {
             foreach (char c in DirectiveDelimiters)
                 text = text.Replace(c.ToString(), new string(c, 2)); //very unoptimized but it is intended only for troubleshooting.
+            return text;
+        }
+
+        /// <summary>
+        /// Replaces the user escaped delimiters with internal escaping.
+        /// <p> "{char}{char}" -> "\u{((int)c).ToString("x4")}"</p>
+        /// <p> "((" -> "\u0028"</p>
+        ///
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <returns></returns>
+        internal static string UserToInternalEscaping(string text)
+        {
+            foreach (char c in DirectiveDelimiters)
+                text = text.Replace(new string(c, 2), c.Escape()); //very unoptimized but it is intended only for troubleshooting.
+            return text;
+        }
+
+        // internally use more accurate but less readable "${(int)char};" template to avoid overlapping with split by delimiters
+        // <p> "{char}{char}" -> "\u{((int)c).ToString("x4")}"</p>
+        // <p> "((" -> "\u0028"</p>
+        internal static string EscapeDelimiters(string text)
+        {
+            foreach (char c in DirectiveDelimiters)
+                text = text.Replace(c.ToString(), c.Escape()); //very unoptimized but it is intended only for troubleshooting.
+            return text;
+        }
+
+        internal static string UnescapeDelimiters(string text)
+        {
+            foreach (char c in DirectiveDelimiters)
+                text = text.Replace(c.Escape(), c.ToString()); //very unoptimized but it is intended only for troubleshooting.
+
             return text;
         }
 

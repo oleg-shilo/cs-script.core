@@ -36,11 +36,13 @@
     <DocumentationFile>CSScriptLib.xml</DocumentationFile>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DefineConstants>TRACE;class_lib</DefineConstants>
+    <CodeAnalysisRuleSet>CSScriptLib.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>CSScriptLib.xml</DocumentationFile>
     <DefineConstants>TRACE;class_lib</DefineConstants>
+    <CodeAnalysisRuleSet>CSScriptLib.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>

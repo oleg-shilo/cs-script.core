@@ -209,9 +209,30 @@ namespace csscript
 
 #endif
 
+        public static string Escape(this char c)
+        {
+            return "\\u" + ((int)c).ToString("x4");
+        }
+
         internal static string Expand(this string text) => Environment.ExpandEnvironmentVariables(text);
 
         internal static string UnescapeExpandTrim(this string text) =>
             CSharpParser.UnescapeDirectiveDelimiters(Environment.ExpandEnvironmentVariables(text)).Trim();
+
+        internal static string NormaliseAsDirectiveOf(this string statement, string parentScript)
+        {
+            var text = CSharpParser.UserToInternalEscaping(statement);
+
+            if (text.Length > 1 && (text[0] == '.' && text[1] != '.')) // just a single-dot start dir
+                text = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(parentScript), text));
+
+            return Environment.ExpandEnvironmentVariables(text).Trim();
+        }
+
+        internal static string NormaliseAsDirective(this string statement)
+        {
+            var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
+            return Environment.ExpandEnvironmentVariables(text).Trim();
+        }
     }
 }

@@ -149,21 +149,21 @@ namespace csscript
                 return new Exception(message, childException);
         }
 
-        internal static string NormaliseAsDirectiveOf(this string statement, string parentScript)
-        {
-            var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
+        // internal static string NormaliseAsDirectiveOf(this string statement, string parentScript)
+        // {
+        //     var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
 
-            if (text.Length > 1 && (text[0] == '.' && text[1] != '.')) // just a single-dot start dir
-                text = parentScript.GetDirName().PathJoin(text).GetFullPath();
+        //     if (text.Length > 1 && (text[0] == '.' && text[1] != '.')) // just a single-dot start dir
+        //         text = parentScript.GetDirName().PathJoin(text).GetFullPath();
 
-            return text.Expand().Trim();
-        }
+        //     return text.Expand().Trim();
+        // }
 
-        internal static string NormaliseAsDirective(this string statement)
-        {
-            var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
-            return Environment.ExpandEnvironmentVariables(text).Trim();
-        }
+        // internal static string NormaliseAsDirective(this string statement)
+        // {
+        //     var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
+        //     return Environment.ExpandEnvironmentVariables(text).Trim();
+        // }
 
         public static bool NotEmpty(this string text)
         {

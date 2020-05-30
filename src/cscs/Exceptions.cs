@@ -6,7 +6,14 @@ using CSScripting.CodeDom;
 
 namespace csscript
 {
-    internal class CLIExitRequest : CLIException
+    class InvalidDirectiveException : ApplicationException
+    {
+        public InvalidDirectiveException(string message) : base(message)
+        {
+        }
+    }
+
+    class CLIExitRequest : CLIException
     {
         static public void Throw(string message = null) => throw new CLIExitRequest(message);
 

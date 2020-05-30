@@ -117,11 +117,13 @@ public class EvaluatorTests
     //  Learning to use CS-Script in a NET core application #8
     public void Issue_8()
     {
+        css.CSScript.EvaluatorConfig.Engine = css.EvaluatorEngine.Roslyn;
+
         var script = css.CSScript.Evaluator
-                                  .CompileMethod(@"int add(int a, int b)
-                                            {
-                                                return a + b;
-                                            }");
+                                 .CompileMethod(@"int add(int a, int b)
+                                                 {
+                                                     return a + b;
+                                                 }");
 
         dynamic calc = css.CSScript.Evaluator
                                     .LoadMethod(@"int add(int a, int b)

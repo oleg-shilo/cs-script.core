@@ -191,48 +191,63 @@ namespace csscript
                 public string parentScript;
                 public string[] dirs;
 
-                public ImportInfo[] Resolve(string statement)
+                public ImportInfo[] Resolve(string statement, string context)
                 {
-                    return ImportInfo.ResolveStatement(statement.Expand(), parentScript, dirs);
+                    return ImportInfo.ResolveStatement(statement.Expand(), parentScript, dirs, context);
                 }
             }
 
-            internal static ImportInfo[] ResolveStatement(string statement, string parentScript, string[] probinghDirs)
+            internal static ImportInfo[] ResolveStatement(string statement, string parentScript, string[] probinghDirs, string context)
             {
-                if (statement.Contains("*") || statement.Contains("?"))
+                try
                 {
-                    //e.g. resolve ..\subdir\*.cs into multiple concrete imports
-                    string statementToParse = statement.Replace("($this.name)", Path.GetFileNameWithoutExtension(parentScript));
-                    statementToParse = statementToParse.Replace("\t", "").Trim().Trim('"');
-
-                    string[] parts = CSharpParser.SplitByDelimiter(statementToParse, DirectiveDelimiters);
-
-                    string filePattern = parts[0];
-
-                    List<ImportInfo> result = new List<ImportInfo>();
-
-                    // To ensure that parent script dir is on top.
-                    // Required because FileParser.ResolveFiles stops searching when it finds.
-                    probinghDirs = Path.GetDirectoryName(parentScript)
-                                       .ConcatWith(probinghDirs)
-                                       .Distinct();
-
-                    foreach (string file in FileParser.ResolveFiles(filePattern, probinghDirs, false))
+                    if (statement.Contains("*") || statement.Contains("?"))
                     {
-                        //substitute the file path pattern with the actual path
-                        parts[0] = file;
+                        //e.g. resolve ..\subdir\*.cs into multiple concrete imports
+                        string statementToParse = statement.Replace("($this.name)", Path.GetFileNameWithoutExtension(parentScript));
+                        statementToParse = statementToParse.Replace("\t", "").Trim().Trim('"');
 
-                        result.Add(new ImportInfo(parts));
+                        string[] parts = CSharpParser.SplitByDelimiter(statementToParse, DirectiveDelimiters);
+
+                        string filePattern = parts[0];
+
+                        List<ImportInfo> result = new List<ImportInfo>();
+
+                        // To ensure that parent script dir is on top.
+                        // Required because FileParser.ResolveFiles stops searching when it finds.
+                        probinghDirs = Path.GetDirectoryName(parentScript)
+                                           .ConcatWith(probinghDirs)
+                                           .Distinct();
+
+                        foreach (string file in FileParser.ResolveFiles(filePattern, probinghDirs, false))
+                        {
+                            //substitute the file path pattern with the actual path
+                            parts[0] = file;
+
+                            result.Add(new ImportInfo(parts, context));
+                        }
+
+                        return result.ToArray();
                     }
+                    else
+                    {
+                        if (statement.Length > 1 && (statement[0] == '.' && statement[1] != '.')) //just a single-dot start dir
+                            statement = Path.Combine(Path.GetDirectoryName(parentScript), statement);
 
-                    return result.ToArray();
+                        return new[] { new ImportInfo(statement, parentScript, context) };
+                    }
                 }
-                else
+                catch (InvalidDirectiveException e)
                 {
-                    if (statement.Length > 1 && (statement[0] == '.' && statement[1] != '.')) //just a single-dot start dir
-                        statement = Path.Combine(Path.GetDirectoryName(parentScript), statement);
-
-                    return new[] { new ImportInfo(statement, parentScript) };
+                    if (context.StartsWith("//css_") && context != "//css_import") // the only one that can have unescaped delimiters
+                    {
+                        if (statement.IndexOfAny(DirectiveDelimiters) != -1) // contains any unescaped delimiter
+                        {
+                            throw new InvalidDirectiveException(e.Message +
+                                "\nEnsure your directive escapes all delimiters ('" + new string(DirectiveDelimiters) + "') by doubling the delimiter character.");
+                        }
+                    }
+                    throw;
                 }
             }
 
@@ -241,7 +256,7 @@ namespace csscript
             /// </summary>
             /// <param name="statement">CS-Script import directive (//css_import...) string.</param>
             /// <param name="parentScript">name of the parent (primary) script file.</param>
-            public ImportInfo(string statement, string parentScript)
+            public ImportInfo(string statement, string parentScript, string context)
             {
                 string statementToParse = statement.Replace("($this.name)", Path.GetFileNameWithoutExtension(parentScript));
                 statementToParse = statementToParse.Replace("\t", "").Trim();
@@ -249,7 +264,7 @@ namespace csscript
                 string[] parts = CSharpParser.SplitByDelimiter(statementToParse, DirectiveDelimiters);
 
                 this.file =
-                this.rawStatement = parts[0];
+                this.rawStatement = CSharpParser.UnescapeDelimiters(parts[0]);
                 this.parentScript = parentScript;
 
                 if (!Path.IsPathRooted(this.file) && ResolveRelativeFromParentScriptLocation)
@@ -259,16 +274,16 @@ namespace csscript
                         this.file = fullPath;
                 }
 
-                InternalInit(parts, 1);
+                InternalInit(parts, 1, context);
             }
 
-            ImportInfo(string[] parts)
+            ImportInfo(string[] parts, string context)
             {
                 this.file = parts[0];
-                InternalInit(parts, 1);
+                InternalInit(parts, 1, context);
             }
 
-            void InternalInit(string[] statementParts, int startIndex)
+            void InternalInit(string[] statementParts, int startIndex, string context)
             {
                 List<string[]> renameingMap = new List<string[]>();
 
@@ -287,7 +302,7 @@ namespace csscript
                         i += 1;
                     }
                     else
-                        throw new ApplicationException("Cannot parse \"//css_import...\"");
+                        throw new InvalidDirectiveException("Cannot parse \"" + context ?? "//css_import" + "...\"");
                 }
                 if (renameingMap.Count == 0)
                     this.renaming = new string[0][];
@@ -447,9 +462,9 @@ namespace csscript
         /// <param name="probingDirs">Search directories for resolving wild card paths in //css_inc and //css_imp</param>
         void Init(string code, string file, string[] directivesToSearch, string[] probingDirs)
         {
-            probingDirs = probingDirs.Except(Settings.PseudoDirItems)
-                                     .Where(Directory.Exists)
-                                     .ToArray();
+            probingDirs = probingDirs?.Except(Settings.PseudoDirItems)
+                                      .Where(Directory.Exists)
+                                      .ToArray();
 
             string workingDir = Environment.CurrentDirectory;
             if (file != "")
@@ -486,10 +501,12 @@ namespace csscript
             foreach (string statement in GetRawStatements("//css_autoclass", endCodePos, canBeEmpty: true))
                 autoClassMode = statement;
 
+            string directive;
+
             // analyse compiler options
             foreach (string statement in GetRawStatements("//css_co", endCodePos))
             {
-                var directive = statement.NormaliseAsDirective();
+                directive = statement.NormaliseAsDirective();
                 directive.TunnelConditionalSymbolsToEnvironmentVariables();
                 compilerOptions.Add(directive);
             }
@@ -516,23 +533,32 @@ namespace csscript
             var infos = new ImportInfo.Resolver { parentScript = file, dirs = probingDirs };
 
             //analyse script imports/includes
-            foreach (string statement in GetRawStatements("//css_import", endCodePos))
-                imports.AddRange(infos.Resolve(statement));
-            foreach (string statement in GetRawStatements("//css_imp", endCodePos))
-                imports.AddRange(infos.Resolve(statement));
-            foreach (string statement in GetRawStatements("//css_include", endCodePos))
+            directive = "//css_import";
+            foreach (string statement in GetRawStatements(directive, endCodePos))
+                imports.AddRange(infos.Resolve(statement, directive));
+
+            directive = "//css_imp";
+            foreach (string statement in GetRawStatements(directive, endCodePos))
+                imports.AddRange(infos.Resolve(statement, directive));
+
+            directive = "//css_include";
+            foreach (string statement in GetRawStatements(directive, endCodePos))
                 if (!string.IsNullOrEmpty(statement))
-                    imports.AddRange(infos.Resolve(statement.Expand() + ",preserve_main"));
-            foreach (string statement in GetRawStatements("//css_inc", endCodePos))
+                    imports.AddRange(infos.Resolve(statement.Expand() + ",preserve_main", directive));
+
+            directive = "//css_inc";
+            foreach (string statement in GetRawStatements(directive, endCodePos))
                 if (!string.IsNullOrEmpty(statement))
-                    imports.AddRange(infos.Resolve(statement.Expand() + ",preserve_main"));
+                    imports.AddRange(infos.Resolve(statement.Expand() + ",preserve_main", directive));
 
             //analyse assembly references
-            foreach (string statement in GetRawStatements("//css_reference", endCodePos))
-                refAssemblies.AddRange(infos.Resolve(statement.NormaliseAsDirectiveOf(file))
+            directive = "//css_reference";
+            foreach (string statement in GetRawStatements(directive, endCodePos))
+                refAssemblies.AddRange(infos.Resolve(statement.NormaliseAsDirectiveOf(file), directive)
                                             .Select(x => x.file));
-            foreach (string statement in GetRawStatements("//css_ref", endCodePos))
-                refAssemblies.AddRange(infos.Resolve(statement.NormaliseAsDirectiveOf(file))
+            directive = "//css_ref";
+            foreach (string statement in GetRawStatements(directive, endCodePos))
+                refAssemblies.AddRange(infos.Resolve(statement.NormaliseAsDirectiveOf(file), directive)
                                             .Select(x => x.file));
 
             //analyse precompilers
@@ -587,11 +613,11 @@ namespace csscript
             this.CustomDirectives.Clear();
             if (directivesToSearch != null)
             {
-                foreach (string directive in directivesToSearch)
+                foreach (var custom_directive in directivesToSearch)
                 {
-                    this.CustomDirectives[directive] = new List<string>();
-                    foreach (string statement in GetRawStatements(directive, endCodePos))
-                        (this.CustomDirectives[directive] as List<string>).Add(statement.Trim());
+                    this.CustomDirectives[custom_directive] = new List<string>();
+                    foreach (string statement in GetRawStatements(custom_directive, endCodePos))
+                        this.CustomDirectives[custom_directive].Add(statement.Trim());
                 }
             }
         }
@@ -1083,6 +1109,29 @@ namespace csscript
         {
             foreach (char c in DirectiveDelimiters)
                 text = text.Replace(c.ToString(), new string(c, 2)); //very unoptimized but it is intended only for troubleshooting.
+            return text;
+        }
+
+        /// <summary>
+        /// Replaces the user escaped delimiters with internal escaping.
+        /// <p> "{char}{char}" -> "\u{((int)c).ToString("x4")}"</p>
+        /// <p> "((" -> "\u0028"</p>
+        ///
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <returns></returns>
+        internal static string UserToInternalEscaping(string text)
+        {
+            foreach (char c in DirectiveDelimiters)
+                text = text.Replace(new string(c, 2), c.Escape()); //very unoptimized but it is intended only for troubleshooting.
+            return text;
+        }
+
+        internal static string UnescapeDelimiters(string text)
+        {
+            foreach (char c in DirectiveDelimiters)
+                text = text.Replace(c.Escape(), c.ToString()); //very unoptimized but it is intended only for troubleshooting.
+
             return text;
         }
 

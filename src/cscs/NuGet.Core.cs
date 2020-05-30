@@ -54,7 +54,7 @@ namespace csscript
         // .NET Mono, .NET Core
         public string NuGetCache => Runtime.IsWin ?
                                             Environment.ExpandEnvironmentVariables(@"%userprofile%\.nuget\packages") :
-                                            "/home/user/.nuget/packages";
+                                            "~/.nuget/packages";
 
         public string NuGetExe => "dotnet";
 
@@ -341,7 +341,7 @@ namespace csscript
             bool promptPrinted = false;
             foreach (string item in packages)
             {
-                // //css_nuget -noref -ng:"-IncludePrerelease –version 1.0beta" cs-script
+                // //css_nuget -noref -ng:"-IncludePrerelease Â–version 1.0beta" cs-script
                 // //css_nuget -noref -ver:"4.1.0-alpha1" -ng:"-Pre" NLog
 
                 string[] packageArgs = item.SplitCommandLine();

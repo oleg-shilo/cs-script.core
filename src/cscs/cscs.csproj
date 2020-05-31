@@ -19,7 +19,10 @@
     <PackageTags>C# script dynamic</PackageTags>
     <AssemblyVersion>1.3.2.0</AssemblyVersion>
     <FileVersion>1.3.2.0</FileVersion>
-    <PackageReleaseNotes>- Added `-proj:csproj` for generating C# .NET Core project file</PackageReleaseNotes>
+    <PackageReleaseNotes>- Updated help content for `-new` switch
+- Fixed `AgregateReferences` with inclusion of CLR assemblies
+- Updated initialization of `%css_nuget%` envar so it does not interfere with handling synatxer `GenerateProjectFor` request handling
+- Fixed error "Cannot parse "//css_import..."" when referencing an assembly from path with brackets.</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>css_logo.png</PackageIcon>
   </PropertyGroup>

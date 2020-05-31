@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSScriptLib", "CSScriptLib\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "cscs", "cscs\cscs.csproj", "{847D3D48-443D-42F6-BB42-9467EC22994B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "csws", "cscs\csws.csproj", "{A10192B9-3FF4-4D72-8D29-1F925D49F701}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "csws", "cscs\csws.csproj", "{59C161CA-2D02-4E13-B04F-A65B1CE7579E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{847D3D48-443D-42F6-BB42-9467EC22994B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{847D3D48-443D-42F6-BB42-9467EC22994B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{847D3D48-443D-42F6-BB42-9467EC22994B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A10192B9-3FF4-4D72-8D29-1F925D49F701}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A10192B9-3FF4-4D72-8D29-1F925D49F701}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A10192B9-3FF4-4D72-8D29-1F925D49F701}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A10192B9-3FF4-4D72-8D29-1F925D49F701}.Release|Any CPU.Build.0 = Release|Any CPU
+		{59C161CA-2D02-4E13-B04F-A65B1CE7579E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{59C161CA-2D02-4E13-B04F-A65B1CE7579E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{59C161CA-2D02-4E13-B04F-A65B1CE7579E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{59C161CA-2D02-4E13-B04F-A65B1CE7579E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

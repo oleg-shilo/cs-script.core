@@ -13,7 +13,7 @@
     <RootNamespace>CSScriptLib.Doc</RootNamespace>
     <Name>CSScriptLib.Doc</Name>
     <!-- SHFB properties -->
-    <FrameworkVersion>.NET Framework 4.5</FrameworkVersion>
+    <FrameworkVersion>.NET Framework 4.7.2</FrameworkVersion>
     <OutputPath>.\Help\</OutputPath>
     <HtmlHelpName>CSScriptLib.Doc</HtmlHelpName>
     <Language>en-US</Language>

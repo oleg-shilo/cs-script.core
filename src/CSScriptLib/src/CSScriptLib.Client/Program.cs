@@ -11,7 +11,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Emit;
 using CSScriptLib;
-using Newtonsoft.Json.Linq;
+
+// using Newtonsoft.Json.Linq;
 
 namespace EvalTest
 {

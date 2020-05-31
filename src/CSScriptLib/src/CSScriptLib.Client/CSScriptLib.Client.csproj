@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>CSScriptLib.Client</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>CSScriptLib.Client</PackageId>
@@ -11,12 +11,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CSScriptLib\CSScriptLib.csproj" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="3.4.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="2.10.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1-beta1" />
+    <ProjectReference Include="..\CSScriptLib\CSScriptLib.csproj" />
   </ItemGroup>
 
 </Project>

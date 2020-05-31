@@ -6,7 +6,6 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using csscript;
-using Newtonsoft.Json.Linq;
 
 public interface IScript
 {

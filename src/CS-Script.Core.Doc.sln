@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSScriptLib", "CSScriptLib\src\CSScriptLib\CSScriptLib.csproj", "{55C76AC3-5FD6-4974-AF40-E4966126D09F}"
 EndProject
 Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "CSScriptLib.Doc", "CSScriptLib.Doc\CSScriptLib.Doc.shfbproj", "{62C02665-0163-4D1D-A5E8-508F8418E330}"
+	ProjectSection(ProjectDependencies) = postProject
+		{55C76AC3-5FD6-4974-AF40-E4966126D09F} = {55C76AC3-5FD6-4974-AF40-E4966126D09F}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

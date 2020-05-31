@@ -28,16 +28,19 @@ del ..\cs-script.core.7z
 
 cd ..\..
 
-cd CSScriptLib\src\CSScriptLib
-
 rem nuget fails with the endless loop :) so need to do it manually
 rem nuget pack CS-Script.Core.Samples.nuspec
+
+build-nuget
+
+explorer ".\out"
+explorer ".\CSScriptLib\output"
 echo .
 echo .
 echo .
-echo !!!! DON'T forgert to build HELP  manually !!!!
-echo .
-echo !!!! DON'T forgert to package nuget manually !!!!
+echo !!!! DON'T forgert to build HELP (build-nuget.cmd) manually!!!!
+echo      (need to target netstandard2; neither netstandard21 nor netstandard3 are supported by shfbproj yet)
+echo !!!! DON'T forgert to build HELP (CS-Script.Core.Doc.ln) manually!!!!
 echo .
 
 

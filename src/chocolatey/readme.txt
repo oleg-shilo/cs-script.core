@@ -1,5 +1,5 @@
 # Build
-1. run ..build.cmd
+1. run ..\build.cmd
 2. 7Zip 'cs-script.core\src\out\.NET Core' folder
 
 # Package

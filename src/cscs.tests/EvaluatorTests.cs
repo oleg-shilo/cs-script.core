@@ -2,6 +2,7 @@ extern alias lib;
 
 using System;
 using System.IO;
+using System.Reflection;
 using csscript;
 using CSScriptLib;
 using Xunit;
@@ -85,6 +86,24 @@ public class EvaluatorTests
                                                        printer.Print();
                                                    }");
         script.Test(printer);
+    }
+
+    [Fact]
+    public void VB_Generic_Test()
+    {
+        Assembly asm = css.CSScript.Evaluator
+                       .CompileCode(@"' //css_ref System
+                                      Imports System
+                                      Class Script
+
+                                        Function Sum(a As Integer, b As Integer)
+                                            Sum = a + b
+                                        End Function
+
+                                    End Class");
+
+        dynamic script = asm.CreateObject("*");
+        var result = script.Sum(7, 3);
     }
 
     [Fact]

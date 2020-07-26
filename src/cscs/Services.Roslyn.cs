@@ -59,7 +59,10 @@ namespace CSScripting.CodeDom
             {
                 // scripting does not support attributes
                 // (0,2): error CS7026: Assembly and module attributes are not allowed in this context
+
+#pragma warning disable S125 // Sections of code should not be commented out
                 // writer.WriteLine(File.ReadAllText(attr_file));
+#pragma warning restore S125 // Sections of code should not be commented out
             }
 
             // As per dotnet.exe v2.1.26216.3 the pdb get generated as PortablePDB, which is the only format that is supported
@@ -140,9 +143,6 @@ namespace CSScripting.CodeDom
             Profiler.get("compiler").Restart();
 
             //----------------------------
-
-            var scriptText = File.ReadAllText(single_source);
-            ScriptOptions scriptOptions = ScriptOptions.Default;
 
             var all_refs = Directory.GetFiles(gac, "System.*.dll")
                                     .ConcatWith(ref_assemblies);
@@ -266,7 +266,7 @@ namespace CSScripting.CodeDom
                 catch { }
             }
 
-            // scriptOptions = scriptOptions.AddReferences(Assembly.GetExecutingAssembly()); // zos
+            var vb = false;
 
             var compilation = CSharpScript.Create(scriptText, scriptOptions)
                                           .GetCompilation();

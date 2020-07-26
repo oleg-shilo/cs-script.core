@@ -2,7 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "-proj \"C:\\Users\\oleg.shilo\\Documents\\C# Scripts\\New Script15.cs\"",
+      "commandLineArgs": "-c:0 \"E:\\PrivateData\\Galos\\Projects\\cs-script.core\\src\\cscs\\bin\\Debug\\netcoreapp3.1\\Hello.vb\"",
       "workingDirectory": "E:\\PrivateData\\Galos\\Projects\\cs-script.core\\src\\cscs\\bin\\Debug\\netcoreapp3.1"
     }
   }

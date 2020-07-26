@@ -5,6 +5,7 @@ using System.Linq;
 
 namespace CSScriptLib
 #else
+
 namespace csscript
 #endif
 {
@@ -13,6 +14,8 @@ namespace csscript
     /// </summary>
     internal static class PathExtensions
     {
+        public static string GetExtension(this string path) => Path.GetExtension(path);
+
         public static string GetFileName(this string path) => Path.GetFileName(path);
 
         public static string GetFullPath(this string path) => Path.GetFullPath(path);

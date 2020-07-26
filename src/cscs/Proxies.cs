@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using csscript;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace CSScripting.CodeDom
 {
@@ -48,18 +49,23 @@ namespace CSScripting.CodeDom
         static string dotnet { get; } = Runtime.IsCore ?
                                         "dotnet" : Process.GetCurrentProcess().MainModule.FileName;
 
-        static string InitBuildTools()
+        static string InitBuildTools(string fileType)
         {
             var cache_dir = CSExecutor.ScriptCacheDir; // C:\Users\user\AppData\Local\Temp\csscript.core\cache\1822444284
             var cache_root = cache_dir.GetDirName();
             var build_root = cache_root.GetDirName().PathJoin("build").EnsureDir();
 
-            var proj_template = build_root.PathJoin("build.csproj");
+            var (projectName, language) = fileType.Match(
+                (".cs", ("build.csproj", "C#")),
+                (".vb", ("build.vbproj", "VB")));
+
+            var proj_template = build_root.PathJoin($"build{fileType}proj");
 
             if (!File.Exists(proj_template))
             {
-                Utils.Run("dotnet", "new console", build_root);
-                build_root.PathJoin("Program.cs").DeleteIfExists();
+                Utils.Run("dotnet", $"new console -lang {language}", build_root);
+                build_root.PathJoin($"Program{fileType}").DeleteIfExists();
+                Directory.Delete(build_root.PathJoin("obj"), true);
             }
 
             if (!File.Exists(proj_template)) // sdk may not be available
@@ -267,7 +273,7 @@ namespace CSScripting.CodeDom
             string projectName = fileNames.First().GetFileName();
             string projectShortName = Path.GetFileNameWithoutExtension(projectName);
 
-            var template = InitBuildTools();
+            var template = InitBuildTools(Path.GetExtension(fileNames.First().GetFileName()));
 
             var out_dir = outDir ?? CSExecutor.ScriptCacheDir; // C:\Users\user\AppData\Local\Temp\csscript.core\cache\1822444284
             var build_dir = out_dir.PathJoin(".build", projectName);
@@ -283,8 +289,12 @@ namespace CSScripting.CodeDom
             //  </Project>
             var project_element = XElement.Parse(File.ReadAllText(template));
 
+            var compileConstantsDelimiter = ";";
+            if (projectName.GetExtension().SameAs(".vb"))
+                compileConstantsDelimiter = ",";
+
             project_element.Add(new XElement("PropertyGroup",
-                                    new XElement("DefineConstants", "TRACE;NETCORE;CS_SCRIPT")));
+                                    new XElement("DefineConstants", new[] { "TRACE", "NETCORE", "CS_SCRIPT" }.JoinBy(compileConstantsDelimiter))));
 
             if (!options.GenerateExecutable || !Runtime.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
             {
@@ -394,7 +404,7 @@ namespace CSScripting.CodeDom
             else
                 fileNames.ForEach(CopySourceToBuildDir);
 
-            var projectFile = build_dir.PathJoin(projectShortName + ".csproj");
+            var projectFile = build_dir.PathJoin(projectShortName + Path.GetExtension(template));
             File.WriteAllText(projectFile, project_element.ToString());
 
             return projectFile;
@@ -700,7 +710,7 @@ namespace CSScripting.CodeDom
                     if (line.StartsWith("Build FAILED.") || line.StartsWith("Build succeeded."))
                         isErrroSection = true;
 
-                    if (line.Contains("): error ") || line.StartsWith("error CS") || line.Contains("MSBUILD : error "))
+                    if (line.Contains("): error ") || line.StartsWith("error CS") || line.StartsWith("vbc : error BC") || line.Contains("MSBUILD : error "))
                     {
                         var error = CompilerError.Parser(line);
                         if (error != null)
@@ -752,12 +762,13 @@ namespace CSScripting.CodeDom
             // script.cs(10,10): warning CS1030: #warning: 'DEBUG is defined' [C:\Users\%username%\AppData\Local\Temp\csscript.core\cache\1822444284\.build\script.cs\script.csproj]
             // MSBUILD : error MSB1001: Unknown switch.
 
-            if (compilerOutput.StartsWith("error CS"))
+            if (compilerOutput.StartsWith("error CS") ||
+                compilerOutput.StartsWith("vbc : error BC"))
                 compilerOutput = "(0,0): " + compilerOutput;
 
             bool isError = compilerOutput.Contains("): error ");
             bool isWarning = compilerOutput.Contains("): warning ");
-            bool isBuildError = compilerOutput.Contains("MSBUILD : error");
+            bool isBuildError = compilerOutput.Contains("MSBUILD : error") || compilerOutput.Contains("vbc : error");
 
             if (isBuildError)
             {

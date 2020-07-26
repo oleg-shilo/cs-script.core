@@ -65,8 +65,6 @@ namespace csscript
                        .ToArray();
         }
 
-        // public static string GetDirName(this string path) => Path.GetDirectoryName(path);
-
         static string sdk_root = "".GetType().Assembly.Location.GetDirName();
 
         /// <summary>
@@ -122,7 +120,7 @@ namespace csscript
                 typeof(Exception).GetMethod("PrepForRemoting", BindingFlags.NonPublic | BindingFlags.Instance)
                                  .Invoke(ex, new object[0]);
             }
-            catch { }
+            catch { /* non critical exception */ }
             return ex;
         }
 
@@ -233,6 +231,15 @@ namespace csscript
         {
             var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
             return Environment.ExpandEnvironmentVariables(text).Trim();
+        }
+
+        internal static T2 Match<T1, T2>(this T1 value, params (T1, T2)[] patterenMap) where T1 : class
+        {
+            foreach (var (pattern, result) in patterenMap)
+                if (value.Equals(pattern))
+                    return result;
+
+            return default(T2);
         }
     }
 }

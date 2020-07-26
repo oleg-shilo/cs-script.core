@@ -370,7 +370,7 @@ namespace csscript
                                 foreach (string file in files)
                                     if (file.IndexOf(".g.cs") == -1) //non auto-generated file
                                     {
-                                        using (var currDir = new CurrentDirGuard())
+                                        using (new CurrentDirGuard())
                                         {
                                             var impParser = new CSharpParser(file, true, null, options.searchDirs);
                                             Environment.CurrentDirectory = Path.GetDirectoryName(file);
@@ -1038,7 +1038,8 @@ namespace csscript
                 {
                     //script may be loaded from in-memory string/code
                     bool isRealScriptFile = !scriptFileName.Contains(@"CSSCRIPT\dynamic");
-                    if (isRealScriptFile)
+                    if (isRealScriptFile && scriptFileName.GetExtension().SameAs(".cs"))
+                    // if (isRealScriptFile)
                     {
                         filesToInject = filesToInject.Concat(new[] { CSSUtils.GetScriptedCodeAttributeInjectionCode(scriptFileName) })
                                                      .ToArray();
@@ -1558,18 +1559,7 @@ namespace csscript
 
         CompilerResults CompileAssembly(ICodeCompiler compiler, CompilerParameters compilerParams, string[] filesToCompile)
         {
-            //var sw = new Stopwatch();
-            //sw.Start();
-
-            // Console.WriteLine("---------------------");
-            // Console.WriteLine(compilerParams.OutputAssembly);
-            // Console.WriteLine("---------------------");
-            // Environment.SetEnvironmentVariable("CSS_PROVIDER_TRACE", "true");
-
-            CompilerResults retval = compiler.CompileAssemblyFromFileBatch(compilerParams, filesToCompile);
-            //sw.Stop();
-            //Console.WriteLine(sw.ElapsedMilliseconds);
-            return retval;
+            return compiler.CompileAssemblyFromFileBatch(compilerParams, filesToCompile);
         }
 
         void ProcessCompilingResult(CompilerResults results, CompilerParameters compilerParams, ScriptParser parser, string scriptFileName, string assemblyFileName, string[] additionalDependencies)

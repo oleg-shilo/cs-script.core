@@ -739,7 +739,7 @@ partial class dbg
 
                 string currentCode = "";
 
-                string file = Path.Combine(CSExecutor.GetCacheDirectory(scriptFileName), Path.GetFileNameWithoutExtension(scriptFileName) + ".attr.g.cs");
+                string file = Path.Combine(CSExecutor.GetCacheDirectory(scriptFileName), Path.GetFileNameWithoutExtension(scriptFileName) + $".attr.g{scriptFileName.GetExtension()}");
 
                 Exception lastError = null;
 

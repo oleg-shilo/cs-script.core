@@ -449,9 +449,7 @@ namespace CSScriptLib
                 refAsms = refAsms.Union(refNsAsms).ToArray();
             }
 
-            // foreach (var item in refAsms) Console.WriteLine("> " + item);
             refAsms = FilterDuplicatedAssembliesByFileName(refAsms);
-            // foreach (var item in refAsms) Console.WriteLine("< " + item);
             return refAsms.ToList();
         }
 

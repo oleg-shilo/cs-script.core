@@ -1003,36 +1003,40 @@ namespace csscript
         static Dictionary<string, Func<string, SampleInfo[]>> sampleBuilders = new Dictionary<string, Func<string, SampleInfo[]>>
         {
             { "", DefaultSample},
+            { "console-vb", DefaultVbSample},
+            { "vb", DefaultVbSample},
             { "freestyle", CSharp_freestyle_Sample},
             { "auto", CSharp_auto_Sample},
             { "winform", CSharp_winforms_Sample},
+            { "winform-vb", DefaultVbDesktopSample},
             { "wpf", CSharp_wpf_Sample },
             { "wpf-cm", CSharp_wpf_ss_Sample },
         };
 
         public static string BuildSampleHelp()
         {
-            return new StringBuilder()
-                .AppendLine("Usage: -new[:<type>] [<otput file>]")
-                .AppendLine("  type - script template based on available types.")
-                .AppendLine("  output - location to place the generated script file(s).")
-                .AppendLine()
-                .AppendLine("Type           Template")
-                .AppendLine("---------------------------------------------------")
-                .AppendLine("console        Console script application")
-                .AppendLine("winforms       Windows Forms (WinForms) script application")
-                .AppendLine("wpf            WPF script application")
-                .AppendLine("wpf-cm            Cliburm.Micro based WPF script application")
-                .AppendLine("auto           Auto-class (classless) script application")
-                .AppendLine("freestyle      Free style (no entry point) script application")
-                .AppendLine()
-                .AppendLine("Examples:")
-                .AppendLine("    cscs -new script")
-                .AppendLine("    cscs -new:auto script.cs")
-                .AppendLine("    cscs -new:console console.cs")
-                .AppendLine("    cscs -new:winform myapp.cs")
-                .AppendLine("    cscs -new:wpf hello")
-                .ToString();
+            return
+@"Usage: -new[:<type>] [<otput file>]
+  type - script template based on available types.
+  output - location to place the generated script file(s).
+
+Type           Template
+---------------------------------------------------
+console        Console script application
+console-vb     Console VB script application
+winforms       Windows Forms (WinForms) script application
+winforms-vb    Windows Forms (WinForms) VB script application
+wpf            WPF script application
+wpf-cm         Cliburm.Micro based WPF script application
+auto           Auto-class (classless) script application
+freestyle      Free style (no entry point) script application
+
+Examples:
+    cscs -new script
+    cscs -new:auto script.cs
+    cscs -new:console console.cs
+    cscs -new:winform myapp.cs
+    cscs -new:wpf hello".NormalizeNewLines();
         }
 
         internal static SampleInfo[] BuildSampleCode(string appType, string context)
@@ -1047,25 +1051,20 @@ namespace csscript
 
         static SampleInfo[] CSharp_winforms_Sample(string context)
         {
-            var cs = new StringBuilder()
-                .AppendLine(@"//css_dir %WINDOWS_DESKTOP_APP%")
-                .AppendLine("using System;")
-                .AppendLine("using System.Windows.Forms;")
-                .AppendLine("")
-                .AppendLine("class Program")
-                .AppendLine("{")
-                .AppendLine("    [STAThread]")
-                .AppendLine("    static void Main()")
-                .AppendLine("    {")
-                .AppendLine("        Application.Run(new Form());")
-                .AppendLine("    }")
-                .AppendLine("}")
-                .ToString();
+            var cs =
+@"//css_dir %WINDOWS_DESKTOP_APP%
+using System;
+using System.Windows.Forms;
 
-            return new[]
-            {
-                new SampleInfo (cs,".cs")
-            };
+class Program
+{
+    [STAThread]
+    static void Main()
+    {
+        Application.Run(new Form());
+    }
+}";
+            return new[] { new SampleInfo(cs.NormalizeNewLines(), ".cs") };
         }
 
         static SampleInfo[] CSharp_wpf_ss_Sample(string context)
@@ -1291,47 +1290,78 @@ namespace csscript
 
         static SampleInfo[] DefaultSample(string context) => CSharp7_Sample(context);
 
+        static SampleInfo[] DefaultVbSample(string context)
+        {
+            var code =
+@"' //css_ref System
+
+Imports System
+
+Module Module1
+    Sub Main()
+        Console.WriteLine(""Hello World! (VB)"")
+    End Sub
+End Module";
+
+            return new[] { new SampleInfo(code.NormalizeNewLines(), ".vb") };
+        }
+
+        static SampleInfo[] DefaultVbDesktopSample(string context)
+        {
+            var code =
+@"' //css_dir %WINDOWS_DESKTOP_APP%
+' //css_ref System
+' //css_ref System.Windows.Forms
+
+Imports System
+Imports System.Windows.Forms
+
+Module Module1
+    Sub Main()
+        MessageBox.Show(""Hello World!(VB)"")
+        Console.WriteLine(""Hello World! (VB)"")
+    End Sub
+End Module";
+            return new[] { new SampleInfo(code.NormalizeNewLines(), ".vb") };
+        }
+
         public static string BuildPrecompilerSampleCode()
         {
-            // bool Compile(dynamic context)
-            StringBuilder builder = new StringBuilder();
+            return
+@"using System;
+using System.Collections;
+using System.Collections.Generic;
+nvironment.NewLine);
+public class Sample_Precompiler //precompiler class name must end with 'Precompiler'
+{
+    // possible signatures
+    // bool Compile(dynamic context)
+    // bool Compile(csscript.PrecompilationContext context)
+    public static bool Compile(ref string scriptCode, string scriptFile, bool isPrimaryScript, Hashtable context)
+    {
+        //The context Hashtable items are:
+        //- out context:
+        //    NewDependencies
+        //    NewSearchDirs
+        //    NewReferences
+        //    NewIncludes
+        //- in context:
+        //    SearchDirs
+        //    ConsoleEncoding
+        //    CompilerOptions
+nvironment.NewLine);
+        //if new assemblies are to be referenced add them (see 'Precompilers' in the documentation)
+        //var newReferences = (List<string>)context[\""NewReferences\""];
+        //newReferences.Add(\""System.Xml.dll\"");
 
-            builder.Append("using System;" + Environment.NewLine);
-            builder.Append("using System.Collections;" + Environment.NewLine);
-            builder.Append("using System.Collections.Generic;" + Environment.NewLine);
-            builder.Append(Environment.NewLine);
-            builder.Append("public class Sample_Precompiler //precompiler class name must end with 'Precompiler'" + Environment.NewLine);
-            builder.Append("{" + Environment.NewLine);
-            builder.Append("    // possible signatures" + Environment.NewLine);
-            builder.Append("    // bool Compile(dynamic context)" + Environment.NewLine);
-            builder.Append("    // bool Compile(csscript.PrecompilationContext context)" + Environment.NewLine);
-            builder.Append("    public static bool Compile(ref string scriptCode, string scriptFile, bool isPrimaryScript, Hashtable context)" + Environment.NewLine);
-            builder.Append("    {" + Environment.NewLine);
-            builder.Append("        //The context Hashtable items are:" + Environment.NewLine);
-            builder.Append("        //- out context:" + Environment.NewLine);
-            builder.Append("        //    NewDependencies" + Environment.NewLine);
-            builder.Append("        //    NewSearchDirs" + Environment.NewLine);
-            builder.Append("        //    NewReferences" + Environment.NewLine);
-            builder.Append("        //    NewIncludes" + Environment.NewLine);
-            builder.Append("        //- in context:" + Environment.NewLine);
-            builder.Append("        //    SearchDirs" + Environment.NewLine);
-            builder.Append("        //    ConsoleEncoding" + Environment.NewLine);
-            builder.Append("        //    CompilerOptions" + Environment.NewLine);
-            builder.Append(Environment.NewLine);
-            builder.Append("        //if new assemblies are to be referenced add them (see 'Precompilers' in the documentation)" + Environment.NewLine);
-            builder.Append("        //var newReferences = (List<string>)context[\"NewReferences\"];" + Environment.NewLine);
-            builder.Append("        //newReferences.Add(\"System.Xml.dll\");" + Environment.NewLine);
-            builder.Append(Environment.NewLine);
-            builder.Append("        //if scriptCode needs to be altered assign scriptCode the new value and return true. Otherwise return false" + Environment.NewLine);
-            builder.Append(Environment.NewLine);
-            builder.Append("        //scriptCode = \"code after pre-compilation\";" + Environment.NewLine);
-            builder.Append("        //return true;" + Environment.NewLine);
-            builder.Append(Environment.NewLine);
-            builder.Append("        return false;" + Environment.NewLine);
-            builder.Append("    }" + Environment.NewLine);
-            builder.Append("}" + Environment.NewLine);
+        //if scriptCode needs to be altered assign scriptCode the new value and return true. Otherwise return false
 
-            return builder.ToString();
+        //scriptCode = \""code after pre-compilation\"";
+        //return true;
+
+        return false;
+    }
+}".NormalizeNewLines();
         }
 
         public static string BuildVersionInfo(string arg)

@@ -53,6 +53,9 @@ public static class CLIExtensions
     public static string[] GetLines(this string str) =>// too simplistic though adequate
         str.Replace("\r\n", "\n").Split('\n');
 
+    public static string NormalizeNewLines(this string str) =>// too simplistic though adequate
+        str.Replace("\r\n", "\n").Replace("\n", Environment.NewLine);
+
     public static IEnumerable<XElement> FindDescendants(this XElement element, string localName) =>
         element.Descendants().Where(x => x.Name.LocalName == localName);
 

@@ -1039,7 +1039,6 @@ namespace csscript
                     //script may be loaded from in-memory string/code
                     bool isRealScriptFile = !scriptFileName.Contains(@"CSSCRIPT\dynamic");
                     if (isRealScriptFile && scriptFileName.GetExtension().SameAs(".cs"))
-                    // if (isRealScriptFile)
                     {
                         filesToInject = filesToInject.Concat(new[] { CSSUtils.GetScriptedCodeAttributeInjectionCode(scriptFileName) })
                                                      .ToArray();

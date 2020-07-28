@@ -735,7 +735,10 @@ partial class dbg
                 if (Runtime.IsWin)
                     fileLock.Wait(1000);
 
-                string code = string.Format("[assembly: System.Reflection.AssemblyDescriptionAttribute(@\"{0}\")]", scriptFileName);
+                string code = $"[assembly: System.Reflection.AssemblyDescriptionAttribute(@\"{scriptFileName}\")]";
+
+                if (scriptFileName.GetExtension().SameAs(".vb"))
+                    code = $"<Assembly: System.Reflection.AssemblyDescriptionAttribute(\"{scriptFileName.Replace(@"\", @"\\")}\")>";
 
                 string currentCode = "";
 

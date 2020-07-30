@@ -1,10 +1,10 @@
 $packageName = 'cs-script.core'
-$url = 'https://github.com/oleg-shilo/cs-script.core/releases/download/v1.3.2.0/cs-script.core.v1.3.2.0.7z'
+$url = 'https://github.com/oleg-shilo/cs-script.core/releases/download/v1.4.0.0/cs-script.core.v1.4.0.0.7z'
 
 try {
   $installDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 
-  $cheksum = 'C02F07CBD39F3D3DE7B1336CA9A9F2459A679108B499B3BD6684F6DF78DA2606'
+  $cheksum = 'F99ADEB0DC497621C94501F525DE673B58412847E4805187149DABCA9709B11C'
   $checksumType = "sha256"
 
   $server = "localhost"

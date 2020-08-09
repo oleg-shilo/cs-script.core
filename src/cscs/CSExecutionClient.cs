@@ -139,71 +139,71 @@ namespace csscript
             }
         }
 
-        private static void RunConsoleApp(string app, string args)
-        {
-            var process = new Process();
-            process.StartInfo.FileName = app;
-            process.StartInfo.Arguments = args;
-            process.StartInfo.WorkingDirectory = Environment.CurrentDirectory;
+        // private static void RunConsoleApp(string app, string args)
+        // {
+        //     var process = new Process();
+        //     process.StartInfo.FileName = app;
+        //     process.StartInfo.Arguments = args;
+        //     process.StartInfo.WorkingDirectory = Environment.CurrentDirectory;
 
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.RedirectStandardInput = true;
-            process.StartInfo.RedirectStandardError = true;
-            process.StartInfo.ErrorDialog = false;
-            process.StartInfo.CreateNoWindow = true;
+        //     process.StartInfo.UseShellExecute = false;
+        //     process.StartInfo.RedirectStandardOutput = true;
+        //     process.StartInfo.RedirectStandardInput = true;
+        //     process.StartInfo.RedirectStandardError = true;
+        //     process.StartInfo.ErrorDialog = false;
+        //     process.StartInfo.CreateNoWindow = true;
 
-            process.Start();
+        //     process.Start();
 
-            ManualResetEvent outputThreadDone = new ManualResetEvent(false);
-            ManualResetEvent errorOutputThreadDone = new ManualResetEvent(false);
+        //     ManualResetEvent outputThreadDone = new ManualResetEvent(false);
+        //     ManualResetEvent errorOutputThreadDone = new ManualResetEvent(false);
 
-            void redirect(StreamReader src, Stream dest, ManualResetEvent doneEvent)
-            {
-                try
-                {
-                    while (true)
-                    {
-                        char[] buffer = new char[1000];
-                        int size = src.Read(buffer, 0, 1000);
-                        if (size == 0)
-                            break;
+        //     void redirect(StreamReader src, Stream dest, ManualResetEvent doneEvent)
+        //     {
+        //         try
+        //         {
+        //             while (true)
+        //             {
+        //                 char[] buffer = new char[1000];
+        //                 int size = src.Read(buffer, 0, 1000);
+        //                 if (size == 0)
+        //                     break;
 
-                        var data = new string(buffer, 0, size);
-                        var bytes = src.CurrentEncoding.GetBytes(data);
-                        dest.Write(bytes, 0, bytes.Length);
-                        dest.Flush();
-                    }
-                }
-                finally
-                {
-                    doneEvent.Set();
-                }
-            }
+        //                 var data = new string(buffer, 0, size);
+        //                 var bytes = src.CurrentEncoding.GetBytes(data);
+        //                 dest.Write(bytes, 0, bytes.Length);
+        //                 dest.Flush();
+        //             }
+        //         }
+        //         finally
+        //         {
+        //             doneEvent.Set();
+        //         }
+        //     }
 
-            ThreadPool.QueueUserWorkItem(x =>
-                redirect(process.StandardOutput, Console.OpenStandardOutput(), outputThreadDone));
+        //     ThreadPool.QueueUserWorkItem(x =>
+        //         redirect(process.StandardOutput, Console.OpenStandardOutput(), outputThreadDone));
 
-            ThreadPool.QueueUserWorkItem(x =>
-                redirect(process.StandardError, Console.OpenStandardError(), errorOutputThreadDone));
+        //     ThreadPool.QueueUserWorkItem(x =>
+        //         redirect(process.StandardError, Console.OpenStandardError(), errorOutputThreadDone));
 
-            ThreadPool.QueueUserWorkItem(x =>
-            {
-                while (true)
-                {
-                    int nextChar = Console.Read();
-                    process.StandardInput.Write((char)nextChar);
-                    process.StandardInput.Flush();
-                }
-            });
+        //     ThreadPool.QueueUserWorkItem(x =>
+        //     {
+        //         while (true)
+        //         {
+        //             int nextChar = Console.Read();
+        //             process.StandardInput.Write((char)nextChar);
+        //             process.StandardInput.Flush();
+        //         }
+        //     });
 
-            process.WaitForExit();
-            Environment.ExitCode = process.ExitCode;
+        //     process.WaitForExit();
+        //     Environment.ExitCode = process.ExitCode;
 
-            //the output buffers may still contain some data just after the process exited
-            outputThreadDone.WaitOne();
-            errorOutputThreadDone.WaitOne();
-        }
+        //     //the output buffers may still contain some data just after the process exited
+        //     outputThreadDone.WaitOne();
+        //     errorOutputThreadDone.WaitOne();
+        // }
     }
 
     /// <summary>

@@ -55,9 +55,8 @@ namespace CSScripting.CodeDom
             var cache_root = cache_dir.GetDirName();
             var build_root = cache_root.GetDirName().PathJoin("build").EnsureDir();
 
-            var (projectName, language) = fileType.Match(
-                (".cs", ("build.csproj", "C#")),
-                (".vb", ("build.vbproj", "VB")));
+            (string projectName, string language) = fileType.MapValue((".cs", to => ("build.csproj", "C#")),
+                                                                      (".vb", to => ("build.vbproj", "VB")));
 
             var proj_template = build_root.PathJoin($"build{fileType}proj");
 

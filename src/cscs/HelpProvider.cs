@@ -68,6 +68,7 @@ namespace csscript
         public const string cache = "cache";
         public const string dbgprint = "dbgprint";
         public const string proj = "proj";
+        public const string publish = "publish";
 
         internal const string proj_dbg = "proj:dbg";    // for internal use only
         internal const string proj_csproj = "proj:csproj";    // for internal use only

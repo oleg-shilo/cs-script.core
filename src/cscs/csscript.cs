@@ -29,7 +29,29 @@ namespace csscript
         {
             var request = (options.nonExecuteOpRquest as string);
 
-            if (request == AppArgs.proj || request == AppArgs.proj_dbg || request == AppArgs.proj_csproj)
+            if (request.StartsWith(AppArgs.publish + "|"))
+            {
+                var destination = request.Split('|').Last();
+
+                if (destination.IsEmpty())
+                    // destination = options.scriptFileName.GetFileNameWithoutExtension();
+                    destination = options.scriptFileName.GetDirName().PathJoin("publish");
+
+                destination.EnsureDir().DeleteDirContent();
+
+                var project = Project.GenerateProjectFor(options.scriptFileName);
+
+                foreach (string srcFile in project.Files.Concat(project.Refs))
+                {
+                    if (!srcFile.IsSharedAssembly())
+                    {
+                        var destFile = Path.Combine(destination, Path.GetFileName(srcFile));
+                        File.Copy(srcFile, destFile, true);
+                    }
+                }
+                print("Published: " + destination);
+            }
+            else if (request == AppArgs.proj || request == AppArgs.proj_dbg || request == AppArgs.proj_csproj)
             {
                 var project = Project.GenerateProjectFor(options.scriptFileName);
 

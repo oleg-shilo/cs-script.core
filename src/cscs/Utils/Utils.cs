@@ -211,6 +211,26 @@ namespace csscript
             return path;
         }
 
+        public static bool IsSharedAssembly(string path)
+        {
+            // <root>/<shared>/<runtime>/<asm_version>
+            return path.Contains("GAC_MSIL") ||
+                   Path.GetFullPath(path).StartsWith((Path.GetDirectoryName(Path.GetDirectoryName("".GetType().Assembly.Location))));
+        }
+
+        public static string DeleteDirContent(this string path)
+        {
+            if (Directory.Exists(path))
+            {
+                foreach (var file in Directory.GetFiles(path, "*", SearchOption.AllDirectories))
+                    File.Delete(file);
+
+                Directory.GetDirectories(path, "*", SearchOption.AllDirectories)
+                         .ForEach(d => Directory.Delete(d, true));
+            }
+            return path;
+        }
+
         public static string DeleteDir(this string path)
         {
             if (Directory.Exists(path))
@@ -1009,8 +1029,9 @@ partial class dbg
             {
                 string arg = args[i];
                 string nextArg = null;
-                if ((i + 1) < args.Length)
-                    nextArg = args[i + 1];
+                string secondNextArg = null;
+                if ((i + 1) < args.Length) nextArg = args[i + 1];
+                if ((i + 2) < args.Length) secondNextArg = args[i + 2];
 
                 if (Args.IsArg(arg) && AppArgs.Supports(arg) && AppArgs.IsHelpRequest(nextArg))
                 {
@@ -1233,6 +1254,11 @@ partial class dbg
                         options.processFile = false;
                         //options.processFile = false;
                         //options.forceOutputAssembly = ;
+                    }
+                    else if (Args.Same(arg, AppArgs.publish)) // -publish
+                    {
+                        options.nonExecuteOpRquest = $"{AppArgs.publish}|{nextArg}|{secondNextArg}";
+                        options.processFile = false;
                     }
                     else if (Args.Same(arg, AppArgs.ca)) // -ca
                     {

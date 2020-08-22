@@ -15,13 +15,14 @@ namespace csscript
         public const string compiler_dotnet = "dotnet";
     }
 
-    internal class AppArgs
+    internal static class AppArgs
     {
         public static string nl = "nl";
         public static string nathash = "nathash";       // instead of const make it static so this hidden option is not picked by auto-documenter
 
         public const string help = "help";
         public const string help2 = "-help";
+        public const string help3 = "--help";
         public const string question = "?";
         public const string question2 = "-?";
         public const string ver = "ver";
@@ -79,10 +80,8 @@ namespace csscript
         static public Dictionary<string, ArgInfo> switch2Help = new Dictionary<string, ArgInfo>();
         static public Dictionary<string, ArgInfo> miscHelp = new Dictionary<string, ArgInfo>();
 
-        static public bool IsHelpRequest(string arg)
-        {
-            return (arg == AppArgs.help || arg == AppArgs.question || arg == AppArgs.help2 || arg == AppArgs.question2);
-        }
+        static public bool IsHelpRequest(this string arg)
+            => arg.IsOneOf(AppArgs.help, AppArgs.question, AppArgs.help2, AppArgs.help3, AppArgs.question2);
 
         static public bool Supports(string arg)
         {
@@ -219,21 +218,34 @@ namespace csscript
             switch1Help[@new] = new ArgInfo("-new[:<type>] [<script name>]",
                                             HelpProvider.BuildSampleHelp());
 
-            switch1Help[code] = new ArgInfo("-code <script code>",
+            switch1Help[code] = new ArgInfo("-code[:show] <script code>",
                                             "Executes script code directly without using a script file.",
                                                 "Sample:",
                                                     " ",
-                                                    "  " + AppInfo.appName + " -code Console.WriteLine(``Current User:``);`n " +
-                                                    "Console.WriteLine(``%USERNAME%``);",
+                                                    AppInfo.appName + " -code \"Console.WriteLine(Environment.UserDomainName);#n" +
+                                                    "Console.WriteLine(#''%USERNAME%#'');\"",
                                                     " ",
                                                     "The -code argument must be the last argument in the command. The only argument that is allowed " +
                                                     "after the <script code> is '//x'",
                                                     " ",
+                                                    "Escaping special characters sometimes can be problematic as many shells have their own techniques " +
+                                                    "(e.g. PowerShell collapses two single quote characters) that may conflict with CS-Script escaping approach." +
+                                                    "This is the reason why CS-Script offers multiple escape techniques.",
+                                                    "It can be beneficial during the troubleshooting  to use `-code:show` command that outputs the received " +
+                                                    "CLI arguments and the interpreted C# code without the execution.",
+                                                    " ",
                                                     "Since command line interface does not allow some special characters they need to be escaped.",
-                                                    "Raw  ->  Escaped character",
-                                                    "<\\n>   `n",
-                                                    "<\\r>   `r",
-                                                    "\"      ``");
+                                                    "",
+                                                    "Escaped         Interpreted character",
+                                                    "-------------------------------------",
+                                                    "#n        ->    <\\n>",
+                                                    "#r        ->    <\\r>",
+                                                    "#''       ->    \"   ",
+                                                    "#``       ->    \"   ",
+                                                    "`n        ->    <\\n>",
+                                                    "`r        ->    <\\r>",
+                                                    "``        ->    \"   "
+                                           );
 
             switch1Help[wait] = new ArgInfo("-wait[:prompt]",
                                             "Waits for user input after the execution before exiting.",
@@ -1004,6 +1016,7 @@ namespace csscript
         static Dictionary<string, Func<string, SampleInfo[]>> sampleBuilders = new Dictionary<string, Func<string, SampleInfo[]>>
         {
             { "", DefaultSample},
+            { "console", DefaultSample},
             { "console-vb", DefaultVbSample},
             { "vb", DefaultVbSample},
             { "freestyle", CSharp_freestyle_Sample},
@@ -1014,16 +1027,14 @@ namespace csscript
             { "wpf-cm", CSharp_wpf_ss_Sample },
         };
 
-        public static string BuildSampleHelp()
-        {
-            return
+        public static string BuildSampleHelp() =>
 @"Usage: -new[:<type>] [<otput file>]
   type - script template based on available types.
   output - location to place the generated script file(s).
 
 Type           Template
 ---------------------------------------------------
-console        Console script application
+console        Console script application (Default)
 console-vb     Console VB script application
 winforms       Windows Forms (WinForms) script application
 winforms-vb    Windows Forms (WinForms) VB script application
@@ -1038,7 +1049,6 @@ Examples:
     cscs -new:console console.cs
     cscs -new:winform myapp.cs
     cscs -new:wpf hello".NormalizeNewLines();
-        }
 
         internal static SampleInfo[] BuildSampleCode(string appType, string context)
         {
@@ -1053,7 +1063,7 @@ Examples:
         static SampleInfo[] CSharp_winforms_Sample(string context)
         {
             var cs =
-@"//css_dir %WINDOWS_DESKTOP_APP%
+    @"//css_dir %WINDOWS_DESKTOP_APP%
 using System;
 using System.Windows.Forms;
 
@@ -1294,7 +1304,7 @@ class Program
         static SampleInfo[] DefaultVbSample(string context)
         {
             var code =
-@"' //css_ref System
+    @"' //css_ref System
 
 Imports System
 
@@ -1310,7 +1320,7 @@ End Module";
         static SampleInfo[] DefaultVbDesktopSample(string context)
         {
             var code =
-@"' //css_dir %WINDOWS_DESKTOP_APP%
+    @"' //css_dir %WINDOWS_DESKTOP_APP%
 ' //css_ref System
 ' //css_ref System.Windows.Forms
 
@@ -1329,7 +1339,7 @@ End Module";
         public static string BuildPrecompilerSampleCode()
         {
             return
-@"using System;
+    @"using System;
 using System.Collections;
 using System.Collections.Generic;
 nvironment.NewLine);

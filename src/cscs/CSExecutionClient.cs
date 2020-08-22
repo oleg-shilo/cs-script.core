@@ -111,7 +111,7 @@ namespace csscript
                 {
                     if (args.Any(a => a.StartsWith($"-{AppArgs.code}")))
                     {
-                        args = exec.PreprocessArgs(args);
+                        args = exec.PreprocessInlineCodeArgs(args);
                     }
 
                     exec.Execute(args, CSExecutor.print, null);
@@ -211,7 +211,7 @@ namespace csscript
     /// </summary>
     internal class AppInfo
     {
-        public static string appName = Assembly.GetExecutingAssembly().GetName().Name;
+        public static string appName = Environment.GetEnvironmentVariable("ENTRY_ASM") ?? Assembly.GetExecutingAssembly().GetName().Name;
         public static bool appConsole = true;
 
         public static string appLogo =>
@@ -283,9 +283,6 @@ namespace csscript
             Utils.ProcessNewEncoding = ProcessNewEncoding;
 
             ProcessNewEncoding(null);
-
-            AppInfo.appName = Path.GetFileName(Assembly.GetExecutingAssembly().Location);
-            // CSSUtils.DbgInjectionCode = embedded_strings.dbg_source;
 
 #if WIN_APP
             CSExecutor.print = msg => System.Windows.MessageBox.Show(msg, "CS-Script");

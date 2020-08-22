@@ -22,6 +22,7 @@ namespace css
         static void Main(string[] args)
         {
             Environment.SetEnvironmentVariable("Console.WindowWidth", Console.WindowWidth.ToString());
+            Environment.SetEnvironmentVariable("ENTRY_ASM", Assembly.GetExecutingAssembly().GetName().Name);
             bool hideConsole = false;
 
             if (args.Contains("-noconsole") || args.Contains("-nc"))

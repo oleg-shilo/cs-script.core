@@ -29,7 +29,7 @@ namespace csscript
                 if (width != 0)
                     return width - 1;
                 else
-                    return 100;
+                    return 120;
             }
             catch { }
             return MaxNonConsoleTextWidth;

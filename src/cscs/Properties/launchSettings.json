@@ -2,8 +2,8 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "-publish \"E:\\PrivateData\\Verba\\Verba\\App.cs\" ",
-      "workingDirectory": "E:\\PrivateData\\Galos\\Projects\\cs-script.core\\src\\cscs\\bin\\Debug\\netcoreapp3.1"
+      "commandLineArgs": "-code ?",
+      "workingDirectory": "D:\\Galos\\Projects\\cs-script.core\\src\\cscs\\bin\\Debug\\net5.0"
     }
   }
 }

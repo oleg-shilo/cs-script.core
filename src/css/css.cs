@@ -69,6 +69,8 @@ class ScriptLauncher
 
             process.StartInfo.Arguments = arguments;
 
+            // Console.WriteLine(">>>: " + arguments);
+
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardError = true;
             process.StartInfo.RedirectStandardOutput = true;

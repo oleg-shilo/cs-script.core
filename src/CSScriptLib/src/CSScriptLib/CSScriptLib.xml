@@ -1928,6 +1928,14 @@
             <param name="ignoreCase">if set to <c>true</c> [ignore case].</param>
             <returns></returns>
         </member>
+        <member name="M:CSScriptLib.StringExtensions.IsOneOf(System.String,System.String[])">
+            <summary>
+            Checks if the given string matches any of the provided patterns.
+            </summary>
+            <param name="text">The text.</param>
+            <param name="patterns">The patterns</param>
+            <returns></returns>
+        </member>
         <member name="M:CSScriptLib.StringExtensions.JoinBy(System.Collections.Generic.IEnumerable{System.String},System.String)">
             <summary>
             Joins strings the by the specified separator.

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using csscript;
 using CSScripting.CodeDom;
@@ -10,6 +11,8 @@ namespace cscs
         [STAThread]
         static void Main(string[] args)
         {
+            //Debug.Assert(false);
+
             Environment.SetEnvironmentVariable("DOTNET_SHARED", typeof(string).Assembly.Location.GetDirName().GetDirName());
             Environment.SetEnvironmentVariable("WINDOWS_DESKTOP_APP", typeof(string).Assembly.Location.GetDirName().Replace("Microsoft.NETCore.App", "Microsoft.WindowsDesktop.App"));
             Environment.SetEnvironmentVariable("css_nuget", null);

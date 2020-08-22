@@ -266,8 +266,6 @@ namespace CSScripting.CodeDom
                 catch { }
             }
 
-            var vb = false;
-
             var compilation = CSharpScript.Create(scriptText, scriptOptions)
                                           .GetCompilation();
 

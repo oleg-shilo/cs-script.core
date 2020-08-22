@@ -94,9 +94,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetPath)" "$(ProjectDir)..\out\.NET Core\$(TargetFileName)"
-copy "$(ProjectDir)..\out\.NET Core\*.dll" "$(TargetDir)" 
-copy "$(ProjectDir)..\out\.NET Core\cscs.runtimeconfig.json" "$(TargetDir)cscs.runtimeconfig.json"
-rem copy "$(ProjectDir)..\out\.NET Core\cscs.runtimeconfig.dev.json" "$(TargetDir)cscs.runtimeconfig.dev.json"</PostBuildEvent>
+    <PostBuildEvent>rem copy "$(TargetPath)" "$(ProjectDir)..\out\.NET Core\$(TargetFileName)"
+</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 #if class_lib
 
 namespace CSScriptLib
 #else
+
 namespace csscript
 #endif
 {
@@ -61,6 +63,15 @@ namespace csscript
         /// <returns></returns>
         public static bool SameAs(this string text, string pattern, bool ignoreCase = true)
             => 0 == string.Compare(text, pattern, ignoreCase);
+
+        /// <summary>
+        /// Checks if the given string matches any of the provided patterns.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <param name="patterns">The patterns</param>
+        /// <returns></returns>
+        public static bool IsOneOf(this string text, params string[] patterns)
+            => patterns.Any(x => x == text);
 
         /// <summary>
         /// Joins strings the by the specified separator.

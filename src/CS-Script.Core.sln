@@ -4,6 +4,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "css (win launcher)", "css\css (win launcher).csproj", "{A8755B0E-EE1D-4CC0-9C58-A7ABB0EFAE3C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{847D3D48-443D-42F6-BB42-9467EC22994B} = {847D3D48-443D-42F6-BB42-9467EC22994B}
+		{59C161CA-2D02-4E13-B04F-A65B1CE7579E} = {59C161CA-2D02-4E13-B04F-A65B1CE7579E}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "cscs.tests\Tests.csproj", "{764F5D84-9776-400F-9BD0-8CE147A20CEB}"
 EndProject

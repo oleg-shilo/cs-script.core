@@ -144,10 +144,10 @@ namespace csscript
             return settings;
         }
 
-        public string[] PreprocessArgs(IEnumerable<string> args)
+        public string[] PreprocessInlineCodeArgs(string[] args)
         {
             // the first arg is warranted to be '-code'
-            if (args.ElementAtOrDefault(1) == "?")
+            if (args.Last().IsHelpRequest())
                 return args.ToArray();
 
             if (args.Count() == 1)
@@ -172,10 +172,15 @@ namespace csscript
                 if (attchDebugger)
                     code = code.Substring(0, code.Length - 3).TrimEnd();
 
-                code = code.Substring(pos + (AppArgs.code.Length + 1))
+                code = code.Replace("-code:show", "-code")
+                           .Substring(pos + (AppArgs.code.Length + 1))
+                           .Replace("#``", "\"")
+                           .Replace("#''", "\"")
                            .Replace("``", "\"")
                            .Replace("`n", "\n")
+                           .Replace("#n", "\n")
                            .Replace("`r", "\r")
+                           .Replace("#r", "\r")
                            .Trim(" \"".ToCharArray())
                            .Expand();
 
@@ -194,6 +199,22 @@ namespace csscript
                                        .PathJoin("snippets")
                                        .EnsureDir()
                                        .PathJoin($"{code.GetHashCodeEx()}.{Process.GetCurrentProcess().Id}.cs");
+
+                if (args.Contains("-code:show"))
+                {
+                    if (args.Contains("-code:show"))
+                    {
+                        Console.WriteLine("--------------------");
+                        Console.WriteLine("> CS-Script args:");
+                        for (int i = 0; i < args.Length; i++)
+                            Console.WriteLine($"{i}: {args[i]}");
+                        Console.WriteLine("--------------------");
+                    }
+                    Console.WriteLine("> Interpreted C# code:");
+                    Console.WriteLine(code);
+                    Console.WriteLine("--------------------");
+                    throw new CLIExitRequest();
+                }
 
                 File.WriteAllText(script, code);
 

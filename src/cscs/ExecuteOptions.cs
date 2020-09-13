@@ -61,6 +61,7 @@ namespace csscript
             clone.DBG = this.DBG;
             clone.TargetFramework = this.TargetFramework;
             clone.verbose = this.verbose;
+            clone.profile = this.profile;
             clone.startDebugger = this.startDebugger;
             clone.local = this.local;
             clone.buildExecutable = this.buildExecutable;
@@ -119,6 +120,7 @@ namespace csscript
             clone.DBG = this.DBG;
             clone.TargetFramework = this.TargetFramework;
             clone.verbose = this.verbose;
+            clone.profile = this.profile;
             clone.local = this.local;
             clone.buildExecutable = this.buildExecutable;
             clone.refAssemblies = new List<string>(this.refAssemblies).ToArray();
@@ -177,6 +179,7 @@ namespace csscript
         public string TargetFramework = "v4.0";
         internal bool InjectScriptAssemblyAttribute = true;
         public bool verbose = false;
+        public bool profile = false;
         public bool startDebugger = false;
         public bool local = true;
         public bool buildExecutable = false;

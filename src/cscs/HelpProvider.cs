@@ -35,6 +35,7 @@ namespace csscript
         public const string sample = "sample";
         public const string @new = "new";
         public const string verbose = "verbose";
+        public const string profile = "profile";
         public const string v = "v";
         public const string version = "version";
         public const string version2 = "-version";
@@ -330,6 +331,8 @@ namespace csscript
             switch2Help[verbose] = new ArgInfo("-verbose",
                                                "Prints runtime information during the script execution.",
                                                    "(applicable for console clients only)");
+            switch2Help[profile] = new ArgInfo("-profile",
+                                               "Prints runtime information during the script loading speed.");
             switch2Help[stop] = new ArgInfo("-stop",
                                             "Stops all running instances of Roslyn sever (VBCSCompiler.exe).",
                                                 "(applicable for .NET/Windows only)");

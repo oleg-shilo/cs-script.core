@@ -824,13 +824,16 @@ namespace csscript
 
                                 Profiler.Stopwatch.Stop();
 
-                                if (options.verbose || Utils.IsSpeedTest)
+                                if (options.verbose || Utils.IsSpeedTest || options.profile)
                                 {
                                     TimeSpan compilationTime = Profiler.Stopwatch.Elapsed;
 
                                     var pureCompilerTime = (compilationTime - initializationTime);
                                     if (Profiler.has("compiler"))
                                         pureCompilerTime = Profiler.get("compiler").Elapsed;
+
+                                    if (options.profile)
+                                        Console.WriteLine("> ----------------");
 
                                     Console.WriteLine($"Initialization time: {initializationTime.TotalMilliseconds} msec");
                                     Console.WriteLine($"Compilation time:    {pureCompilerTime.TotalMilliseconds} msec");
@@ -868,12 +871,15 @@ namespace csscript
                             compilingFileLock.Release();
 
                             Profiler.Stopwatch.Stop();
-                            CSSUtils.VerbosePrint("  Loading script from cache...", options);
-                            CSSUtils.VerbosePrint("", options);
-                            CSSUtils.VerbosePrint("  Cache file: \n       " + assemblyFileName, options);
-                            CSSUtils.VerbosePrint("> ----------------", options);
-                            CSSUtils.VerbosePrint("Initialization time: " + Profiler.Stopwatch.Elapsed.TotalMilliseconds + " msec", options);
-                            CSSUtils.VerbosePrint("> ----------------", options);
+                            if (options.verbose || options.profile)
+                            {
+                                Console.WriteLine("  Loading script from cache...");
+                                if (options.verbose)
+                                    Console.WriteLine("  Cache file: \n       " + assemblyFileName);
+                                Console.WriteLine("> ----------------");
+                                Console.WriteLine("Initialization time: " + Profiler.Stopwatch.Elapsed.TotalMilliseconds + " msec");
+                                Console.WriteLine("> ----------------");
+                            }
                         }
 
                         // --- EXECUTE ---

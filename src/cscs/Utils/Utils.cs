@@ -1108,6 +1108,10 @@ partial class dbg
                     {
                         options.verbose = true;
                     }
+                    else if (Args.Same(arg, AppArgs.profile))
+                    {
+                        options.profile = true;
+                    }
                     //else if (Args.Same(arg, AppArgs.preload)) // -preload
                     //else if (Args.Same(arg, "-preload")) // -preload
                     //{

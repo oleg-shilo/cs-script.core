@@ -9,7 +9,7 @@ void main()
     ServicePointManager.Expect100Continue = true;
     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
-    var url = "https://github.com/oleg-shilo/cs-script.core/releases/download/v1.4.0.0/cs-script.core.v1.4.0.0.7z";
+    var url = "https://github.com/oleg-shilo/cs-script.core/releases/download/v1.4.1.0-preview/cs-script.core.v1.4.1.0.7z";
 
     var installScript = @"tools\chocolateyInstall.ps1";
 

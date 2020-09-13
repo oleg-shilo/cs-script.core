@@ -2,7 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "-code ?",
+      "commandLineArgs": "-speed",
       "workingDirectory": "D:\\Galos\\Projects\\cs-script.core\\src\\cscs\\bin\\Debug\\net5.0"
     }
   }

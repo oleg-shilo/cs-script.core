@@ -8,8 +8,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
-using csscript;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using csscript;
 
 namespace CSScripting.CodeDom
 {

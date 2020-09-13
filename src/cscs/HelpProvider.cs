@@ -59,6 +59,7 @@ namespace csscript
         public const string autoclass = "autoclass";
         public const string sconfig = "sconfig";
         public const string code = "code";
+        public const string speed = "speed";
         public const string stop = "stop";
         public const string tc = "tc";
         public const string pvdr = "pvdr";

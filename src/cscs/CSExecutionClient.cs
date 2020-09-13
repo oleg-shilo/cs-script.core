@@ -110,9 +110,10 @@ namespace csscript
                 try
                 {
                     if (args.Any(a => a.StartsWith($"-{AppArgs.code}")))
-                    {
                         args = exec.PreprocessInlineCodeArgs(args);
-                    }
+
+                    if (Utils.IsSpeedTest)
+                        args = exec.PreprocessInlineCodeArgs(args);
 
                     exec.Execute(args, CSExecutor.print, null);
                 }

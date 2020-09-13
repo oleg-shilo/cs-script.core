@@ -150,78 +150,87 @@ namespace csscript
             if (args.Last().IsHelpRequest())
                 return args.ToArray();
 
-            if (args.Count() == 1)
+            if (args.Count() == 1 && args.First() != $"-{AppArgs.speed}")
                 return "-code ?".Split(' ');
 
-            var newArgs = args.TakeWhile(a => !a.StartsWith($"-{AppArgs.code}")).ToList();
+            List<string> newArgs;
+
+            // need to get raw unparsed CLI ine so cannot use args
+            var code = Environment.CommandLine;
+
+            if (Environment.CommandLine.EndsWith($"-{AppArgs.speed}")) // speed test
+            {
+                // simulate `{engine_file} -code "/**/"`
+                code = $@"{this.GetType().Assembly.Location} -{AppArgs.code} /**/";
+                newArgs = new List<string>();
+            }
+            else // all args before -code
+                newArgs = args.TakeWhile(a => !a.StartsWith($"-{AppArgs.code}")).ToList();
+
             newArgs.Add("-l:0"); // ensure the current dir is not changed to the location of the script, which is in
                                  // this case always the "snippets" directory
 
-            int pos = Environment.CommandLine.IndexOf(AppArgs.code);
+            int pos = code.IndexOf(AppArgs.code);
 
             if (pos < 0)
             {
                 Console.WriteLine("Invalid input parameters. Expected '-code' argument is missing.");
+                return newArgs.ToArray();
             }
-            else
+
+            bool attchDebugger = code.EndsWith("//x", StringComparison.OrdinalIgnoreCase);
+            if (attchDebugger)
+                code = code.Substring(0, code.Length - 3).TrimEnd();
+
+            code = code.Replace("-code:show", "-code")
+                       .Substring(pos + (AppArgs.code.Length + 1))
+                       .Replace("#``", "\"")
+                       .Replace("#''", "\"")
+                       .Replace("``", "\"")
+                       .Replace("`n", "\n")
+                       .Replace("#n", "\n")
+                       .Replace("`r", "\r")
+                       .Replace("#r", "\r")
+                       .Trim(" \"".ToCharArray())
+                       .Expand();
+
+            var commonHeader = "//css_ac freestyle\nusing System; using System.Diagnostics; using System.IO;\n";
+            var customHeaderFile = this.GetType().Assembly.Location.GetDirName().PathJoin("-code.header");
+            if (File.Exists(customHeaderFile))
             {
-                // the actual arg is $"-{AppArgs.code}"
-                var code = Environment.CommandLine;
+                commonHeader = File.ReadAllText(customHeaderFile).Replace("\r\n", "\n").TrimEnd() + "\n";
+            }
+            code = commonHeader + code;
 
-                bool attchDebugger = code.EndsWith("//x", StringComparison.OrdinalIgnoreCase);
-                if (attchDebugger)
-                    code = code.Substring(0, code.Length - 3).TrimEnd();
+            if (!code.EndsWith(";"))
+                code += ";";
 
-                code = code.Replace("-code:show", "-code")
-                           .Substring(pos + (AppArgs.code.Length + 1))
-                           .Replace("#``", "\"")
-                           .Replace("#''", "\"")
-                           .Replace("``", "\"")
-                           .Replace("`n", "\n")
-                           .Replace("#n", "\n")
-                           .Replace("`r", "\r")
-                           .Replace("#r", "\r")
-                           .Trim(" \"".ToCharArray())
-                           .Expand();
+            var script = CSExecutor.GetScriptTempDir()
+                                   .PathJoin("snippets")
+                                   .EnsureDir()
+                                   .PathJoin($"{code.GetHashCodeEx()}.{Process.GetCurrentProcess().Id}.cs");
 
-                var commonHeader = "//css_ac freestyle\nusing System; using System.Diagnostics; using System.IO;\n";
-                var customHeaderFile = this.GetType().Assembly.Location.GetDirName().PathJoin("-code.header");
-                if (File.Exists(customHeaderFile))
-                {
-                    commonHeader = File.ReadAllText(customHeaderFile).Replace("\r\n", "\n").TrimEnd() + "\n";
-                }
-                code = commonHeader + code;
-
-                if (!code.EndsWith(";"))
-                    code += ";";
-
-                var script = CSExecutor.GetScriptTempDir()
-                                       .PathJoin("snippets")
-                                       .EnsureDir()
-                                       .PathJoin($"{code.GetHashCodeEx()}.{Process.GetCurrentProcess().Id}.cs");
-
+            if (args.Contains("-code:show"))
+            {
                 if (args.Contains("-code:show"))
                 {
-                    if (args.Contains("-code:show"))
-                    {
-                        Console.WriteLine("--------------------");
-                        Console.WriteLine("> CS-Script args:");
-                        for (int i = 0; i < args.Length; i++)
-                            Console.WriteLine($"{i}: {args[i]}");
-                        Console.WriteLine("--------------------");
-                    }
-                    Console.WriteLine("> Interpreted C# code:");
-                    Console.WriteLine(code);
                     Console.WriteLine("--------------------");
-                    throw new CLIExitRequest();
+                    Console.WriteLine("> CS-Script args:");
+                    for (int i = 0; i < args.Length; i++)
+                        Console.WriteLine($"{i}: {args[i]}");
+                    Console.WriteLine("--------------------");
                 }
-
-                File.WriteAllText(script, code);
-
-                newArgs.Add(script);
-                if (attchDebugger)
-                    newArgs.Add("//x");
+                Console.WriteLine("> Interpreted C# code:");
+                Console.WriteLine(code);
+                Console.WriteLine("--------------------");
+                throw new CLIExitRequest();
             }
+
+            File.WriteAllText(script, code);
+
+            newArgs.Add(script);
+            if (attchDebugger)
+                newArgs.Add("//x");
 
             return newArgs.ToArray();
         }
@@ -815,7 +824,7 @@ namespace csscript
 
                                 Profiler.Stopwatch.Stop();
 
-                                if (options.verbose)
+                                if (options.verbose || Utils.IsSpeedTest)
                                 {
                                     TimeSpan compilationTime = Profiler.Stopwatch.Elapsed;
 
@@ -826,8 +835,12 @@ namespace csscript
                                     Console.WriteLine($"Initialization time: {initializationTime.TotalMilliseconds} msec");
                                     Console.WriteLine($"Compilation time:    {pureCompilerTime.TotalMilliseconds} msec");
                                     Console.WriteLine($"Total load time:     {compilationTime.TotalMilliseconds} msec");
-                                    Console.WriteLine("> ----------------");
-                                    Console.WriteLine("");
+
+                                    if (options.verbose)
+                                    {
+                                        Console.WriteLine("> ----------------");
+                                        Console.WriteLine("");
+                                    }
                                 }
                             }
                             catch

@@ -558,6 +558,8 @@ namespace csscript
             return !Runtime.IsCore && Environment.Version.Major >= 2;
         }
 
+        internal static bool IsSpeedTest => Environment.GetCommandLineArgs().Contains($"-{AppArgs.speed}");
+
         public static bool IsRuntimeCompatibleAsm(string file)
         {
             try

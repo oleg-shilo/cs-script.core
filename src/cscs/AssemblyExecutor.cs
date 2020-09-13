@@ -128,7 +128,7 @@ namespace csscript
                                                    .SelectMany(m => m.GetTypes())
                                                    .SelectMany(t => t.GetMembers(bf)
                                                    .OfType<MethodInfo>())
-                                                   .Where(x => x.Name == "Main" && x.IsStatic)
+                                                   .Where(x => (x.Name == "Main" || x.Name == "$Main") && x.IsStatic)
                                                    .ToArray();
 
             if (methods.Any())

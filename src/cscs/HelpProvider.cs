@@ -172,6 +172,8 @@ namespace csscript
         internal const string section_sep = "------------------------------------"; // section separator
         internal const string alias_prefix = "Alias - ";
 
+        const string help_url = "https://www.cs-script.net/cs-script/help-legacy";
+
         static AppArgs()
         {
             //http://www.csscript.net/help/Online/index.html
@@ -400,7 +402,7 @@ namespace csscript
                                                    "There is a special reserved word '" + CSSUtils.noDefaultPrecompilerSwitch + "' to be used as a file name. " +
                                                    "It instructs script engine to prevent loading any built-in precompilers " +
                                                    "like the one for removing shebang before the execution.",
-                                                   "(see http://www.csscript.net/help/precompilers.html)");
+                                                   $"(see {help_url}/precompilers.html)");
             switch2Help[pvdr] =
             switch2Help[provider] = new ArgInfo("-pvdr|-provider:<file>",
                                                 "Location of the alternative/custom code provider assembly.",
@@ -411,7 +413,7 @@ namespace csscript
                                                     "If the switch is not specified CSSRoslynProvider.dll file will be use as a code provider " +
                                                     "if it is found in the same folder where the script engine is. Automatic CSSRoslynProvider.dll " +
                                                     "loading can be disabled with special 'none' argument: -pvdr:none.",
-                                                    "(see http://www.csscript.net/help/non_cs_compilers.html)");
+                                                    $"(see {help_url}/help/non_cs_compilers.html)");
             switch2Help[nuget] = new ArgInfo("-nuget[:<package|purge>]",
                                              "Installs new or updates existing NuGet package.",
                                                  "This command allows light management of the NuGet packages in the CS-Script local package repository (%PROGRAMDATA%\\CS-Script\\nuget).",

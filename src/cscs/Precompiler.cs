@@ -41,6 +41,11 @@ namespace csscript
         public List<string> NewSearchDirs = new List<string>();
 
         /// <summary>
+        /// Additional compiler options to be passed to the script compiler.
+        /// </summary>
+        public string NewCompilerOptions;
+
+        /// <summary>
         /// Collection of the process assembly and script probing directories.
         /// </summary>
         public string[] SearchDirs = new string[0];

@@ -1398,6 +1398,7 @@ partial class dbg
             contextData["NewSearchDirs"] = context.NewSearchDirs;
             contextData["NewReferences"] = context.NewReferences;
             contextData["NewIncludes"] = context.NewIncludes;
+            contextData["NewCompilerOptions"] = "";
             contextData["SearchDirs"] = context.SearchDirs;
             contextData["ConsoleEncoding"] = options.consoleEncoding;
             contextData["CompilerOptions"] = options.compilerOptions;
@@ -1481,6 +1482,7 @@ partial class dbg
                 }
             }
 
+            context.NewCompilerOptions = (string)contextData["NewCompilerOptions"];
             options.searchDirs = options.searchDirs.ConcatWith(context.NewSearchDirs);
 
             foreach (string asm in context.NewReferences)

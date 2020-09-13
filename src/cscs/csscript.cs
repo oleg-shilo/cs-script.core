@@ -1374,7 +1374,10 @@ namespace csscript
             // ********************************************************************************************
 
             //System.Diagnostics.Debug.Assert(false);
-            bool generateExe = options.buildExecutable;
+            // if no request to build executable or dll is made then use exe format as it is the only format that allows
+            // top-level statements (classless scripts)
+            bool generateExe = options.buildExecutable || !options.buildExecutable;
+
             string scriptDir = Path.GetDirectoryName(scriptFileName);
             string assemblyFileName = "";
 
@@ -1445,6 +1448,8 @@ namespace csscript
                 filesToCompile = filesToCompile.Concat(context.NewIncludes).ToArray();
                 context.NewDependencies.AddRange(context.NewIncludes);
             }
+
+            Utils.AddCompilerOptions(compilerParams, context.NewCompilerOptions);
 
             string[] additionalDependencies = context.NewDependencies.ToArray();
 

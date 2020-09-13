@@ -709,7 +709,7 @@ namespace CSScripting.CodeDom
                     if (line.StartsWith("Build FAILED.") || line.StartsWith("Build succeeded."))
                         isErrroSection = true;
 
-                    if (line.Contains("): error ") || line.StartsWith("error CS") || line.StartsWith("vbc : error BC") || line.Contains("MSBUILD : error "))
+                    if (line.Contains("CSC : error ") || line.Contains("): error ") || line.StartsWith("error CS") || line.StartsWith("vbc : error BC") || line.Contains("MSBUILD : error "))
                     {
                         var error = CompilerError.Parser(line);
                         if (error != null)
@@ -767,15 +767,19 @@ namespace CSScripting.CodeDom
 
             bool isError = compilerOutput.Contains("): error ");
             bool isWarning = compilerOutput.Contains("): warning ");
-            bool isBuildError = compilerOutput.Contains("MSBUILD : error") || compilerOutput.Contains("vbc : error");
+            bool isBuildError = compilerOutput.Contains("MSBUILD : error", StringComparison.OrdinalIgnoreCase) ||
+                                compilerOutput.Contains("vbc : error", StringComparison.OrdinalIgnoreCase) ||
+                                compilerOutput.Contains("CSC : error", StringComparison.OrdinalIgnoreCase);
 
             if (isBuildError)
             {
-                var parts = compilerOutput.Replace("MSBUILD : error ", "").Split(":".ToCharArray(), 2);
+                var parts = compilerOutput.Replace("MSBUILD : error ", "", StringComparison.OrdinalIgnoreCase)
+                                          .Replace("CSC : error ", "", StringComparison.OrdinalIgnoreCase)
+                                          .Split(":".ToCharArray(), 2);
                 return new CompilerError
                 {
-                    ErrorText = "MSBUILD: " + parts.Last().Trim(),        // MSBUILD error: Unknown switch.
-                    ErrorNumber = parts.First()                           // MSB1001
+                    ErrorText = parts.Last().Trim(),        // MSBUILD error: Unknown switch.
+                    ErrorNumber = parts.First()                         // MSB1001
                 };
             }
             else if (isWarning || isError)

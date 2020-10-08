@@ -18,6 +18,8 @@ namespace csscript
 
         public static string GetFileName(this string path) => Path.GetFileName(path);
 
+        public static bool DirExists(this string path) => path.IsNotEmpty() ? Directory.Exists(path) : false;
+
         public static string GetFullPath(this string path) => Path.GetFullPath(path);
 
         public static string PathJoin(this string path, params object[] parts)

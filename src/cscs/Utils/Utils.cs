@@ -127,8 +127,8 @@ namespace csscript
 
             process.WaitForExit();
 
-            try { error.Abort(); } catch { }
-            try { output.Abort(); } catch { }
+            // try { error.Abort(); } catch { }
+            // try { output.Abort(); } catch { }
 
             return process.ExitCode;
         }
@@ -303,8 +303,6 @@ namespace csscript
 
         public static bool FileExists(this string path) => path.IsNotEmpty() ? File.Exists(path) : false;
 
-        public static bool DirExists(this string path) => path.IsNotEmpty() ? Directory.Exists(path) : false;
-
         public static string ChangeExtension(this string path, string extension) => Path.ChangeExtension(path, extension);
 
         public static void ClearFile(string path)
@@ -324,7 +322,7 @@ namespace csscript
                 catch { }
         }
 
-        class Win32
+        private class Win32
         {
             [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
             internal static extern bool SetEnvironmentVariable(string lpName, string lpValue);
@@ -474,7 +472,7 @@ namespace csscript
         public static ProcessNewEncodingHandler ProcessNewEncoding = DefaultProcessNewEncoding;
         public static bool IsDefaultConsoleEncoding = true;
 
-        static string DefaultProcessNewEncoding(string requestedEncoding)
+        private static string DefaultProcessNewEncoding(string requestedEncoding)
         {
             return requestedEncoding;
         }
@@ -499,7 +497,7 @@ namespace csscript
             return IsFileLocked(file);
         }
 
-        static bool IsFileLocked(string file)
+        private static bool IsFileLocked(string file)
         {
             try
             {
@@ -615,10 +613,10 @@ namespace csscript
             {
                 return Assembly.LoadFrom(asmFile);
             }
-            catch (FileNotFoundException e)
+            catch (FileNotFoundException)
             {
                 if (!Runtime.IsMono)
-                    throw e;
+                    throw;
                 else
                     try
                     {
@@ -628,7 +626,7 @@ namespace csscript
                     }
                     catch
                     {
-                        throw e;
+                        throw;
                     }
             }
         }
@@ -1243,6 +1241,11 @@ partial class dbg
                         options.suppressExecution = true;
                         options.syntaxCheck = true;
                     }
+                    else if (Args.Same(arg, AppArgs.vs)) // -vs
+                    {
+                        options.nonExecuteOpRquest = AppArgs.vs;
+                        options.processFile = false;
+                    }
                     else if (Args.ParseValuedArg(arg, AppArgs.proj, out argValue)) // -proj
                     {
                         // Requests for some no-dependency operations can be handled here
@@ -1258,8 +1261,6 @@ partial class dbg
                             options.nonExecuteOpRquest = AppArgs.proj_csproj;
 
                         options.processFile = false;
-                        //options.processFile = false;
-                        //options.forceOutputAssembly = ;
                     }
                     else if (Args.Same(arg, AppArgs.publish)) // -publish
                     {
@@ -1384,9 +1385,9 @@ partial class dbg
             return args.Length;
         }
 
-        delegate bool CompileMethod(ref string content, string scriptFile, bool IsPrimaryScript, Hashtable context);
+        private delegate bool CompileMethod(ref string content, string scriptFile, bool IsPrimaryScript, Hashtable context);
 
-        delegate bool CompileMethodDynamic(dynamic context);
+        private delegate bool CompileMethodDynamic(dynamic context);
 
         internal static PrecompilationContext Precompile(string scriptFile, string[] filesToCompile, ExecuteOptions options)
         {
@@ -1493,7 +1494,7 @@ partial class dbg
 
         internal const string noDefaultPrecompilerSwitch = "nodefault";
 
-        static Assembly Assembly_LoadFrom(string file)
+        private static Assembly Assembly_LoadFrom(string file)
         {
             string dbg = Utils.DbgFileOf(file);
 
@@ -1625,7 +1626,7 @@ partial class dbg
             kill("VBCSCompiler");
         }
 
-        static void kill(string proc_name)
+        private static void kill(string proc_name)
         {
             try
             {
@@ -1679,7 +1680,7 @@ partial class dbg
         {
             return (from a in AppDomain.CurrentDomain.GetAssemblies()
                     let location = a.Location()
-                    where location != "" && !a.GlobalAssemblyCache
+                    where location != "" // `&& !a.GlobalAssemblyCache` no longer supported
                     select location).ToArray();
         }
 
@@ -1823,7 +1824,7 @@ partial class dbg
         }
 
         //needed to have reliable HASH as x64 and x32 have different algorithms; This leads to the inability of script clients calculate cache directory correctly
-        static int GetHashCode32(string s)
+        private static int GetHashCode32(string s)
         {
             char[] chars = s.ToCharArray();
 
@@ -2157,7 +2158,7 @@ partial class dbg
             return true;
         }
 
-        static int ReadIntBackwards(BinaryReader r, ref int offset)
+        private static int ReadIntBackwards(BinaryReader r, ref int offset)
         {
             var fs = (FileStream)r.BaseStream;
             offset += intSize;
@@ -2165,7 +2166,7 @@ partial class dbg
             return r.ReadInt32();
         }
 
-        static long ReadLongBackwards(BinaryReader r, ref int offset)
+        private static long ReadLongBackwards(BinaryReader r, ref int offset)
         {
             var fs = (FileStream)r.BaseStream;
             offset += longSize;
@@ -2173,8 +2174,8 @@ partial class dbg
             return r.ReadInt64();
         }
 
-        static int intSize = Marshal.SizeOf((Int32)0);
-        static int longSize = Marshal.SizeOf((Int64)0);
+        private static int intSize = Marshal.SizeOf((Int32)0);
+        private static int longSize = Marshal.SizeOf((Int64)0);
 
         public bool ReadFileStamp(string file)
         {
@@ -2227,7 +2228,7 @@ partial class dbg
             return false;
         }
 
-        new string ToString()
+        private new string ToString()
         {
             StringBuilder bs = new StringBuilder();
 
@@ -2243,7 +2244,7 @@ partial class dbg
             return bs.ToString();
         }
 
-        bool Parse(string data)
+        private bool Parse(string data)
         {
             foreach (string itemData in data.Split("|".ToCharArray()))
             {
@@ -2260,9 +2261,9 @@ partial class dbg
             return true;
         }
 
-        int stampID = CSSUtils.GetHashCodeEx(Assembly.GetExecutingAssembly().FullName.Split(",".ToCharArray())[1]);
+        private int stampID = CSSUtils.GetHashCodeEx(Assembly.GetExecutingAssembly().FullName.Split(",".ToCharArray())[1]);
 
-        bool IsGACAssembly(string file)
+        private bool IsGACAssembly(string file)
         {
             string s = file.ToLower();
             return s.Contains("microsoft.net\\framework") || s.Contains("microsoft.net/framework") || s.Contains("gac_msil") || s.Contains("gac_64") || s.Contains("gac_32");
@@ -2273,9 +2274,9 @@ partial class dbg
 
     internal class Cache
     {
-        static string cacheRootDir = Path.Combine(CSExecutor.GetScriptTempDir(), "Cache");
+        private static string cacheRootDir = Path.Combine(CSExecutor.GetScriptTempDir(), "Cache");
 
-        static void deleteFile(string path)
+        private static void deleteFile(string path)
         {
             try
             {
@@ -2285,7 +2286,7 @@ partial class dbg
             catch { }
         }
 
-        static void deleteDir(string path)
+        private static void deleteDir(string path)
         {
             try
             {
@@ -2296,7 +2297,7 @@ partial class dbg
             catch { }
         }
 
-        enum Op
+        private enum Op
         {
             List,
             Trim,
@@ -2318,7 +2319,7 @@ partial class dbg
             return Cache.Do(Op.Clear);
         }
 
-        static string Do(Op operation)
+        private static string Do(Op operation)
         {
             StringBuilder result = new StringBuilder();
             result.AppendLine("Cache root: " + cacheRootDir);
@@ -2465,8 +2466,8 @@ partial class dbg
             Init(probingDirs);
         }
 
-        static bool initialized = false;
-        static string[] probingDirs = new string[0];
+        private static bool initialized = false;
+        private static string[] probingDirs = new string[0];
 
         /// <summary>
         /// Sets probing dirs and subscribes to the <see cref="System.AppDomain.AssemblyResolve"/> event.
@@ -2494,9 +2495,9 @@ partial class dbg
             }
         }
 
-        static Dictionary<string, Assembly> cache = new Dictionary<string, Assembly>();
+        private static Dictionary<string, Assembly> cache = new Dictionary<string, Assembly>();
 
-        Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             var shortName = args.Name.Split(',').First().Trim();
 

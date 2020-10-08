@@ -51,6 +51,24 @@ namespace csscript
                 }
                 print("Published: " + destination);
             }
+            else if (request == AppArgs.vs)
+            {
+                var project = Project.GenerateProjectFor(options.scriptFileName);
+
+                var compileParams = new CompilerParameters();
+                compileParams.ReferencedAssemblies.AddRange(project.Refs);
+                compileParams.GenerateExecutable = true;
+
+                var projectFile = CSharpCompiler.CreateProject(compileParams, project.Files);
+
+                print("Opening project: " + projectFile);
+
+                var vs_exe = Environment.GetEnvironmentVariable("CSSCRIPT_VSEXE");
+                if (vs_exe.IsEmpty())
+                    print("Error: you need to set environment variable 'CSSCRIPT_VSEXE' to the valid path to Viual Studio executable devenv.exe.");
+                else
+                    Process.Start(vs_exe, projectFile);
+            }
             else if (request == AppArgs.proj || request == AppArgs.proj_dbg || request == AppArgs.proj_csproj)
             {
                 var project = Project.GenerateProjectFor(options.scriptFileName);
@@ -63,7 +81,6 @@ namespace csscript
 
                     var projectFile = CSharpCompiler.CreateProject(compileParams, project.Files);
                     print("project:" + projectFile);
-                    // print(File.ReadAllText(projectFile));
                 }
                 else
                 {
@@ -101,7 +118,7 @@ namespace csscript
             return settings;
         }
 
-        Settings LoadSettings(List<string> appArgs)
+        private Settings LoadSettings(List<string> appArgs)
         {
             //read persistent settings from configuration file
             Settings settings = LoadSettings(options);
@@ -194,7 +211,7 @@ namespace csscript
                        .Trim(" \"".ToCharArray())
                        .Expand();
 
-            var commonHeader = "//css_ac freestyle\nusing System; using System.Diagnostics; using System.IO;\n";
+            var commonHeader = "using System; using System.Diagnostics; using System.IO;\n";
             var customHeaderFile = this.GetType().Assembly.Location.GetDirName().PathJoin("-code.header");
             if (File.Exists(customHeaderFile))
             {
@@ -584,7 +601,7 @@ namespace csscript
         /// <summary>
         /// Dummy 'print' to suppress displaying application messages.
         /// </summary>
-        static void VoidPrint(string msg)
+        private static void VoidPrint(string msg)
         {
         }
 
@@ -596,7 +613,7 @@ namespace csscript
         /// <summary>
         /// This method implements compiling and execution of the script.
         /// </summary>
-        void ExecuteImpl()
+        private void ExecuteImpl()
         {
             try
             {
@@ -832,7 +849,7 @@ namespace csscript
                                     if (Profiler.has("compiler"))
                                         pureCompilerTime = Profiler.get("compiler").Elapsed;
 
-                                    if (options.profile)
+                                    if (options.verbose)
                                         Console.WriteLine("> ----------------");
 
                                     Console.WriteLine($"Initialization time: {initializationTime.TotalMilliseconds} msec");
@@ -846,14 +863,17 @@ namespace csscript
                                     }
                                 }
                             }
-                            catch
+                            catch (Exception e)
                             {
-                                if (!CSSUtils.IsRuntimeErrorReportingSuppressed)
+                                if (!(e is CLIExitRequest))
                                 {
-                                    print("Error: Specified file could not be compiled.\n");
-                                    if (NuGet.newPackageWasInstalled)
+                                    if (!CSSUtils.IsRuntimeErrorReportingSuppressed)
                                     {
-                                        print("> -----\nA new NuGet package has been installed. If some of it's components are not found you may need to restart the script again.\n> -----\n");
+                                        print("Error: Specified file could not be compiled.\n");
+                                        if (NuGet.newPackageWasInstalled)
+                                        {
+                                            print("> -----\nA new NuGet package has been installed. If some of it's components are not found you may need to restart the script again.\n> -----\n");
+                                        }
                                     }
                                 }
                                 throw;
@@ -951,7 +971,7 @@ namespace csscript
                         if (Runtime.IsWin &&
                             ex is System.Reflection.ReflectionTypeLoadException &&
                             Assembly.GetExecutingAssembly().GetName().Name == "cscs" && // console app
-                            message.Contains("'System.Windows.DependencyObject'"))
+                            (message.Contains("'System.Windows.DependencyObject'") || message.Contains("'WindowsBase,")))
                         {
                             message += "\n\nNOTE: If you are trying to use WPF ensure you have enabled WPF support " +
                                 "with `dotnet cscs.dll -wpf:enable`";
@@ -963,7 +983,7 @@ namespace csscript
             }
         }
 
-        static void SaveDebuggingMetadata(string scriptFile)
+        private static void SaveDebuggingMetadata(string scriptFile)
         {
             var dir = Path.Combine(GetScriptTempDir(), "DbgAttach");
             if (!Directory.Exists(dir))
@@ -1012,7 +1032,7 @@ namespace csscript
         /// <summary>
         /// C# Script arguments array (sub array of application arguments array).
         /// </summary>
-        string[] scriptArgs;
+        private string[] scriptArgs;
 
         /// <summary>
         /// Callback to print application messages to appropriate output.
@@ -1076,12 +1096,12 @@ namespace csscript
             return retval;
         }
 
-        ICodeCompiler LoadDefaultCompiler()
+        private ICodeCompiler LoadDefaultCompiler()
         {
             return CSharpCompiler.Create();
         }
 
-        static string ExistingFile(string dir, params string[] paths)
+        private static string ExistingFile(string dir, params string[] paths)
         {
             var file = dir.PathJoin(paths);
             if (File.Exists(file))
@@ -1090,7 +1110,7 @@ namespace csscript
                 null;
         }
 
-        ICodeCompiler LoadCompiler(string scriptFileName, ref string[] filesToInject)
+        private ICodeCompiler LoadCompiler(string scriptFileName, ref string[] filesToInject)
         {
             ICodeCompiler compiler;
 
@@ -1220,7 +1240,7 @@ namespace csscript
             throw new ApplicationException("Cannot find alternative compiler \"" + altCompiler + "\"");
         }
 
-        void AddReferencedAssemblies(CompilerParameters compilerParams, string scriptFileName, ScriptParser parser)
+        private void AddReferencedAssemblies(CompilerParameters compilerParams, string scriptFileName, ScriptParser parser)
         {
             //scriptFileName is obsolete as it is now can be obtained from parser (ScriptParser.ScriptPath)
             string[] asms = AggregateReferencedAssemblies(parser);
@@ -1359,7 +1379,7 @@ namespace csscript
             return (string[])requestedRefAsms;
         }
 
-        string NormalizeGacAssemblyPath(string asm)
+        private string NormalizeGacAssemblyPath(string asm)
         {
             return asm;
         }
@@ -1367,7 +1387,7 @@ namespace csscript
         /// <summary>
         /// Compiles C# script file.
         /// </summary>
-        string Compile(string scriptFileName)
+        private string Compile(string scriptFileName)
         {
             // ********************************************************************************************
             // * Extremely important to keep the project building algorithm in sync with ProjectBuilder.GenerateProjectFor
@@ -1376,7 +1396,8 @@ namespace csscript
             //System.Diagnostics.Debug.Assert(false);
             // if no request to build executable or dll is made then use exe format as it is the only format that allows
             // top-level statements (classless scripts)
-            bool generateExe = options.buildExecutable || !options.buildExecutable;
+            // bool generateExe = options.buildExecutable || !options.buildExecutable;
+            bool generateExe = options.buildExecutable;
 
             string scriptDir = Path.GetDirectoryName(scriptFileName);
             string assemblyFileName = "";
@@ -1432,7 +1453,8 @@ namespace csscript
                 Utils.AddCompilerOptions(compilerParams, "/d:DEBUG /d:TRACE");
 
             compilerParams.IncludeDebugInformation = options.DBG;
-            compilerParams.GenerateExecutable = generateExe;
+            // compilerParams.GenerateExecutable = generateExe;
+            compilerParams.GenerateExecutable = true;
             compilerParams.GenerateInMemory = false;
             compilerParams.WarningLevel = (options.hideCompilerWarnings ? -1 : 4);
 
@@ -1623,12 +1645,12 @@ namespace csscript
             return assemblyFileName;
         }
 
-        CompilerResults CompileAssembly(ICodeCompiler compiler, CompilerParameters compilerParams, string[] filesToCompile)
+        private CompilerResults CompileAssembly(ICodeCompiler compiler, CompilerParameters compilerParams, string[] filesToCompile)
         {
             return compiler.CompileAssemblyFromFileBatch(compilerParams, filesToCompile);
         }
 
-        void ProcessCompilingResult(CompilerResults results, CompilerParameters compilerParams, ScriptParser parser, string scriptFileName, string assemblyFileName, string[] additionalDependencies)
+        private void ProcessCompilingResult(CompilerResults results, CompilerParameters compilerParams, ScriptParser parser, string scriptFileName, string assemblyFileName, string[] additionalDependencies)
         {
             LastCompileResult = new CompilingInfo() { ScriptFile = scriptFileName, ParsingContext = parser.GetContext(), Result = results, Input = compilerParams };
 
@@ -1783,7 +1805,7 @@ namespace csscript
             return tempDir;
         }
 
-        static string tempDir = null;
+        private static string tempDir = null;
 
         /// <summary>
         /// Sets the location for the CS-Script temporary files directory.

@@ -70,13 +70,14 @@ namespace csscript
         public const string precompiler = "precompiler";
         public const string cache = "cache";
         public const string dbgprint = "dbgprint";
+        public const string vs = "vs";
         public const string proj = "proj";
         public const string publish = "publish";
 
         internal const string proj_dbg = "proj:dbg";    // for internal use only
         internal const string proj_csproj = "proj:csproj";    // for internal use only
         static public string SyntaxHelp { get { return syntaxHelp.ToConsoleLines(0); } }
-        static string syntaxHelp = "";
+        private static string syntaxHelp = "";
 
         static public Dictionary<string, ArgInfo> switch1Help = new Dictionary<string, ArgInfo>();
         static public Dictionary<string, ArgInfo> switch2Help = new Dictionary<string, ArgInfo>();
@@ -116,9 +117,9 @@ namespace csscript
 
         internal class ArgInfo
         {
-            string argSpec;
-            string description;
-            string doc = "";
+            private string argSpec;
+            private string description;
+            private string doc = "";
 
             public ArgInfo(string argSpec, string description, params string[] docLines)
             {
@@ -149,21 +150,21 @@ namespace csscript
                 return buf.ToString().TrimEnd();
             }
 
-            static int indent = 4;
+            private static int indent = 4;
         }
 
-        static string fromLines(params string[] lines)
+        private static string fromLines(params string[] lines)
         {
             return string.Join(Environment.NewLine, lines.SelectMany(x => x.SplitSubParagraphs()).ToArray());
         }
 
-        static string indent(int indent, string text)
+        private static string indent(int indent, string text)
         {
             var result = text.ToConsoleLines(indent);
             return text.ToConsoleLines(indent);
         }
 
-        static string indent2(int indent, string text)
+        private static string indent2(int indent, string text)
         {
             var result = text.ToConsoleLines(indent);
             return text.ToConsoleLines(indent);
@@ -172,7 +173,7 @@ namespace csscript
         internal const string section_sep = "------------------------------------"; // section separator
         internal const string alias_prefix = "Alias - ";
 
-        const string help_url = "https://www.cs-script.net/cs-script/help-legacy";
+        private const string help_url = "https://www.cs-script.net/cs-script/help-legacy";
 
         static AppArgs()
         {
@@ -203,6 +204,12 @@ namespace csscript
                                              "Checks script for errors without execution.");
             switch1Help[proj] = new ArgInfo("-proj",
                                             "Shows script 'project info' - script and all its dependencies.");
+
+            "Checks script for errors without execution.");
+            switch1Help[vs] = new ArgInfo("-vs",
+                                            "Generates Visual Studio project file and opens it in Visual Studio.",
+                                            "The path to the Visual Studio executable needs to be defined in the " +
+                                            "environment variable `CSSCRIPT_VSEXE`.");
 
             switch1Help[cache] = new ArgInfo("-cache[:<ls|trim|clear>]",
                                              "Performs script cache operations.",
@@ -1019,7 +1026,7 @@ namespace csscript
             public string FileExtension;
         }
 
-        static Dictionary<string, Func<string, SampleInfo[]>> sampleBuilders = new Dictionary<string, Func<string, SampleInfo[]>>
+        private static Dictionary<string, Func<string, SampleInfo[]>> sampleBuilders = new Dictionary<string, Func<string, SampleInfo[]>>
         {
             { "", DefaultSample},
             { "console", DefaultSample},
@@ -1066,7 +1073,7 @@ Examples:
                 throw new Exception($"Specified unknown script type '{appType}'");
         }
 
-        static SampleInfo[] CSharp_winforms_Sample(string context)
+        private static SampleInfo[] CSharp_winforms_Sample(string context)
         {
             var cs =
     @"//css_dir %WINDOWS_DESKTOP_APP%
@@ -1084,7 +1091,7 @@ class Program
             return new[] { new SampleInfo(cs.NormalizeNewLines(), ".cs") };
         }
 
-        static SampleInfo[] CSharp_wpf_ss_Sample(string context)
+        private static SampleInfo[] CSharp_wpf_ss_Sample(string context)
         {
             var xaml = new StringBuilder()
                     .AppendLine("<Window x:Class=\"MainWindow\"")
@@ -1166,7 +1173,7 @@ class Program
             };
         }
 
-        static SampleInfo[] CSharp_wpf_Sample(string context)
+        private static SampleInfo[] CSharp_wpf_Sample(string context)
         {
             var xaml = new StringBuilder()
                     .AppendLine("<Window x:Class=\"MainWindow\"")
@@ -1211,7 +1218,7 @@ class Program
             };
         }
 
-        static SampleInfo[] CSharp_freestyle_Sample(string context)
+        private static SampleInfo[] CSharp_freestyle_Sample(string context)
         {
             StringBuilder builder = new StringBuilder();
 
@@ -1230,7 +1237,7 @@ class Program
             return new[] { new SampleInfo(builder.ToString(), ".cs") };
         }
 
-        static SampleInfo[] CSharp_auto_Sample(string context)
+        private static SampleInfo[] CSharp_auto_Sample(string context)
         {
             var cs = new StringBuilder();
 
@@ -1261,7 +1268,7 @@ class Program
             return new[] { new SampleInfo(cs.ToString(), ".cs") };
         }
 
-        static SampleInfo[] CSharp7_Sample(string context)
+        private static SampleInfo[] CSharp7_Sample(string context)
         {
             var builder = new StringBuilder();
 
@@ -1305,9 +1312,9 @@ class Program
             return new[] { new SampleInfo(builder.ToString(), ".cs") };
         }
 
-        static SampleInfo[] DefaultSample(string context) => CSharp7_Sample(context);
+        private static SampleInfo[] DefaultSample(string context) => CSharp7_Sample(context);
 
-        static SampleInfo[] DefaultVbSample(string context)
+        private static SampleInfo[] DefaultVbSample(string context)
         {
             var code =
     @"' //css_ref System
@@ -1323,7 +1330,7 @@ End Module";
             return new[] { new SampleInfo(code.NormalizeNewLines(), ".vb") };
         }
 
-        static SampleInfo[] DefaultVbDesktopSample(string context)
+        private static SampleInfo[] DefaultVbDesktopSample(string context)
         {
             var code =
     @"' //css_dir %WINDOWS_DESKTOP_APP%

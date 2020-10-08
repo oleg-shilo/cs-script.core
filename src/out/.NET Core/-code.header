@@ -1,4 +1,4 @@
- //css_ac freestyle
+ //css_compiler csc
  using System;
  using System.IO;
  using System.Reflection;

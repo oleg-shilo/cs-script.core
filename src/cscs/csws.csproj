@@ -1,0 +1,62 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>csws</AssemblyName>
+    <RootNamespace>CSScripting</RootNamespace>
+    <StartupObject />
+    <Version>1.4.0.0</Version>
+    <Authors>Oleg Shilo</Authors>
+    <Product>CS-Script</Product>
+    <Copyright>(C) 2004-2020 Oleg Shilo</Copyright>
+    <Description>C# Script engine .NET Core executable</Description>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/oleg-shilo/cs-script</PackageProjectUrl>
+    <PackageIconUrl></PackageIconUrl>
+    <RepositoryUrl>https://github.com/oleg-shilo/cs-script</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>C# script dynamic</PackageTags>
+    <AssemblyVersion>1.4.2.0</AssemblyVersion>
+    <FileVersion>1.4.2.0</FileVersion>
+    <PackageReleaseNotes>
+      - Added support for VB.NET syntax
+      - Added handling quots in the `//css_ref...` directives
+    </PackageReleaseNotes>
+
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <ApplicationIcon />
+    <PackageIcon>css_logo.png</PackageIcon>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;TRACE, WIN_APP</DefineConstants>
+    <CodeAnalysisRuleSet>csws.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;TRACE, WIN_APP</DefineConstants>
+    <CodeAnalysisRuleSet>csws.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)..\out\.NET Core\$(TargetFileName)&quot;&#xD;&#xA;copy &quot;$(TargetDir)csws.exe&quot; &quot;$(ProjectDir)..\out\.NET Core\csws.exe&quot;&#xD;&#xA;copy &quot;$(TargetDir)csws.runtimeconfig.json&quot; &quot;$(ProjectDir)..\out\.NET Core\csws.runtimeconfig.json&quot;&#xD;&#xA;copy &quot;$(TargetDir)csws.deps.json&quot; &quot;$(ProjectDir)..\out\.NET Core\csws.deps.json&quot;" />
+  </Target>
+
+  <ItemGroup>
+    <Compile Remove="GACHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\logo\css_logo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.2.0-beta1-final" />
+  </ItemGroup>
+
+</Project>

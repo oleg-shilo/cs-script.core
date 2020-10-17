@@ -1067,17 +1067,6 @@ partial class dbg
                                 options.useCompiled = false;
                         }
                     }
-                    // may need to resurrect if users do miss it :)
-                    // else if (Args.ParseValuedArg(arg, AppArgs.inmem, out argValue)) // -inmem:<value>
-                    // {
-                    //     if (!options.suppressExecution) // do not change the value if compilation is the objective
-                    //     {
-                    //         if (argValue == "1" || argValue == null)
-                    //             options.inMemoryAsm = true;
-                    //         else if (argValue == "0")
-                    //             options.inMemoryAsm = false;
-                    //     }
-                    // }
                     else if (Args.ParseValuedArg(arg, AppArgs.dbgprint, out argValue)) // -dbgprint:<value>
                     {
                         if (argValue == "1" || argValue == null)
@@ -1110,13 +1099,6 @@ partial class dbg
                     {
                         options.profile = true;
                     }
-                    //else if (Args.Same(arg, AppArgs.preload)) // -preload
-                    //else if (Args.Same(arg, "-preload")) // -preload
-                    //{
-                    //    options.useCompiled = false;
-                    //    //CSScript.PreloadCompiler
-                    //    //CLIExitRequest.Throw();
-                    //}
                     else if (Args.ParseValuedArg(arg, AppArgs.dir, out argValue)) // -dir:path1,path2
                     {
                         if (argValue != null)
@@ -1241,9 +1223,9 @@ partial class dbg
                         options.suppressExecution = true;
                         options.syntaxCheck = true;
                     }
-                    else if (Args.Same(arg, AppArgs.vs)) // -vs
+                    else if (Args.Same(arg, AppArgs.vs, AppArgs.vscode)) // -vs, -vscode
                     {
-                        options.nonExecuteOpRquest = AppArgs.vs;
+                        options.nonExecuteOpRquest = Args.Same(arg, AppArgs.vs) ? AppArgs.vs : AppArgs.vscode;
                         options.processFile = false;
                     }
                     else if (Args.ParseValuedArg(arg, AppArgs.proj, out argValue)) // -proj

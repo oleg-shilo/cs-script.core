@@ -71,6 +71,7 @@ namespace csscript
         public const string cache = "cache";
         public const string dbgprint = "dbgprint";
         public const string vs = "vs";
+        public const string vscode = "vscode";
         public const string proj = "proj";
         public const string publish = "publish";
 
@@ -204,8 +205,6 @@ namespace csscript
                                              "Checks script for errors without execution.");
             switch1Help[proj] = new ArgInfo("-proj",
                                             "Shows script 'project info' - script and all its dependencies.");
-
-            "Checks script for errors without execution.");
             switch1Help[vs] = new ArgInfo("-vs",
                                             "Generates Visual Studio project file and opens it in Visual Studio.",
                                             "The path to the Visual Studio executable needs to be defined in the " +

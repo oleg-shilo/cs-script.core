@@ -51,7 +51,7 @@ namespace csscript
                 }
                 print("Published: " + destination);
             }
-            else if (request == AppArgs.vs)
+            else if (request == AppArgs.vs || request == AppArgs.vscode)
             {
                 var project = Project.GenerateProjectFor(options.scriptFileName);
 
@@ -63,11 +63,23 @@ namespace csscript
 
                 print("Opening project: " + projectFile);
 
-                var vs_exe = Environment.GetEnvironmentVariable("CSSCRIPT_VSEXE");
-                if (vs_exe.IsEmpty())
-                    print("Error: you need to set environment variable 'CSSCRIPT_VSEXE' to the valid path to Viual Studio executable devenv.exe.");
+                var envarName = request == AppArgs.vs ? "CSSCRIPT_VSEXE" : "CSSCRIPT_VSCODEEXE";
+                var vs_exe = Environment.GetEnvironmentVariable(envarName);
+
+                if (request == AppArgs.vs)
+                {
+                    if (vs_exe.IsEmpty())
+                        print(@"Error: you need to set environment variable '{envarName}' to the valid path to Viual Studio executable devenv.exe.");
+                    else
+                        Process.Start(vs_exe, projectFile);
+                }
                 else
-                    Process.Start(vs_exe, projectFile);
+                {
+                    if (vs_exe.IsEmpty())
+                        print(@"Error: you need to set environment variable '{envarName}' to the valid path to Viual Studio Code executable code.exe.");
+                    else
+                        Process.Start(vs_exe, projectFile.GetDirName());
+                }
             }
             else if (request == AppArgs.proj || request == AppArgs.proj_dbg || request == AppArgs.proj_csproj)
             {

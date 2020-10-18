@@ -14,7 +14,7 @@ namespace cscs
             //Debug.Assert(false);
 
             Environment.SetEnvironmentVariable("DOTNET_SHARED", typeof(string).Assembly.Location.GetDirName().GetDirName());
-            Environment.SetEnvironmentVariable("WINDOWS_DESKTOP_APP", Runtime.DestopAssembliesDir);
+            Environment.SetEnvironmentVariable("WINDOWS_DESKTOP_APP", Runtime.DesktopAssembliesDir);
             Environment.SetEnvironmentVariable("css_nuget", null);
 
             if (args.Contains("-server:stop"))

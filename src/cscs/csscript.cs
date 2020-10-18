@@ -215,6 +215,7 @@ namespace csscript
                        .Substring(pos + (AppArgs.code.Length + 1))
                        .Replace("#``", "\"")
                        .Replace("#''", "\"")
+                       .Replace("''", "\"")
                        .Replace("``", "\"")
                        .Replace("`n", "\n")
                        .Replace("#n", "\n")

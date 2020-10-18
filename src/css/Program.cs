@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.PerformanceData;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
-// -c:0 "E:\Projects\CS-Script\GitHub\cs-script\Source\.NET Core\spike\script.cs"
 
 /// <summary>
 /// .NET Full/Mono app launcher for CS-Script .NET Core host. This executable is a simple process router that forks
@@ -17,10 +16,11 @@ using System.Reflection;
 /// </summary>
 namespace css
 {
-    static class Program
+    internal static class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
+            // Environment.SetEnvironmentVariable("CSS_WINAPP", "true", EnvironmentVariableTarget.User);
             Environment.SetEnvironmentVariable("Console.WindowWidth", Console.WindowWidth.ToString());
             Environment.SetEnvironmentVariable("ENTRY_ASM", Assembly.GetExecutingAssembly().GetName().Name);
             bool hideConsole = false;
@@ -88,7 +88,10 @@ namespace css
             else
             {
                 host = "dotnet";
-                arguments.Insert(0, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "cscs.dll"));
+                var engine = "cscs.dll";
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CSS_WINAPP")))
+                    engine = "csws.dll";
+                arguments.Insert(0, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), engine));
             }
 
             // ScriptLauncher.ShowConsole(); // interferes with Conspole.ReadKey
@@ -99,12 +102,12 @@ namespace css
             ScriptLauncher.Run(host, arguments.ToCmdArgs());
         }
 
-        static string RedirectFileName
+        private static string RedirectFileName
         {
             get => Assembly.GetExecutingAssembly().Location + ".net_redirect";
         }
 
-        static string ConfiguredFullDotNetLauncher
+        private static string ConfiguredFullDotNetLauncher
         {
             get
             {

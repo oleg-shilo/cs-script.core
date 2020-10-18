@@ -250,7 +250,7 @@ public class dbg
     }
 }
 
-static class Extension
+internal static class Extension
 {
     static public string ReplaceWholeWord(this string text, string pattern, string replacement)
     {

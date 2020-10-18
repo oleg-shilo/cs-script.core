@@ -61,11 +61,18 @@ namespace csscript
         /// </value>
         public static bool IsNet { get; } = !IsMono && !IsCore;
 
-        public static string DestopAssembliesDir
+        /// <summary>
+        /// Returns path to the `Microsoft.WindowsDesktop.App` shared assemblies of the compatible runtime version.
+        /// <para>Note, there is no warranty that the dotnet dedktop assemblies belong to the same distro version as dotnet Core:
+        /// <para> - C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.0-rc.1.20451.14</para>
+        /// <para> - C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\5.0.0-rc.1.20452.2</para>
+        /// </para>
+        /// </summary>
+        public static string DesktopAssembliesDir
         {
             get
             {
-                // There is no warrantyy that the dotnet dedktop assemblies belongs to the same distro version as dotnet Core: 
+                // There is no warranty that the dotnet dedktop assemblies belong to the same distro version as dotnet Core:
                 // C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.0-rc.1.20451.14
                 // C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\5.0.0-rc.1.20452.2
                 var netCoreDir = typeof(string).Assembly.Location.GetDirName();
@@ -89,7 +96,6 @@ namespace csscript
 
                 var allDesktopVersionsRootDir = dir.GetDirName();
 
-
                 var allInstalledVersions = Directory.GetDirectories(allDesktopVersionsRootDir)
                                                     .Select(d => new
                                                     {
@@ -100,7 +106,6 @@ namespace csscript
                                                     .OrderByDescending(x => x.SimialrityIndex);
 
                 return allInstalledVersions.FirstOrDefault()?.Path;
-
             }
         }
     }

@@ -251,6 +251,7 @@ namespace csscript
                                                     "#n        ->    <\\n>",
                                                     "#r        ->    <\\r>",
                                                     "#''       ->    \"   ",
+                                                    "'''       ->    \"   ",
                                                     "#``       ->    \"   ",
                                                     "`n        ->    <\\n>",
                                                     "`r        ->    <\\r>",
@@ -577,9 +578,18 @@ namespace csscript
                          "${<=4}//css_dir packages\\ServiceStack*.1.0.21\\lib\\net40",
                          "${<=4}//css_dir packages\\**",
                          section_sep, //------------------------------------
+                         "//css_winapp",
+                         " ",
+                         alias_prefix + "//css_winapp",
+                         "Add serach directories required for running WinForm and WPF scripts.",
+                         "You need to use csws.exe engine to run such scripts.",
+                         "Alternatively you can set environment variable 'CSS_WINAPP' to non empty value and css.exe shim will redirect the " +
+                         "execution to the csws.exe executable.",
+                         section_sep, //------------------------------------
                          "//css_autoclass [style]",
                          " ",
                          alias_prefix + "//css_ac",
+                         "OBSOLETE, use top-class native C# 9 feature instead",
                          "Automatically generates 'static entry point' class if the script doesn't define any.",
                          " ",
                          "    //css_ac",
@@ -1031,6 +1041,8 @@ namespace csscript
             { "console", DefaultSample},
             { "console-vb", DefaultVbSample},
             { "vb", DefaultVbSample},
+            { "toplevel", CSharp_toplevel_Sample},
+            { "top", CSharp_toplevel_Sample},
             { "freestyle", CSharp_freestyle_Sample},
             { "auto", CSharp_auto_Sample},
             { "winform", CSharp_winforms_Sample},
@@ -1041,23 +1053,27 @@ namespace csscript
 
         public static string BuildSampleHelp() =>
 @"Usage: -new[:<type>] [<otput file>]
-  type - script template based on available types.
-  output - location to place the generated script file(s).
+      type - script template based on available types.
+      output - location to place the generated script file(s).
 
 Type           Template
 ---------------------------------------------------
-console        Console script application (Default)
-console-vb     Console VB script application
-winforms       Windows Forms (WinForms) script application
-winforms-vb    Windows Forms (WinForms) VB script application
-wpf            WPF script application
-wpf-cm         Cliburm.Micro based WPF script application
-auto           Auto-class (classless) script application
-freestyle      Free style (no entry point) script application
+console         Console script application (Default)
+console-vb      Console VB script application
+winforms        Windows Forms (WinForms) script application
+winforms-vb     Windows Forms (WinForms) VB script application
+wpf             WPF script application
+wpf-cm          Cliburm.Micro based WPF script application
+toplevel|top    Top-level class script application with no entry point
+                (avaliable on C# 9 only)
+
+Legacy templates:
+auto            Auto-class (classless) script application; use 'toplevel' instead
+freestyle       Free style (no entry point) script application; use 'toplevel' instead
 
 Examples:
     cscs -new script
-    cscs -new:auto script.cs
+    cscs -new:toplevel script.cs
     cscs -new:console console.cs
     cscs -new:winform myapp.cs
     cscs -new:wpf hello".NormalizeNewLines();
@@ -1226,11 +1242,43 @@ class Program
                 builder.AppendLine("// #!/usr/local/bin/cscs");
             }
 
-            builder.AppendLine("//css_ac freestyle");
-            builder.AppendLine("using System;");
-            builder.AppendLine("using System.IO;");
-            builder.AppendLine("");
-            builder.AppendLine("Directory.GetFiles(@\".\\\").print();");
+            builder
+                .AppendLine("//css_ac freestyle")
+                .AppendLine("using System;")
+                .AppendLine("using System.IO;")
+                .AppendLine("")
+                .AppendLine("Directory.GetFiles(@\".\\\").print();")
+                .AppendLine("");
+
+            return new[] { new SampleInfo(builder.ToString(), ".cs") };
+        }
+
+        private static SampleInfo[] CSharp_toplevel_Sample(string context)
+        {
+            var builder = new StringBuilder();
+
+            if (!Runtime.IsWin)
+            {
+                builder.AppendLine("// #!/usr/local/bin/cscs");
+            }
+
+            builder.AppendLine("using System;")
+                   .AppendLine("using System.IO;")
+                   .AppendLine("using System.Diagnostics;")
+                   .AppendLine("using static dbg; // print() extension")
+                   .AppendLine("using static System.Environment;")
+                   .AppendLine()
+                   .AppendLine("print(\"Script: \", GetEnvironmentVariable(\"EntryScript\"));")
+                   .AppendLine("@\".\\\".list_files(); ")
+                   .AppendLine()
+                   .AppendLine("static class extensions")
+                   .AppendLine("{")
+                   .AppendLine("    public static void list_files(this string path)")
+                   .AppendLine("        => Directory")
+                   .AppendLine("               .GetFiles(path)")
+                   .AppendLine("               .print()")
+                   .AppendLine("}");
+
             builder.AppendLine("");
 
             return new[] { new SampleInfo(builder.ToString(), ".cs") };
@@ -1316,7 +1364,7 @@ class Program
         private static SampleInfo[] DefaultVbSample(string context)
         {
             var code =
-    @"' //css_ref System
+        @"' //css_ref System
 
 Imports System
 
@@ -1332,7 +1380,7 @@ End Module";
         private static SampleInfo[] DefaultVbDesktopSample(string context)
         {
             var code =
-    @"' //css_dir %WINDOWS_DESKTOP_APP%
+        @"' //css_dir %WINDOWS_DESKTOP_APP%
 ' //css_ref System
 ' //css_ref System.Windows.Forms
 
@@ -1351,7 +1399,7 @@ End Module";
         public static string BuildPrecompilerSampleCode()
         {
             return
-    @"using System;
+        @"using System;
 using System.Collections;
 using System.Collections.Generic;
 nvironment.NewLine);

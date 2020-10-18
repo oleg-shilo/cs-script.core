@@ -131,7 +131,7 @@ namespace csscript
                     }
                     else
                     {
-                        print?.Invoke($"\nsample{sample.FileExtension}:");
+                        print?.Invoke($"\nsample{sample.FileExtension}:\n----------");
                         print?.Invoke(sample.Code);
                     }
                 }

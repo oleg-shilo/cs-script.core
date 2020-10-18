@@ -1893,6 +1893,15 @@
               <c>true</c> if the runtime is .Net; otherwise, <c>false</c>.
             </value>
         </member>
+        <member name="P:CSScriptLib.Runtime.DesktopAssembliesDir">
+            <summary>
+            Returns path to the `Microsoft.WindowsDesktop.App` shared assemblies of the compatible runtime version.
+            <para>Note, there is no warranty that the dotnet dedktop assemblies belong to the same distro version as dotnet Core:
+            <para> - C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.0-rc.1.20451.14</para>
+            <para> - C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\5.0.0-rc.1.20452.2</para>
+            </para>
+            </summary>
+        </member>
         <member name="T:CSScriptLib.StringExtensions">
             <summary>
             Various string extensions

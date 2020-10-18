@@ -7,8 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 using csscript;
 
 namespace CSScripting.CodeDom
@@ -301,13 +300,6 @@ namespace CSScripting.CodeDom
                                .Remove();
             }
 
-            if (!Runtime.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
-            {
-                project_element.Element("PropertyGroup")
-                               .Element("OutputType")
-                               .SetAttributeValue("TargetFramework", "netstandard2.0");
-            }
-
             // In .NET all references including GAC assemblies must be passed to the compiler.
             // In .NET Core this creates a problem as the compiler does not expect any default (shared)
             // assemblies to be passed. So we do need to exclude them.
@@ -323,10 +315,14 @@ namespace CSScripting.CodeDom
                                                              .Where(not_in_engine_dir)
                                                              .ToList();
 
+            void setTargetFremeworkWin() => project_element.Element("PropertyGroup")
+                                                           .SetElementValue("TargetFramework", "net5.0-windows");
+
             bool refWinForms = ref_assemblies.Any(x => x.EndsWith("System.Windows.Forms") ||
                                                        x.EndsWith("System.Windows.Forms.dll"));
             if (refWinForms)
             {
+                setTargetFremeworkWin();
                 project_element.Element("PropertyGroup")
                                .Add(new XElement("UseWindowsForms", "true"));
             }
@@ -335,6 +331,7 @@ namespace CSScripting.CodeDom
                                                                x.EndsWith("PresentationFramework.dll"));
             if (refWpf)
             {
+                setTargetFremeworkWin();
                 Environment.SetEnvironmentVariable("UseWPF", "true");
                 project_element.Element("PropertyGroup")
                                .Add(new XElement("UseWPF", "true"));

@@ -11,8 +11,12 @@ set target=net5.0
 md "..\out\.NET Core"
 rem "..\out\.NET Core\css.exe" -server:stop
 
-dotnet publish cscs.csproj -c Release -f %target% -o "..\out\.NET Core\console"
-dotnet publish csws.csproj -c Release -f %target% -o "..\out\.NET Core\win"
+dotnet publish -c Release -f %target% -o "..\out\.NET Core\console"
+
+cd ..\csws
+dotnet publish -c Release -f %target%-windows -o "..\out\.NET Core\win"
+
+cd ..\cscs
 
 copy "..\out\.NET Core\win" "..\out\.NET Core" /Y
 copy "..\out\.NET Core\console" "..\out\.NET Core" /Y
@@ -26,11 +30,13 @@ cd ..\out\.NET Core
 del *.dbg
 del *.pdb
 
-echo >  -code.header //css_ac freestyle
-echo >> -code.header using System;
-echo >> -code.header using System.IO;
-echo >> -code.header using System.Reflection;
-echo >> -code.header using System.Diagnostics;
+echo > -code.header    using System;
+echo >> -code.header    using System.IO;
+echo >> -code.header    using System.Reflection;
+echo >> -code.header    using System.Diagnostics;
+echo >> -code.header    using static dbg;
+echo >> -code.header    using static System.Environment;
+
 
 echo off
 

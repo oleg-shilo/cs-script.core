@@ -8,10 +8,10 @@ namespace csscript
     /// <summary>
     /// Executes "public static void Main(..)" of assembly in a separate domain.
     /// </summary>
-    class AssemblyExecutor
+    internal class AssemblyExecutor
     {
-        LocalExecutor executor;
-        string assemblyFileName;
+        private LocalExecutor executor;
+        private string assemblyFileName;
 
         public AssemblyExecutor(string fileName, string domainName)
         {
@@ -28,7 +28,7 @@ namespace csscript
     /// <summary>
     /// Invokes static method 'Main' from the assembly.
     /// </summary>
-    class LocalExecutor
+    internal class LocalExecutor
     {
         public string[] searchDirs;
 
@@ -66,7 +66,7 @@ namespace csscript
 
         public Assembly ResolveResEventHandler(object sender, ResolveEventArgs args) => Assembly.LoadFrom(this.asmFile);
 
-        string asmFile = "";
+        private string asmFile = "";
 
         public void ExecuteAssembly(string filename, string[] args) =>
             ExecuteAssembly(filename, args, null);

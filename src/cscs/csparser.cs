@@ -108,8 +108,8 @@ namespace csscript
             /// </summary>
             public int EoAuthnCap = 0x40; //EoAuthnCap.DynamicCloaking
 
-            static char[] tokenDelimiters = new char[] { '(', ')' };
-            static char[] argDelimiters = new char[] { ',' };
+            private static char[] tokenDelimiters = new char[] { '(', ')' };
+            private static char[] argDelimiters = new char[] { ',' };
 
             /// <summary>
             /// Initializes a new instance of the <see cref="InitInfo"/> class.
@@ -154,7 +154,7 @@ namespace csscript
                     throw new ApplicationException("Cannot parse //css_init directive. '" + statement + "' is in unexpected format.");
             }
 
-            bool TryParseInt(string text, out int value)
+            private bool TryParseInt(string text, out int value)
             {
                 text = text.TrimStart();
                 if (text.StartsWith("0x", StringComparison.Ordinal))
@@ -277,13 +277,13 @@ namespace csscript
                 InternalInit(parts, 1, context);
             }
 
-            ImportInfo(string[] parts, string context)
+            private ImportInfo(string[] parts, string context)
             {
                 this.file = parts[0];
                 InternalInit(parts, 1, context);
             }
 
-            void InternalInit(string[] statementParts, int startIndex, string context)
+            private void InternalInit(string[] statementParts, int startIndex, string context)
             {
                 List<string[]> renameingMap = new List<string[]>();
 
@@ -336,12 +336,12 @@ namespace csscript
             public bool preserveMain = false;
         }
 
-        List<int[]> stringRegions = new List<int[]>();
-        List<int[]> commentRegions = new List<int[]>();
+        private List<int[]> stringRegions = new List<int[]>();
+        private List<int[]> commentRegions = new List<int[]>();
 
         internal static bool NeedInitEnvironment = true;
 
-        static void InitEnvironment()
+        private static void InitEnvironment()
         {
             if (NeedInitEnvironment)
             {
@@ -421,7 +421,7 @@ namespace csscript
             Construct(script, isFile, directivesToSearch, probingDirs);
         }
 
-        void Construct(string script, bool isFile, string[] directivesToSearch, string[] probingDirs)
+        private void Construct(string script, bool isFile, string[] directivesToSearch, string[] probingDirs)
         {
             if (!isFile)
                 Init(script, "", directivesToSearch, probingDirs);
@@ -460,7 +460,7 @@ namespace csscript
         /// <param name="file">If set to 'true' the script is a file, otherwise it is a C# code.</param>
         /// <param name="directivesToSearch">Additional C# script directives to search. The search result is stored in CSharpParser.CustomDirectives.</param>
         /// <param name="probingDirs">Search directories for resolving wild card paths in //css_inc and //css_imp</param>
-        void Init(string code, string file, string[] directivesToSearch, string[] probingDirs)
+        private void Init(string code, string file, string[] directivesToSearch, string[] probingDirs)
         {
             probingDirs = probingDirs?.Except(Settings.PseudoDirItems)
                                       .Where(Directory.Exists)
@@ -591,6 +591,10 @@ namespace csscript
                 var pattern = Environment.ExpandEnvironmentVariables(UnescapeDirectiveDelimiters(statement)).Trim();
                 searchDirs.AddRange(workingDir.GetMatchingDirs(pattern));
             }
+
+            if (GetRawStatements("//css_winapp", endCodePos).Any())
+                searchDirs.Add("%WINDOWS_DESKTOP_APP%".Expand());
+
             //analyse namespace references
             foreach (string statement in GetRawStatements(code, "using", endCodePos, true))
                 if (!statement.StartsWith("(")) //just to cut off "using statements" as we are interested in "using directives" only
@@ -622,7 +626,7 @@ namespace csscript
             }
         }
 
-        class RenamingInfo
+        private class RenamingInfo
         {
             public RenamingInfo(int stratPos, int endPos, string newValue)
             {
@@ -636,7 +640,7 @@ namespace csscript
             public string newValue;
         }
 
-        class RenamingInfoComparer : System.Collections.Generic.IComparer<RenamingInfo>
+        private class RenamingInfoComparer : System.Collections.Generic.IComparer<RenamingInfo>
         {
             public int Compare(RenamingInfo x, RenamingInfo y)
             {
@@ -813,7 +817,7 @@ namespace csscript
         /// </summary>
         public ApartmentState ThreadingModel { get; private set; } = ApartmentState.Unknown;
 
-        string autoClassMode = null;
+        private string autoClassMode = null;
 
         /// <summary>
         /// Gets the `auto-class` decoration mode value.
@@ -830,30 +834,30 @@ namespace csscript
         /// </summary>
         public string ModifiedCode { get; private set; } = "";
 
-        List<string> searchDirs = new List<string>();
-        List<string> resFiles = new List<string>();
-        List<string> refAssemblies = new List<string>();
-        List<string> compilerOptions = new List<string>();
-        List<CmdScriptInfo> cmdScripts = new List<CmdScriptInfo>();
-        List<InitInfo> inits = new List<InitInfo>();
-        List<string> nugets = new List<string>();
-        List<string> refNamespaces = new List<string>();
-        List<string> ignoreNamespaces = new List<string>();
-        List<ImportInfo> imports = new List<ImportInfo>();
-        List<string> precompilers = new List<string>();
-        List<string> args = new List<string>();
+        private List<string> searchDirs = new List<string>();
+        private List<string> resFiles = new List<string>();
+        private List<string> refAssemblies = new List<string>();
+        private List<string> compilerOptions = new List<string>();
+        private List<CmdScriptInfo> cmdScripts = new List<CmdScriptInfo>();
+        private List<InitInfo> inits = new List<InitInfo>();
+        private List<string> nugets = new List<string>();
+        private List<string> refNamespaces = new List<string>();
+        private List<string> ignoreNamespaces = new List<string>();
+        private List<ImportInfo> imports = new List<ImportInfo>();
+        private List<string> precompilers = new List<string>();
+        private List<string> args = new List<string>();
 
         /// <summary>
         /// Enables omitting closing character (";") for CS-Script directives (e.g. "//css_ref System.Xml.dll" instead of "//css_ref System.Xml.dll;").
         /// </summary>
         public static bool OpenEndDirectiveSyntax = true;
 
-        string[] GetRawStatements(string pattern, int endIndex, bool canBeEmpty = false)
+        private string[] GetRawStatements(string pattern, int endIndex, bool canBeEmpty = false)
         {
             return GetRawStatements(this.Code, pattern, endIndex, false, canBeEmpty);
         }
 
-        string[] GetRawStatements(string codeToAnalyse, string pattern, int endIndex, bool ignoreComments, bool canBeEmpty = false)
+        private string[] GetRawStatements(string codeToAnalyse, string pattern, int endIndex, bool ignoreComments, bool canBeEmpty = false)
         {
             List<string> retval = new List<string>();
 
@@ -884,7 +888,7 @@ namespace csscript
                 .ToArray();
         }
 
-        string ProcessConditionalSymbols(string text)
+        private string ProcessConditionalSymbols(string text)
         {
             if (text.StartsWith("#if"))
             {
@@ -904,7 +908,7 @@ namespace csscript
             return text;
         }
 
-        int[] AllRawIndexOf(string pattern, int startIndex, int endIndex) //all raw matches
+        private int[] AllRawIndexOf(string pattern, int startIndex, int endIndex) //all raw matches
         {
             List<int> retval = new List<int>();
 
@@ -917,7 +921,7 @@ namespace csscript
             return retval.ToArray();
         }
 
-        int IndexOf(string pattern, int startIndex, int endIndex) //non-comment match
+        private int IndexOf(string pattern, int startIndex, int endIndex) //non-comment match
         {
             int pos = Code.IndexOf(pattern, startIndex, endIndex - startIndex);
             while (pos != -1)
@@ -985,7 +989,7 @@ namespace csscript
             return retval.ToArray();
         }
 
-        int IndexOfDelimiter(int startIndex, int endIndex, params char[] delimiters)
+        private int IndexOfDelimiter(int startIndex, int endIndex, params char[] delimiters)
         {
             char lastDelimiter = char.MinValue;
 
@@ -1016,7 +1020,7 @@ namespace csscript
             return -1;
         }
 
-        bool IsComment(int charPos)
+        private bool IsComment(int charPos)
         {
             foreach (int[] region in commentRegions)
             {
@@ -1028,7 +1032,7 @@ namespace csscript
             return false;
         }
 
-        bool IsString(int charPos)
+        private bool IsString(int charPos)
         {
             foreach (int[] region in stringRegions)
             {
@@ -1040,9 +1044,9 @@ namespace csscript
             return false;
         }
 
-        static char[] codeDelimiters = new char[] { ';', '(', ')', '{', };
+        private static char[] codeDelimiters = new char[] { ';', '(', ')', '{', };
 
-        bool IsToken(int startPos, int length)
+        private bool IsToken(int startPos, int length)
         {
             if (Code.Length < startPos + length) //the rest of the text is too short
                 return false;
@@ -1056,7 +1060,7 @@ namespace csscript
             return true;
         }
 
-        bool IsDirectiveToken(int startPos, int length)
+        private bool IsDirectiveToken(int startPos, int length)
         {
             if (Code.Length < startPos + length) //the rest of the text is too short
                 return false;
@@ -1163,7 +1167,7 @@ namespace csscript
         /// </summary>
         public static char[] DirectiveDelimiters = new char[] { ';', '(', ')', '{', '}', ',' };
 
-        void NoteCommentsAndStrings()
+        private void NoteCommentsAndStrings()
         {
             List<int> quotationChars = new List<int>();
 
@@ -1232,7 +1236,7 @@ namespace csscript
             }
         }
 
-        int FindStatement(string pattern, int start)
+        private int FindStatement(string pattern, int start)
         {
             if (Code.Length == 0)
                 return -1;
@@ -1248,7 +1252,7 @@ namespace csscript
             return -1;
         }
 
-        string StripNonStringStatementComments(string text)
+        private string StripNonStringStatementComments(string text)
         {
             StringBuilder sb = new StringBuilder();
             int startPos;

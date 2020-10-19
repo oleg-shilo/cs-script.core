@@ -341,7 +341,10 @@ namespace csscript
                                                "Prints runtime information during the script execution.",
                                                    "(applicable for console clients only)");
             switch2Help[profile] = new ArgInfo("-profile",
-                                               "Prints runtime information during the script loading speed.");
+                                               "Prints script loading performance information during the script execution.");
+            switch2Help[speed] = new ArgInfo("-speed",
+                                               "Prints script initialization/compilation time information of the .NET compiler. ",
+                                               "It is a convenient way of testing performance of the .NET distribution.");
             switch2Help[stop] = new ArgInfo("-stop",
                                             "Stops all running instances of Roslyn sever (VBCSCompiler.exe).",
                                                 "(applicable for .NET/Windows only)");

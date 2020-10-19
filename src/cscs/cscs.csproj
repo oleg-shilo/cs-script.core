@@ -6,22 +6,27 @@
 		<AssemblyName>cscs</AssemblyName>
 		<RootNamespace>CSScripting</RootNamespace>
 		<StartupObject />
-		<Version>1.4.1.0</Version>
+		<Version>1.4.2.0</Version>
 		<Authors>Oleg Shilo</Authors>
 		<Product>CS-Script</Product>
 		<Copyright>(C) 2004-2020 Oleg Shilo</Copyright>
 		<Description>C# Script engine .NET Core executable</Description>
 		<PackageLicenseUrl></PackageLicenseUrl>
-		<PackageProjectUrl>https://github.com/oleg-shilo/cs-script</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/oleg-shilo/cs-script.core</PackageProjectUrl>
 		<PackageIconUrl></PackageIconUrl>
-		<RepositoryUrl>https://github.com/oleg-shilo/cs-script</RepositoryUrl>
+		<RepositoryUrl>https://github.com/oleg-shilo/cs-script.core</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>C# script dynamic</PackageTags>
-		<AssemblyVersion>1.4.1.0</AssemblyVersion>
-		<FileVersion>1.4.1.0</FileVersion>
-		<PackageReleaseNotes>
-			- .NET 5 preview
-		</PackageReleaseNotes>
+		<AssemblyVersion>1.4.2.0</AssemblyVersion>
+		<FileVersion>1.4.2.0</FileVersion>
+		<PackageReleaseNotes>- Migrated to .NET5 RC2
+- Implemented `//css_winapp` for WinForm and WPF applications
+- Added `-new:toplevel` CLI parameter
+- Added support for -vscode switch to open script in visual studio
+- Added support for -vs switch to open script folder in visual studio code
+- Added support for top-level statements (new classless script approach)
+- Added CLI switch -profile for testing script loading performance
+- Added CLI `-speed` for compiler performance testing</PackageReleaseNotes>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageIcon>css_logo.png</PackageIcon>
 	</PropertyGroup>

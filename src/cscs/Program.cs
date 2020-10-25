@@ -1,8 +1,7 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using csscript;
+﻿using csscript;
 using CSScripting.CodeDom;
+using System;
+using System.Linq;
 
 /*
 ensure -cd creates dll in the right folder

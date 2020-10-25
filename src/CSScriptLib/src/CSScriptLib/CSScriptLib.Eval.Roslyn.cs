@@ -30,6 +30,14 @@
 
 #endregion License...
 
+using csscript;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Microsoft.CodeAnalysis.Emit;
+
+//using Microsoft.CodeAnalysis;
+//using Microsoft.CodeAnalysis.CSharp.Scripting
+using Microsoft.CodeAnalysis.Scripting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -37,16 +45,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.Emit;
-
-//using Microsoft.CodeAnalysis;
-//using Microsoft.CodeAnalysis.CSharp.Scripting;
-//using Microsoft.CodeAnalysis.Scripting;
-//using csscript;
-using Microsoft.CodeAnalysis.Scripting;
-using csscript;
 
 // <summary>
 //<package id="Microsoft.Net.Compilers" version="1.2.0-beta-20151211-01" targetFramework="net45" developmentDependency="true" />
@@ -149,7 +147,7 @@ namespace CSScriptLib
     /// </summary>
     public class RoslynEvaluator : IEvaluator
     {
-        private static Assembly mscorelib = 333.GetType().Assembly;
+        static Assembly mscorelib = 333.GetType().Assembly;
 
         /// <summary>
         /// Gets or sets a value indicating whether to compile script with debug symbols.
@@ -161,7 +159,7 @@ namespace CSScriptLib
         /// <value><c>true</c> if 'debug build'; otherwise, <c>false</c>.</value>
         public bool? DebugBuild { get; set; }
 
-        private bool IsDebug => DebugBuild ?? CSScript.EvaluatorConfig.DebugBuild;
+        bool IsDebug => DebugBuild ?? CSScript.EvaluatorConfig.DebugBuild;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RoslynEvaluator" /> class.
@@ -198,7 +196,7 @@ namespace CSScriptLib
             return clone;
         }
 
-        private ScriptOptions compilerSettings = ScriptOptions.Default;
+        ScriptOptions compilerSettings = ScriptOptions.Default;
 
         /// <summary>
         /// Gets or sets the compiler settings.
@@ -287,7 +285,7 @@ namespace CSScriptLib
             return CompileCode(scriptText, null, info);
         }
 
-        private Assembly CompileCode(string scriptText, string scriptFile, CompileInfo info)
+        Assembly CompileCode(string scriptText, string scriptFile, CompileInfo info)
         {
             // scriptFile is needed to allow injection of the debug information
 
@@ -393,7 +391,7 @@ namespace CSScriptLib
             Compile(scriptText, null, null);
         }
 
-        private (byte[] asm, byte[] pdb) Compile(string scriptText, string scriptFile, CompileInfo info)
+        (byte[] asm, byte[] pdb) Compile(string scriptText, string scriptFile, CompileInfo info)
         {
             // http://www.michalkomorowski.com/2016/10/roslyn-how-to-create-custom-debuggable_27.html
 
@@ -687,7 +685,7 @@ namespace CSScriptLib
             return CompileCode(scriptText).CreateObject(ExtractClassName(scriptText), args);
         }
 
-        private static string ExtractClassName(string scriptText)
+        static string ExtractClassName(string scriptText)
         {
             // will need to use Roslyn eventually
             return "*";

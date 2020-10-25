@@ -1,13 +1,14 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis;
 
 #if class_lib
 
 namespace CSScriptLib
 #else
+
 namespace csscript
 #endif
 {

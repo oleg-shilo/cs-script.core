@@ -78,7 +78,7 @@ namespace csscript
         internal const string proj_dbg = "proj:dbg";    // for internal use only
         internal const string proj_csproj = "proj:csproj";    // for internal use only
         static public string SyntaxHelp { get { return syntaxHelp.ToConsoleLines(0); } }
-        private static string syntaxHelp = "";
+        static string syntaxHelp = "";
 
         static public Dictionary<string, ArgInfo> switch1Help = new Dictionary<string, ArgInfo>();
         static public Dictionary<string, ArgInfo> switch2Help = new Dictionary<string, ArgInfo>();
@@ -118,9 +118,9 @@ namespace csscript
 
         internal class ArgInfo
         {
-            private string argSpec;
-            private string description;
-            private string doc = "";
+            string argSpec;
+            string description;
+            string doc = "";
 
             public ArgInfo(string argSpec, string description, params string[] docLines)
             {
@@ -151,21 +151,21 @@ namespace csscript
                 return buf.ToString().TrimEnd();
             }
 
-            private static int indent = 4;
+            static int indent = 4;
         }
 
-        private static string fromLines(params string[] lines)
+        static string fromLines(params string[] lines)
         {
             return string.Join(Environment.NewLine, lines.SelectMany(x => x.SplitSubParagraphs()).ToArray());
         }
 
-        private static string indent(int indent, string text)
+        static string indent(int indent, string text)
         {
             var result = text.ToConsoleLines(indent);
             return text.ToConsoleLines(indent);
         }
 
-        private static string indent2(int indent, string text)
+        static string indent2(int indent, string text)
         {
             var result = text.ToConsoleLines(indent);
             return text.ToConsoleLines(indent);
@@ -174,7 +174,7 @@ namespace csscript
         internal const string section_sep = "------------------------------------"; // section separator
         internal const string alias_prefix = "Alias - ";
 
-        private const string help_url = "https://www.cs-script.net/cs-script/help-legacy";
+        const string help_url = "https://www.cs-script.net/cs-script/help-legacy";
 
         static AppArgs()
         {
@@ -1043,7 +1043,7 @@ namespace csscript
             public string FileExtension;
         }
 
-        private static Dictionary<string, Func<string, SampleInfo[]>> sampleBuilders = new Dictionary<string, Func<string, SampleInfo[]>>
+        static Dictionary<string, Func<string, SampleInfo[]>> sampleBuilders = new Dictionary<string, Func<string, SampleInfo[]>>
         {
             { "", DefaultSample},
             { "console", DefaultSample},
@@ -1097,7 +1097,7 @@ Examples:
                 throw new Exception($"Specified unknown script type '{appType}'");
         }
 
-        private static SampleInfo[] CSharp_command_Sample(string context)
+        static SampleInfo[] CSharp_command_Sample(string context)
         {
             var cs =
 @$"using System;
@@ -1125,7 +1125,7 @@ WriteLine($""Executing {context} for: [{{string.Join(args, "","")}}]"");
             return new[] { new SampleInfo(cs.NormalizeNewLines(), ".cs") };
         }
 
-        private static SampleInfo[] CSharp_winforms_Sample(string context)
+        static SampleInfo[] CSharp_winforms_Sample(string context)
         {
             var cs =
     @"//css_winapp
@@ -1143,7 +1143,7 @@ class Program
             return new[] { new SampleInfo(cs.NormalizeNewLines(), ".cs") };
         }
 
-        private static SampleInfo[] CSharp_wpf_ss_Sample(string context)
+        static SampleInfo[] CSharp_wpf_ss_Sample(string context)
         {
             var xaml = new StringBuilder()
                     .AppendLine("<Window x:Class=\"MainWindow\"")
@@ -1225,7 +1225,7 @@ class Program
             };
         }
 
-        private static SampleInfo[] CSharp_wpf_Sample(string context)
+        static SampleInfo[] CSharp_wpf_Sample(string context)
         {
             var xaml = new StringBuilder()
                     .AppendLine("<Window x:Class=\"MainWindow\"")
@@ -1270,7 +1270,7 @@ class Program
             };
         }
 
-        private static SampleInfo[] CSharp_freestyle_Sample(string context)
+        static SampleInfo[] CSharp_freestyle_Sample(string context)
         {
             StringBuilder builder = new StringBuilder();
 
@@ -1290,7 +1290,7 @@ class Program
             return new[] { new SampleInfo(builder.ToString(), ".cs") };
         }
 
-        private static SampleInfo[] CSharp_toplevel_Sample(string context)
+        static SampleInfo[] CSharp_toplevel_Sample(string context)
         {
             var builder = new StringBuilder();
 
@@ -1321,7 +1321,7 @@ class Program
             return new[] { new SampleInfo(builder.ToString(), ".cs") };
         }
 
-        private static SampleInfo[] CSharp_auto_Sample(string context)
+        static SampleInfo[] CSharp_auto_Sample(string context)
         {
             var cs = new StringBuilder();
 
@@ -1352,7 +1352,7 @@ class Program
             return new[] { new SampleInfo(cs.ToString(), ".cs") };
         }
 
-        private static SampleInfo[] CSharp7_Sample(string context)
+        static SampleInfo[] CSharp7_Sample(string context)
         {
             var builder = new StringBuilder();
 
@@ -1396,9 +1396,9 @@ class Program
             return new[] { new SampleInfo(builder.ToString(), ".cs") };
         }
 
-        private static SampleInfo[] DefaultSample(string context) => CSharp7_Sample(context);
+        static SampleInfo[] DefaultSample(string context) => CSharp7_Sample(context);
 
-        private static SampleInfo[] DefaultVbSample(string context)
+        static SampleInfo[] DefaultVbSample(string context)
         {
             var code =
         @"' //css_ref System
@@ -1414,7 +1414,7 @@ End Module";
             return new[] { new SampleInfo(code.NormalizeNewLines(), ".vb") };
         }
 
-        private static SampleInfo[] DefaultVbDesktopSample(string context)
+        static SampleInfo[] DefaultVbDesktopSample(string context)
         {
             var code =
         @"' //css_winapp

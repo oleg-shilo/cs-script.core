@@ -65,7 +65,7 @@
         </member>
         <member name="M:CSScriptLib.CSharpParser.InitInfo.#ctor(System.String)">
             <summary>
-            Initializes a new instance of the <see cref="T:CSScriptLib.CSharpParser.InitInfo"/> class.
+            Initializes a new instance of the <see cref="T:CSScriptLib.CSharpParser.InitInfo" /> class.
             </summary>
             <param name="statement">The original argument statement of the <c>//css_init</c> directive.</param>
         </member>
@@ -98,7 +98,7 @@
         </member>
         <member name="M:CSScriptLib.CSharpParser.#ctor">
             <summary>
-            Initializes a new instance of the <see cref="T:CSScriptLib.CSharpParser"/> class.
+            Initializes a new instance of the <see cref="T:CSScriptLib.CSharpParser" /> class.
             </summary>
         </member>
         <member name="M:CSScriptLib.CSharpParser.#ctor(System.String)">
@@ -251,7 +251,7 @@
             For example //css_include for 'script(today).cs' should escape brackets as they are the directive delimiters.
             The correct syntax would be as follows '//css_include script((today)).cs;'</para>
             <remarks>The delimiters characters are ';,(){}'.
-            <para>However you should check <see cref="F:CSScriptLib.CSharpParser.DirectiveDelimiters"/> for the accurate list of all delimiters.
+            <para>However you should check <see cref="F:CSScriptLib.CSharpParser.DirectiveDelimiters" /> for the accurate list of all delimiters.
             </para>
             </remarks>
             </summary>
@@ -263,7 +263,6 @@
              Replaces the user escaped delimiters with internal escaping.
              <p> "{char}{char}" -> "\u{((int)c).ToString("x4")}"</p>
              <p> "((" -> "\u0028"</p>
-            
              </summary>
              <param name="text">The text.</param>
              <returns></returns>
@@ -275,7 +274,7 @@
             For example //css_include for 'script(today).cs' should escape brackets as they are the directive delimiters.
             The correct syntax would be as follows '//css_include script((today)).cs;'</para>
             <remarks>The delimiters characters are ';,(){}'.
-            <para>However you should check <see cref="F:CSScriptLib.CSharpParser.DirectiveDelimiters"/> for the accurate list of all delimiters.
+            <para>However you should check <see cref="F:CSScriptLib.CSharpParser.DirectiveDelimiters" /> for the accurate list of all delimiters.
             </para>
             </remarks>
             </summary>
@@ -349,44 +348,44 @@
         </member>
         <member name="P:CSScriptLib.CSScript.RoslynEvaluator">
             <summary>
-            Global instance of <see cref="T:CSScriptLib.RoslynEvaluator"/>. This object is to be used for
+            Global instance of <see cref="T:CSScriptLib.RoslynEvaluator" />. This object is to be used for
             dynamic loading of the  C# code by using Roslyn "compiler as service".
             <para>If you need to use multiple instances of th evaluator then you will need to call
-            <see cref="T:CSScriptLib.IEvaluator"/>.Clone().
+            <see cref="T:CSScriptLib.IEvaluator" />.Clone().
             </para>
             </summary>
-            <value> The <see cref="T:CSScriptLib.RoslynEvaluator"/> instance.</value>
+            <value> The <see cref="T:CSScriptLib.RoslynEvaluator" /> instance.</value>
         </member>
         <member name="P:CSScriptLib.CSScript.EvaluatorConfig">
             <summary>
-            Gets the CSScript.<see cref="T:CSScriptLib.EvaluatorConfig"/>, which controls the way code evaluation is conducted at runtime.
+            Gets the CSScript.<see cref="T:CSScriptLib.EvaluatorConfig" />, which controls the way code evaluation is conducted at runtime.
             </summary>
-            <value>The evaluator CSScript.<see cref="T:CSScriptLib.EvaluatorConfig"/>.</value>
+            <value>The evaluator CSScript.<see cref="T:CSScriptLib.EvaluatorConfig" />.</value>
         </member>
         <member name="P:CSScriptLib.CSScript.Evaluator">
              <summary>
-             Global instance of the generic <see cref="T:CSScriptLib.IEvaluator"/>. This object is to be used for
+             Global instance of the generic <see cref="T:CSScriptLib.IEvaluator" />. This object is to be used for
              dynamic loading of the  C# code by "compiler as service" based on the
-             <see cref="P:CSScriptLib.CSScript.EvaluatorConfig.Engine"/> value.
-             <para>Generic <see cref="T:CSScriptLib.IEvaluator"/> interface provides a convenient way of accessing
+             <see cref="P:CSScriptLib.CSScript.EvaluatorConfig.Engine" /> value.
+             <para>Generic <see cref="T:CSScriptLib.IEvaluator" /> interface provides a convenient way of accessing
              compilers without 'committing' to a specific compiler technology (e.g. Mono, Roslyn, CodeDOM). This may be
              required during troubleshooting or performance tuning.</para>
              <para>Switching between compilers can be done via global
-             CSScript.<see cref="P:CSScriptLib.CSScript.EvaluatorConfig.Engine"/>.</para>
+             CSScript.<see cref="P:CSScriptLib.CSScript.EvaluatorConfig.Engine" />.</para>
              <remarks>
-             By default CSScript.<see cref="P:CSScriptLib.CSScript.Evaluator"/> always returns a new instance of
-             <see cref="T:CSScriptLib.IEvaluator"/>. If this behavior is undesired change the evaluator access
-             policy by setting <see cref="P:CSScriptLib.CSScript.EvaluatorConfig"/>.Access value.
+             By default CSScript.<see cref="P:CSScriptLib.CSScript.Evaluator" /> always returns a new instance of
+             <see cref="T:CSScriptLib.IEvaluator" />. If this behavior is undesired change the evaluator access
+             policy by setting <see cref="P:CSScriptLib.CSScript.EvaluatorConfig" />.Access value.
              </remarks>
              </summary>
-             <value>The <see cref="T:CSScriptLib.IEvaluator"/> instance.</value>
+             <value>The <see cref="T:CSScriptLib.IEvaluator" /> instance.</value>
              <example>
             <code>
              if(testingWithMono)
                  CSScript.EvaluatorConfig.Engine = EvaluatorEngine.Mono;
              else
                  CSScript.EvaluatorConfig.Engine = EvaluatorEngine.Roslyn;
-            
+
              var sub = CSScript.Evaluator
                                .LoadDelegate&lt;Func&lt;int, int, int&gt;&gt;(
                                            @"int Sub(int a, int b) {
@@ -409,7 +408,7 @@
             <summary>
             The PDB file path.
             <para>Even if the this value is specified the file will not be generated unless
-            <see cref="P:CSScriptLib.CSScript.EvaluatorConfig"/>.DebugBuild is set to <c>true</c>.
+            <see cref="P:CSScriptLib.CSScript.EvaluatorConfig" />.DebugBuild is set to <c>true</c>.
             </para>
             </summary>
         </member>
@@ -420,7 +419,7 @@
             a top level class. Thus all user defined classes are in fact nested classes with the root class
             named by Roslyn as "Submission#0". This leads to the complications when user wants to reference script class in
             another script. Specifically because C# treats "Submission#0" as an illegal class name. </para>
-            <para>C# helps the situation by allowing user specified root name <see cref="P:CSScriptLib.CompileInfo.RootClass"/>,
+            <para>C# helps the situation by allowing user specified root name <see cref="P:CSScriptLib.CompileInfo.RootClass" />,
             which is by default is "css_root".
             </para>
             </summary>
@@ -444,25 +443,25 @@
         </member>
         <member name="M:CSScriptLib.CompilerException.#ctor">
             <summary>
-            Initialises a new instance of the <see cref="T:CSScriptLib.CompilerException"/> class.
+            Initialises a new instance of the <see cref="T:CSScriptLib.CompilerException" /> class.
             </summary>
         </member>
         <member name="M:CSScriptLib.CompilerException.#ctor(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
             <summary>
-            Initialises a new instance of the <see cref="T:CSScriptLib.CompilerException"/> class.
+            Initialises a new instance of the <see cref="T:CSScriptLib.CompilerException" /> class.
             </summary>
             <param name="info">The object that holds the serialized object data.</param>
             <param name="context">The contextual information about the source or destination.</param>
         </member>
         <member name="M:CSScriptLib.CompilerException.#ctor(System.String)">
             <summary>
-            Initializes a new instance of the <see cref="T:CSScriptLib.CompilerException"/> class.
+            Initializes a new instance of the <see cref="T:CSScriptLib.CompilerException" /> class.
             </summary>
             <param name="message">The message.</param>
         </member>
         <member name="T:CSScriptLib.RoslynEvaluator">
             <summary>
-            A wrapper class that encapsulates the functionality of the Roslyn  evaluator (<see cref="N:Microsoft.CodeAnalysis.CSharp.Scripting"/>).
+            A wrapper class that encapsulates the functionality of the Roslyn  evaluator (<see cref="N:Microsoft.CodeAnalysis.CSharp.Scripting" />).
             </summary>
         </member>
         <member name="P:CSScriptLib.RoslynEvaluator.DebugBuild">
@@ -470,7 +469,7 @@
             Gets or sets a value indicating whether to compile script with debug symbols.
             <para>Note, setting <c>DebugBuild</c> will only affect the current instance of Evaluator.
             If you want to emit debug symbols for all instances of Evaluator then use
-            <see cref="P:CSScriptLib.CSScript.EvaluatorConfig"/>.DebugBuild.
+            <see cref="P:CSScriptLib.CSScript.EvaluatorConfig" />.DebugBuild.
             </para>
             </summary>
             <value><c>true</c> if 'debug build'; otherwise, <c>false</c>.</value>
@@ -482,19 +481,19 @@
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.Clone(System.Boolean)">
             <summary>
-            Clones itself as <see cref="T:CSScriptLib.IEvaluator"/>.
+            Clones itself as <see cref="T:CSScriptLib.IEvaluator" />.
             <para>
-            This method returns a freshly initialized copy of the <see cref="T:CSScriptLib.IEvaluator"/>.
-            The cloning 'depth' can be controlled by the <paramref name="copyRefAssemblies"/>.
+            This method returns a freshly initialized copy of the <see cref="T:CSScriptLib.IEvaluator" />.
+            The cloning 'depth' can be controlled by the <paramref name="copyRefAssemblies" />.
             </para>
             <para>
-            This method is a convenient technique when multiple <see cref="T:CSScriptLib.IEvaluator"/> instances
+            This method is a convenient technique when multiple <see cref="T:CSScriptLib.IEvaluator" /> instances
             are required (e.g. for concurrent script evaluation).
             </para>
             </summary>
-            <param name="copyRefAssemblies">if set to <c>true</c> all referenced assemblies from the parent <see cref="T:CSScriptLib.IEvaluator"/>
+            <param name="copyRefAssemblies">if set to <c>true</c> all referenced assemblies from the parent <see cref="T:CSScriptLib.IEvaluator" />
             will be referenced in the cloned copy.</param>
-            <returns>The freshly initialized instance of the <see cref="T:CSScriptLib.IEvaluator"/>.</returns>
+            <returns>The freshly initialized instance of the <see cref="T:CSScriptLib.IEvaluator" />.</returns>
         </member>
         <member name="P:CSScriptLib.RoslynEvaluator.CompilerSettings">
             <summary>
@@ -529,7 +528,7 @@
                                                            return a+b;
                                                        }
                                                    }");
-            
+
              dynamic script =  asm.CreateObject("*");
              var result = script.Sum(7, 3);
              </code>
@@ -540,7 +539,7 @@
         <member name="M:CSScriptLib.RoslynEvaluator.CompileCode(System.String,CSScriptLib.CompileInfo)">
              <summary>
              Evaluates (compiles) C# code (script). The C# code is a typical C# code containing a single or multiple class definition(s).
-             <para>The method is identical to <see cref="M:CSScriptLib.RoslynEvaluator.CompileCode(System.String)"/> except that it allows specifying
+             <para>The method is identical to <see cref="M:CSScriptLib.RoslynEvaluator.CompileCode(System.String)" /> except that it allows specifying
              the destination assembly file.</para>
              </summary>
              <example>
@@ -549,7 +548,7 @@
              {
                  AssemblyFile = @"E:\temp\asm.dll"
              };
-            
+
              Assembly asm = CSScript.Evaluator
                                     .Cast&lt;RoslynEvaluator&gt;()
                                     .CompileCode(@"using System;
@@ -561,7 +560,7 @@
                                                        }
                                                    }",
                                                    info);
-            
+
              dynamic script =  asm.CreateObject("*");
              var result = script.Sum(7, 3);
              </code>
@@ -642,7 +641,7 @@
              <summary>
              Wraps C# code fragment into auto-generated class (type name <c>DynamicClass</c>) and evaluates it.
              <para>
-             This method is a logical equivalent of <see cref="M:CSScriptLib.IEvaluator.CompileCode(System.String,CSScriptLib.CompileInfo)"/> but is allows you to define
+             This method is a logical equivalent of <see cref="M:CSScriptLib.IEvaluator.CompileCode(System.String,CSScriptLib.CompileInfo)" /> but is allows you to define
              your script class by specifying class method instead of whole class declaration.</para>
              </summary>
              <example>
@@ -653,7 +652,7 @@
                                                            return a+b;
                                                        }")
                                       .CreateObject("*");
-            
+
              var result = script.Sum(7, 3);
              </code>
              </example>
@@ -663,7 +662,7 @@
         <member name="M:CSScriptLib.RoslynEvaluator.CreateDelegate(System.String)">
              <summary>
              Wraps C# code fragment into auto-generated class (type name <c>DynamicClass</c>), evaluates it and loads the class to the current AppDomain.
-             <para>Returns non-typed <see cref="T:CSScriptLib.MethodDelegate"/> for class-less style of invoking.</para>
+             <para>Returns non-typed <see cref="T:CSScriptLib.MethodDelegate" /> for class-less style of invoking.</para>
              </summary>
              <example>
              <code>
@@ -672,17 +671,17 @@
                                                  {
                                                      Console.WriteLine(message);
                                                  }");
-            
+
              log("Test message");
              </code>
              </example>
              <param name="code">The C# code.</param>
-             <returns> The instance of a non-typed <see cref="T:CSScriptLib.MethodDelegate"/></returns>
+             <returns> The instance of a non-typed <see cref="T:CSScriptLib.MethodDelegate" /></returns>
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.CreateDelegate``1(System.String)">
              <summary>
              Wraps C# code fragment into auto-generated class (type name <c>DynamicClass</c>), evaluates it and loads the class to the current AppDomain.
-             <para>Returns typed <see cref="T:CSScriptLib.MethodDelegate`1"/> for class-less style of invoking.</para>
+             <para>Returns typed <see cref="T:CSScriptLib.MethodDelegate`1" /> for class-less style of invoking.</para>
              </summary>
              <typeparam name="T">The delegate return type.</typeparam>
              <example>
@@ -692,12 +691,12 @@
                                                          {
                                                              return a * b;
                                                          }");
-            
+
              int result = product(3, 2);
              </code>
              </example>
              <param name="code">The C# code.</param>
-             <returns> The instance of a typed <see cref="T:CSScriptLib.MethodDelegate`1"/></returns>
+             <returns> The instance of a typed <see cref="T:CSScriptLib.MethodDelegate`1" /></returns>
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.GetReferencedAssemblies">
             <summary>
@@ -781,7 +780,7 @@
                                                  {
                                                      return a * b;
                                                  }");
-            
+
              int result = Product(3, 2);
              </code>
              </example>
@@ -797,7 +796,7 @@
             <code>
              dynamic script = CSScript.RoslynEvaluator
                                       .LoadFile("calc.cs");
-            
+
              int result = script.Sum(1, 2);
              </code>
              </example>/// <param name="scriptFile">The C# script file.</param>
@@ -821,7 +820,7 @@
              ....
              ICalc calc = CSScript.Evaluator
                                   .LoadFile&lt;ICalc&gt;("calc.cs");
-            
+
              int result = calc.Sum(1, 2);
              </code>
              </example>
@@ -842,7 +841,7 @@
                                                     {
                                                         return a * b;
                                                     }");
-            
+
              int result = script.Product(3, 2);
              </code>
              </example>
@@ -896,7 +895,7 @@
             </summary>
             <param name="code">The script code.</param>
             <param name="searchDirs">The assembly search/probing directories.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.ReferenceAssembly(System.String)">
             <summary>
@@ -905,7 +904,7 @@
             be referenced again.</para>
             </summary>
             <param name="assembly">The path to the assembly file.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.ReferenceAssembly(System.Reflection.Assembly)">
             <summary>
@@ -916,7 +915,7 @@
             </para>
             </summary>
             <param name="assembly">The assembly instance.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.ReferenceAssemblyByName(System.String)">
             <summary>
@@ -925,7 +924,7 @@
             <para>It is an equivalent of <c>Evaluator.ReferenceAssembly(Assembly.Load(assemblyPartialName))</c></para>
             </summary>
             <param name="assemblyName">Name of the assembly.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.TryReferenceAssemblyByNamespace(System.String,System.Boolean@)">
             <summary>
@@ -934,7 +933,7 @@
             <param name="namespace">The namespace.</param>
             <param name="resolved">Set to <c>true</c> if the namespace was successfully resolved (found) and
             the reference was added; otherwise, <c>false</c>.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.ReferenceAssemblyByNamespace(System.String)">
             <summary>
@@ -942,7 +941,7 @@
             <para>Adds assembly reference if the namespace was successfully resolved (found) and, otherwise does nothing</para>
             </summary>
             <param name="namespace">The namespace.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.ReferenceAssemblyOf(System.Object)">
             <summary>
@@ -953,7 +952,7 @@
             </para>
             </summary>
             <param name="obj">The object, which belongs to the assembly to be referenced.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.ReferenceAssemblyOf``1">
             <summary>
@@ -964,14 +963,14 @@
             </para>
             </summary>
             <typeparam name="T">The type which is implemented in the assembly to be referenced.</typeparam>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.ReferenceDomainAssemblies(CSScriptLib.DomainAssemblies)">
             <summary>
             References the assemblies the are already loaded into the current <c>AppDomain</c>.
             </summary>
             <param name="assemblies">The type of assemblies to be referenced.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.Reset(System.Boolean)">
             <summary>
@@ -981,17 +980,17 @@
             and reconnection to or recreation of the underlying compiling services.
             </para>
             <para>Optionally the default current AppDomain assemblies can be referenced automatically with
-            <paramref name="referenceDomainAssemblies"/>.</para>
+            <paramref name="referenceDomainAssemblies" />.</para>
             </summary>
             <param name="referenceDomainAssemblies">if set to <c>true</c> the default assemblies of the current AppDomain
-            will be referenced (see <see cref="M:CSScriptLib.RoslynEvaluator.ReferenceDomainAssemblies(CSScriptLib.DomainAssemblies)"/> method).
+            will be referenced (see <see cref="M:CSScriptLib.RoslynEvaluator.ReferenceDomainAssemblies(CSScriptLib.DomainAssemblies)" /> method).
             </param>
-            <returns>The freshly initialized instance of the <see cref="T:CSScriptLib.IEvaluator"/>.</returns>
+            <returns>The freshly initialized instance of the <see cref="T:CSScriptLib.IEvaluator" />.</returns>
         </member>
         <member name="T:CSScriptLib.MethodDelegate">
              <summary>
              Delegate which is used as a return type for AsmHelper.GetMethodInvoker().
-            
+
              AsmHelper.GetStaticMethod() and AsmHelper.GetMethod() allow obtaining dynamic method delegate emitted on the base of the MethodInfo (from the compiled script type).
              </summary>
              <param name="paramters">Optional method parameters.</param>
@@ -1000,7 +999,7 @@
         <member name="T:CSScriptLib.MethodDelegate`1">
              <summary>
              Delegate which is used as a return type for AsmHelper.GetMethodInvoker().
-            
+
              AsmHelper.GetStaticMethod() and AsmHelper.GetMethod() allow obtaining dynamic method delegate emitted on the base of the MethodInfo (from the compiled script type).
              </summary>
              <typeparam name="T">The delegate return type.</typeparam>
@@ -1036,7 +1035,7 @@
             <summary>
             Type of the evaluator engine.
             <para>This enum is used to control type of compiler the generic
-            CSScript.<see cref="P:CSScriptLib.CSScript.Evaluator"/> encapsulates.</para>
+            CSScript.<see cref="P:CSScriptLib.CSScript.Evaluator" /> encapsulates.</para>
             </summary>
         </member>
         <member name="F:CSScriptLib.EvaluatorEngine.Roslyn">
@@ -1056,7 +1055,7 @@
         </member>
         <member name="T:CSScriptLib.EvaluatorAccess">
             <summary>
-            Runtime instantiation model for CS-Script evaluators (e.g CSScript.<see cref="P:CSScriptLib.CSScript.Evaluator"/>).
+            Runtime instantiation model for CS-Script evaluators (e.g CSScript.<see cref="P:CSScriptLib.CSScript.Evaluator" />).
             </summary>
         </member>
         <member name="F:CSScriptLib.EvaluatorAccess.Singleton">
@@ -1071,7 +1070,7 @@
         </member>
         <member name="T:CSScriptLib.EvaluatorConfig">
             <summary>
-            Class that contains configuration options for controlling dynamic code evaluation with CSScript.<see cref="P:CSScriptLib.CSScript.Evaluator"/>.
+            Class that contains configuration options for controlling dynamic code evaluation with CSScript.<see cref="P:CSScriptLib.CSScript.Evaluator" />.
             </summary>
         </member>
         <member name="P:CSScriptLib.EvaluatorConfig.Access">
@@ -1079,14 +1078,14 @@
             Gets or sets the default access type for CS-Script evaluators.
                <para>This property controls the how the generic
             CS-Script evaluators are instantiated when accessed (e.g.
-            CSScript.<see cref="P:CSScriptLib.CSScript.Evaluator"/> or ).
+            CSScript.<see cref="P:CSScriptLib.CSScript.Evaluator" /> or ).
             </para>
             </summary>
             <value>The access.</value>
         </member>
         <member name="P:CSScriptLib.EvaluatorConfig.DebugBuild">
             <summary>
-            Default value of the <see cref="T:CSScriptLib.IEvaluator"/>.
+            Default value of the <see cref="T:CSScriptLib.IEvaluator" />.
             DebugBuild property controlling the generation of the debug symbols.
             <example>
             <code>
@@ -1100,14 +1099,14 @@
         <member name="P:CSScriptLib.EvaluatorConfig.RefernceDomainAsemblies">
             <summary>
             Flag that controls if the host AppDo,main referenced assemblies are automatically referenced at creation
-            of <see cref="T:CSScriptLib.IEvaluator"/>.
+            of <see cref="T:CSScriptLib.IEvaluator" />.
             </summary>
         </member>
         <member name="P:CSScriptLib.EvaluatorConfig.Engine">
             <summary>
             Gets or sets the default evaluator engine type.
             <para>This property controls the type of compiler the generic
-            CSScript.<see cref="P:CSScriptLib.CSScript.Evaluator"/> encapsulates.</para>
+            CSScript.<see cref="P:CSScriptLib.CSScript.Evaluator" /> encapsulates.</para>
             </summary>
             <value>The default evaluator engine.</value>
         </member>
@@ -1122,7 +1121,7 @@
             Gets or sets a value indicating whether to compile script with debug symbols.
             <para>Note, setting <c>DebugBuild</c> will only affect the current instance of Evaluator.
             If you want to emit debug symbols for all instances of Evaluator then use
-            <see cref="P:CSScriptLib.CSScript.EvaluatorConfig"/>.DebugBuild.
+            <see cref="P:CSScriptLib.CSScript.EvaluatorConfig" />.DebugBuild.
             </para>
             </summary>
             <value><c>true</c> if 'debug build'; otherwise, <c>false</c>.</value>
@@ -1149,7 +1148,7 @@
                                                            return a+b;
                                                        }
                                                    }");
-            
+
              dynamic script =  asm.CreateObject("*");
              var result = script.Sum(7, 3);
              </code>
@@ -1231,7 +1230,7 @@
              <summary>
              Wraps C# code fragment into auto-generated class (type name <c>DynamicClass</c>) and evaluates it.
              <para>
-             This method is a logical equivalent of <see cref="M:CSScriptLib.IEvaluator.CompileCode(System.String,CSScriptLib.CompileInfo)"/> but is allows you to define
+             This method is a logical equivalent of <see cref="M:CSScriptLib.IEvaluator.CompileCode(System.String,CSScriptLib.CompileInfo)" /> but is allows you to define
              your script class by specifying class method instead of whole class declaration.</para>
              </summary>
              <example>
@@ -1242,7 +1241,7 @@
                                                          return a+b;
                                                      }")
                                       .CreateObject("*");
-            
+
              var result = script.Sum(7, 3);
              </code>
              </example>
@@ -1252,7 +1251,7 @@
         <member name="M:CSScriptLib.IEvaluator.CreateDelegate(System.String)">
              <summary>
              Wraps C# code fragment into auto-generated class (type name <c>DynamicClass</c>), evaluates it and loads the class to the current AppDomain.
-             <para>Returns non-typed <see cref="T:CSScriptLib.MethodDelegate"/> for class-less style of invoking.</para>
+             <para>Returns non-typed <see cref="T:CSScriptLib.MethodDelegate" /> for class-less style of invoking.</para>
              </summary>
              <example>
              <code>
@@ -1261,17 +1260,17 @@
                                                  {
                                                      Console.WriteLine(message);
                                                  }");
-            
+
              log("Test message");
              </code>
              </example>
              <param name="code">The C# code.</param>
-             <returns> The instance of a 'duck typed' <see cref="T:CSScriptLib.MethodDelegate"/></returns>
+             <returns> The instance of a 'duck typed' <see cref="T:CSScriptLib.MethodDelegate" /></returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.CreateDelegate``1(System.String)">
              <summary>
              Wraps C# code fragment into auto-generated class (type name <c>DynamicClass</c>), evaluates it and loads the class to the current AppDomain.
-             <para>Returns typed <see cref="T:CSScriptLib.MethodDelegate`1"/> for class-less style of invoking.</para>
+             <para>Returns typed <see cref="T:CSScriptLib.MethodDelegate`1" /> for class-less style of invoking.</para>
              </summary>
              <typeparam name="T">The delegate return type.</typeparam>
              <example>
@@ -1281,12 +1280,12 @@
                                                          {
                                                              return a * b;
                                                          }");
-            
+
              int result = product(3, 2);
              </code>
              </example>
              <param name="code">The C# code.</param>
-             <returns> The instance of a typed <see cref="T:CSScriptLib.MethodDelegate`1"/></returns>
+             <returns> The instance of a typed <see cref="T:CSScriptLib.MethodDelegate`1" /></returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.GetReferencedAssemblies(System.String,System.String[])">
             <summary>
@@ -1369,7 +1368,7 @@
                                                  {
                                                      return a * b;
                                                  }");
-            
+
              int result = Product(3, 2);
              </code>
              </example>
@@ -1385,7 +1384,7 @@
             <code>
              dynamic script = CSScript.Evaluator
                                       .LoadFile("calc.cs");
-            
+
              int result = script.Sum(1, 2);
              </code>
              </example>
@@ -1410,7 +1409,7 @@
              ....
              ICalc calc = CSScript.Evaluator
                                   .LoadFile&lt;ICalc&gt;("calc.cs");
-            
+
              int result = calc.Sum(1, 2);
              </code>
              </example>
@@ -1431,7 +1430,7 @@
                                                     {
                                                         return a * b;
                                                     }");
-            
+
              int result = script.Product(3, 2);
              </code>
              </example>
@@ -1478,7 +1477,7 @@
             </summary>
             <param name="code">The script code.</param>
             <param name="searchDirs">The assembly search/probing directories.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.ReferenceAssembly(System.String)">
             <summary>
@@ -1487,7 +1486,7 @@
             be referenced again.</para>
             </summary>
             <param name="assembly">The path to the assembly file.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.ReferenceAssembly(System.Reflection.Assembly)">
             <summary>
@@ -1498,7 +1497,7 @@
             </para>
             </summary>
             <param name="assembly">The assembly instance.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.ReferenceAssemblyByName(System.String)">
             <summary>
@@ -1507,7 +1506,7 @@
             <para>It is an equivalent of <c>Evaluator.ReferenceAssembly(Assembly.LoadWithPartialName(assemblyPartialName))</c></para>
             </summary>
             <param name="assemblyPartialName">Partial name of the assembly.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.TryReferenceAssemblyByNamespace(System.String,System.Boolean@)">
             <summary>
@@ -1516,7 +1515,7 @@
             <param name="namespace">The namespace.</param>
             <param name="resolved">Set to <c>true</c> if the namespace was successfully resolved (found) and
             the reference was added; otherwise, <c>false</c>.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.ReferenceAssemblyByNamespace(System.String)">
             <summary>
@@ -1524,7 +1523,7 @@
             <para>Adds assembly reference if the namespace was successfully resolved (found) and, otherwise does nothing</para>
             </summary>
             <param name="namespace">The namespace.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.ReferenceAssemblyOf(System.Object)">
             <summary>
@@ -1535,7 +1534,7 @@
             </para>
             </summary>
             <param name="obj">The object, which belongs to the assembly to be referenced.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.ReferenceAssemblyOf``1">
             <summary>
@@ -1546,14 +1545,14 @@
             </para>
             </summary>
             <typeparam name="T">The type which is implemented in the assembly to be referenced.</typeparam>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.ReferenceDomainAssemblies(CSScriptLib.DomainAssemblies)">
             <summary>
             References the assemblies the are already loaded into the current <c>AppDomain</c>.
             </summary>
             <param name="assemblies">The type of assemblies to be referenced.</param>
-            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+            <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.</returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.Reset(System.Boolean)">
             <summary>
@@ -1563,43 +1562,43 @@
             and reconnection to or recreation of the underlying compiling services.
             </para>
             <para>Optionally the default current AppDomain assemblies can be referenced automatically with
-            <paramref name="referenceDomainAssemblies"/>.</para>
+            <paramref name="referenceDomainAssemblies" />.</para>
             </summary>
             <param name="referenceDomainAssemblies">if set to <c>true</c> the default assemblies of the current AppDomain
-            will be referenced (see <see cref="M:CSScriptLib.IEvaluator.ReferenceDomainAssemblies(CSScriptLib.DomainAssemblies)"/> method).
+            will be referenced (see <see cref="M:CSScriptLib.IEvaluator.ReferenceDomainAssemblies(CSScriptLib.DomainAssemblies)" /> method).
             </param>
-            <returns>The freshly initialized instance of the <see cref="T:CSScriptLib.IEvaluator"/>.</returns>
+            <returns>The freshly initialized instance of the <see cref="T:CSScriptLib.IEvaluator" />.</returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.Clone(System.Boolean)">
              <summary>
-             Clones the parent <see cref="T:CSScriptLib.IEvaluator"/>.
+             Clones the parent <see cref="T:CSScriptLib.IEvaluator" />.
              <para>
-             This method returns a freshly initialized copy of the <see cref="T:CSScriptLib.IEvaluator"/>.
-             The cloning 'depth' can be controlled by the <paramref name="copyRefAssemblies"/>.
+             This method returns a freshly initialized copy of the <see cref="T:CSScriptLib.IEvaluator" />.
+             The cloning 'depth' can be controlled by the <paramref name="copyRefAssemblies" />.
              </para>
              <para>
-             This method is a convenient technique when multiple <see cref="T:CSScriptLib.IEvaluator"/> instances
+             This method is a convenient technique when multiple <see cref="T:CSScriptLib.IEvaluator" /> instances
              are required (e.g. for concurrent script evaluation).
              </para>
              </summary>
-             <param name="copyRefAssemblies">if set to <c>true</c> all referenced assemblies from the parent <see cref="T:CSScriptLib.IEvaluator"/>
+             <param name="copyRefAssemblies">if set to <c>true</c> all referenced assemblies from the parent <see cref="T:CSScriptLib.IEvaluator" />
              will be referenced in the cloned copy.</param>
-             <returns>The freshly initialized instance of the <see cref="T:CSScriptLib.IEvaluator"/>.</returns>
+             <returns>The freshly initialized instance of the <see cref="T:CSScriptLib.IEvaluator" />.</returns>
              <example>
             <code>
              var eval1 = CSScript.Evaluator.Clone();
              var eval2 = CSScript.Evaluator.Clone();
-            
+
              var sub = eval1.LoadDelegate&lt;Func&lt;int, int, int&gt;&gt;(
                                         @"int Sub(int a, int b) {
                                               return a - b;
                                           }");
-            
+
              var sum = eval2.LoadDelegate&lt;Func&lt;int, int, int&gt;&gt;(
                                         @"int Sub(int a, int b) {
                                               return a + b;
                                           }");
-            
+
              var result = sum(7, sub(4,2));
              </code>
              </example>
@@ -1667,11 +1666,9 @@
              <summary>
              Implementation of the IComparer for sorting operations of collections of FileParser instances
              </summary>
-            
         </member>
         <member name="T:CSScriptLib.CoreExtensions">
              <summary>
-            
              </summary>
         </member>
         <member name="M:CSScriptLib.CoreExtensions.SelectFirst(System.Xml.Linq.XContainer,System.String)">

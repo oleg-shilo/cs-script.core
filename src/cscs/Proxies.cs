@@ -1,3 +1,4 @@
+using csscript;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,8 +8,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-
-using csscript;
 
 namespace CSScripting.CodeDom
 {
@@ -45,10 +44,10 @@ namespace CSScripting.CodeDom
             throw new NotImplementedException();
         }
 
-        private static string dotnet { get; } = Runtime.IsCore ?
-                                        "dotnet" : Process.GetCurrentProcess().MainModule.FileName;
+        static string dotnet { get; } = Runtime.IsCore ?
+                                       "dotnet" : Process.GetCurrentProcess().MainModule.FileName;
 
-        private static string InitBuildTools(string fileType)
+        static string InitBuildTools(string fileType)
         {
             var cache_dir = CSExecutor.ScriptCacheDir; // C:\Users\user\AppData\Local\Temp\csscript.core\cache\1822444284
             var cache_root = cache_dir.GetDirName();
@@ -136,7 +135,7 @@ namespace CSScripting.CodeDom
             }
         }
 
-        private CompilerResults CompileAssemblyFromFileBatch_with_Csc(CompilerParameters options, string[] fileNames)
+        CompilerResults CompileAssemblyFromFileBatch_with_Csc(CompilerParameters options, string[] fileNames)
         {
             // C:\Program Files\dotnet\sdk\1.1.10\Roslyn\bincore\csc.dll
 
@@ -425,7 +424,7 @@ EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWith
             return projectFile;
         }
 
-        private CompilerResults CompileAssemblyFromFileBatch_with_Build(CompilerParameters options, string[] fileNames)
+        CompilerResults CompileAssemblyFromFileBatch_with_Build(CompilerParameters options, string[] fileNames)
         {
             var projectFile = CreateProject(options, fileNames);
 

@@ -1,16 +1,13 @@
+using CSScripting.CodeDom;
+using CSScriptLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CSScripting.CodeDom;
-using CSScriptLib;
 
 namespace csscript
 {
@@ -138,7 +135,7 @@ namespace csscript
             return settings;
         }
 
-        private Settings LoadSettings(List<string> appArgs)
+        Settings LoadSettings(List<string> appArgs)
         {
             //read persistent settings from configuration file
             Settings settings = LoadSettings(options);
@@ -631,7 +628,7 @@ namespace csscript
         /// <summary>
         /// Dummy 'print' to suppress displaying application messages.
         /// </summary>
-        private static void VoidPrint(string msg)
+        static void VoidPrint(string msg)
         {
         }
 
@@ -643,7 +640,7 @@ namespace csscript
         /// <summary>
         /// This method implements compiling and execution of the script.
         /// </summary>
-        private void ExecuteImpl()
+        void ExecuteImpl()
         {
             try
             {
@@ -1013,7 +1010,7 @@ namespace csscript
             }
         }
 
-        private static void SaveDebuggingMetadata(string scriptFile)
+        static void SaveDebuggingMetadata(string scriptFile)
         {
             var dir = Path.Combine(GetScriptTempDir(), "DbgAttach");
             if (!Directory.Exists(dir))
@@ -1062,7 +1059,7 @@ namespace csscript
         /// <summary>
         /// C# Script arguments array (sub array of application arguments array).
         /// </summary>
-        private string[] scriptArgs;
+        string[] scriptArgs;
 
         /// <summary>
         /// Callback to print application messages to appropriate output.
@@ -1126,12 +1123,12 @@ namespace csscript
             return retval;
         }
 
-        private ICodeCompiler LoadDefaultCompiler()
+        ICodeCompiler LoadDefaultCompiler()
         {
             return CSharpCompiler.Create();
         }
 
-        private static string ExistingFile(string dir, params string[] paths)
+        static string ExistingFile(string dir, params string[] paths)
         {
             var file = dir.PathJoin(paths);
             if (File.Exists(file))
@@ -1140,7 +1137,7 @@ namespace csscript
                 null;
         }
 
-        private ICodeCompiler LoadCompiler(string scriptFileName, ref string[] filesToInject)
+        ICodeCompiler LoadCompiler(string scriptFileName, ref string[] filesToInject)
         {
             ICodeCompiler compiler;
 
@@ -1270,7 +1267,7 @@ namespace csscript
             throw new ApplicationException("Cannot find alternative compiler \"" + altCompiler + "\"");
         }
 
-        private void AddReferencedAssemblies(CompilerParameters compilerParams, string scriptFileName, ScriptParser parser)
+        void AddReferencedAssemblies(CompilerParameters compilerParams, string scriptFileName, ScriptParser parser)
         {
             //scriptFileName is obsolete as it is now can be obtained from parser (ScriptParser.ScriptPath)
             string[] asms = AggregateReferencedAssemblies(parser);
@@ -1409,7 +1406,7 @@ namespace csscript
             return (string[])requestedRefAsms;
         }
 
-        private string NormalizeGacAssemblyPath(string asm)
+        string NormalizeGacAssemblyPath(string asm)
         {
             return asm;
         }
@@ -1417,7 +1414,7 @@ namespace csscript
         /// <summary>
         /// Compiles C# script file.
         /// </summary>
-        private string Compile(string scriptFileName)
+        string Compile(string scriptFileName)
         {
             // ********************************************************************************************
             // * Extremely important to keep the project building algorithm in sync with ProjectBuilder.GenerateProjectFor
@@ -1673,12 +1670,12 @@ namespace csscript
             return assemblyFileName;
         }
 
-        private CompilerResults CompileAssembly(ICodeCompiler compiler, CompilerParameters compilerParams, string[] filesToCompile)
+        CompilerResults CompileAssembly(ICodeCompiler compiler, CompilerParameters compilerParams, string[] filesToCompile)
         {
             return compiler.CompileAssemblyFromFileBatch(compilerParams, filesToCompile);
         }
 
-        private void ProcessCompilingResult(CompilerResults results, CompilerParameters compilerParams, ScriptParser parser, string scriptFileName, string assemblyFileName, string[] additionalDependencies)
+        void ProcessCompilingResult(CompilerResults results, CompilerParameters compilerParams, ScriptParser parser, string scriptFileName, string assemblyFileName, string[] additionalDependencies)
         {
             LastCompileResult = new CompilingInfo() { ScriptFile = scriptFileName, ParsingContext = parser.GetContext(), Result = results, Input = compilerParams };
 
@@ -1833,7 +1830,7 @@ namespace csscript
             return tempDir;
         }
 
-        private static string tempDir = null;
+        static string tempDir = null;
 
         /// <summary>
         /// Sets the location for the CS-Script temporary files directory.
@@ -1904,7 +1901,7 @@ namespace csscript
         ///<summary>
         /// Contains the name of the temporary cache folder in the CSSCRIPT subfolder of Path.GetTempPath(). The cache folder is specific for every script file.
         /// </summary>
-        static public string ScriptCacheDir { get; private set; } = "";
+        static public string ScriptCacheDir { get; set; } = "";
 
         // "<temp_dir>\csscript.core\cache\<script_hash>"
         static internal string ScriptVsDir => CSExecutor.ScriptCacheDir.Replace("cache", ".vs");

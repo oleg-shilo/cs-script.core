@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.PerformanceData;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -18,7 +17,7 @@ namespace css
 {
     internal static class Program
     {
-        private static void Main(string[] args)
+        static void Main(string[] args)
         {
             // Environment.SetEnvironmentVariable("CSS_WINAPP", "true", EnvironmentVariableTarget.User);
             Environment.SetEnvironmentVariable("Console.WindowWidth", Console.WindowWidth.ToString());
@@ -109,12 +108,12 @@ namespace css
             ScriptLauncher.Run(host, arguments.ToCmdArgs());
         }
 
-        private static string RedirectFileName
+        static string RedirectFileName
         {
             get => Assembly.GetExecutingAssembly().Location + ".net_redirect";
         }
 
-        private static string ConfiguredFullDotNetLauncher
+        static string ConfiguredFullDotNetLauncher
         {
             get
             {

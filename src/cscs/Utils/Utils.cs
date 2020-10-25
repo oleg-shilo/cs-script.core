@@ -309,7 +309,7 @@ namespace csscript
                 catch { }
         }
 
-        private class Win32
+        class Win32
         {
             [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
             internal static extern bool SetEnvironmentVariable(string lpName, string lpValue);
@@ -471,7 +471,7 @@ namespace csscript
         public static ProcessNewEncodingHandler ProcessNewEncoding = DefaultProcessNewEncoding;
         public static bool IsDefaultConsoleEncoding = true;
 
-        private static string DefaultProcessNewEncoding(string requestedEncoding)
+        static string DefaultProcessNewEncoding(string requestedEncoding)
         {
             return requestedEncoding;
         }
@@ -496,7 +496,7 @@ namespace csscript
             return IsFileLocked(file);
         }
 
-        private static bool IsFileLocked(string file)
+        static bool IsFileLocked(string file)
         {
             try
             {
@@ -1345,9 +1345,9 @@ partial class dbg
             return args.Length;
         }
 
-        private delegate bool CompileMethod(ref string content, string scriptFile, bool IsPrimaryScript, Hashtable context);
+        delegate bool CompileMethod(ref string content, string scriptFile, bool IsPrimaryScript, Hashtable context);
 
-        private delegate bool CompileMethodDynamic(dynamic context);
+        delegate bool CompileMethodDynamic(dynamic context);
 
         internal static PrecompilationContext Precompile(string scriptFile, string[] filesToCompile, ExecuteOptions options)
         {
@@ -1454,7 +1454,7 @@ partial class dbg
 
         internal const string noDefaultPrecompilerSwitch = "nodefault";
 
-        private static Assembly Assembly_LoadFrom(string file)
+        static Assembly Assembly_LoadFrom(string file)
         {
             string dbg = Utils.DbgFileOf(file);
 
@@ -1586,7 +1586,7 @@ partial class dbg
             kill("VBCSCompiler");
         }
 
-        private static void kill(string proc_name)
+        static void kill(string proc_name)
         {
             try
             {
@@ -1784,7 +1784,7 @@ partial class dbg
         }
 
         //needed to have reliable HASH as x64 and x32 have different algorithms; This leads to the inability of script clients calculate cache directory correctly
-        private static int GetHashCode32(string s)
+        static int GetHashCode32(string s)
         {
             char[] chars = s.ToCharArray();
 
@@ -2118,7 +2118,7 @@ partial class dbg
             return true;
         }
 
-        private static int ReadIntBackwards(BinaryReader r, ref int offset)
+        static int ReadIntBackwards(BinaryReader r, ref int offset)
         {
             var fs = (FileStream)r.BaseStream;
             offset += intSize;
@@ -2126,7 +2126,7 @@ partial class dbg
             return r.ReadInt32();
         }
 
-        private static long ReadLongBackwards(BinaryReader r, ref int offset)
+        static long ReadLongBackwards(BinaryReader r, ref int offset)
         {
             var fs = (FileStream)r.BaseStream;
             offset += longSize;
@@ -2134,8 +2134,8 @@ partial class dbg
             return r.ReadInt64();
         }
 
-        private static int intSize = Marshal.SizeOf((Int32)0);
-        private static int longSize = Marshal.SizeOf((Int64)0);
+        static int intSize = Marshal.SizeOf((Int32)0);
+        static int longSize = Marshal.SizeOf((Int64)0);
 
         public bool ReadFileStamp(string file)
         {
@@ -2188,7 +2188,7 @@ partial class dbg
             return false;
         }
 
-        private new string ToString()
+        new string ToString()
         {
             StringBuilder bs = new StringBuilder();
 
@@ -2204,7 +2204,7 @@ partial class dbg
             return bs.ToString();
         }
 
-        private bool Parse(string data)
+        bool Parse(string data)
         {
             foreach (string itemData in data.Split("|".ToCharArray()))
             {
@@ -2221,9 +2221,9 @@ partial class dbg
             return true;
         }
 
-        private int stampID = CSSUtils.GetHashCodeEx(Assembly.GetExecutingAssembly().FullName.Split(",".ToCharArray())[1]);
+        int stampID = CSSUtils.GetHashCodeEx(Assembly.GetExecutingAssembly().FullName.Split(",".ToCharArray())[1]);
 
-        private bool IsGACAssembly(string file)
+        bool IsGACAssembly(string file)
         {
             string s = file.ToLower();
             return s.Contains("microsoft.net\\framework") || s.Contains("microsoft.net/framework") || s.Contains("gac_msil") || s.Contains("gac_64") || s.Contains("gac_32");
@@ -2234,9 +2234,9 @@ partial class dbg
 
     internal class Cache
     {
-        private static string cacheRootDir = Path.Combine(CSExecutor.GetScriptTempDir(), "Cache");
+        static string cacheRootDir = Path.Combine(CSExecutor.GetScriptTempDir(), "Cache");
 
-        private static void deleteFile(string path)
+        static void deleteFile(string path)
         {
             try
             {
@@ -2246,7 +2246,7 @@ partial class dbg
             catch { }
         }
 
-        private static void deleteDir(string path)
+        static void deleteDir(string path)
         {
             try
             {
@@ -2257,7 +2257,7 @@ partial class dbg
             catch { }
         }
 
-        private enum Op
+        enum Op
         {
             List,
             Trim,
@@ -2279,7 +2279,7 @@ partial class dbg
             return Cache.Do(Op.Clear);
         }
 
-        private static string Do(Op operation)
+        static string Do(Op operation)
         {
             StringBuilder result = new StringBuilder();
             result.AppendLine("Cache root: " + cacheRootDir);
@@ -2426,8 +2426,8 @@ partial class dbg
             Init(probingDirs);
         }
 
-        private static bool initialized = false;
-        private static string[] probingDirs = new string[0];
+        static bool initialized = false;
+        static string[] probingDirs = new string[0];
 
         /// <summary>
         /// Sets probing dirs and subscribes to the <see cref="System.AppDomain.AssemblyResolve"/> event.
@@ -2455,9 +2455,9 @@ partial class dbg
             }
         }
 
-        private static Dictionary<string, Assembly> cache = new Dictionary<string, Assembly>();
+        static Dictionary<string, Assembly> cache = new Dictionary<string, Assembly>();
 
-        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
         {
             var shortName = args.Name.Split(',').First().Trim();
 

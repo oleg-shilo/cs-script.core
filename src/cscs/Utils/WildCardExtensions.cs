@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace CSScriptLib
 #else
+
 namespace csscript
 #endif
 {

@@ -16,7 +16,7 @@ class ScriptLauncher
     static extern int ShowWindow(IntPtr hwnd, int nCmdShow);
 
     [DllImport("user32.dll")]
-    private static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out IntPtr ProcessId);
+    static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out IntPtr ProcessId);
 
     [DllImport("kernel32")]
     static extern IntPtr GetConsoleWindow();
@@ -28,7 +28,7 @@ class ScriptLauncher
     static extern bool AllocConsole();
 
     [DllImport("kernel32", SetLastError = true)]
-    private static extern bool AttachConsole(int dwProcessId);
+    static extern bool AttachConsole(int dwProcessId);
 
     internal static void HideConsole()
     {

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Threading;
 
 [assembly: InternalsVisibleTo("cscs.tests")]
 /*
@@ -82,7 +81,7 @@ namespace csscript
             main(PreprocessArgs(rawArgs));
         }
 
-        private static string[] PreprocessArgs(string[] rawArgs)
+        static string[] PreprocessArgs(string[] rawArgs)
         {
             string[] args = rawArgs.Select(Environment.ExpandEnvironmentVariables).ToArray();
 
@@ -98,7 +97,7 @@ namespace csscript
             return args;
         }
 
-        private static void main(string[] args)
+        static void main(string[] args)
         {
             try
             {
@@ -140,7 +139,7 @@ namespace csscript
             }
         }
 
-        // private static void RunConsoleApp(string app, string args)
+        // static void RunConsoleApp(string app, string args)
         // {
         //     var process = new Process();
         //     process.StartInfo.FileName = app;
@@ -225,7 +224,7 @@ namespace csscript
 
     internal class Host
     {
-        private static Encoding originalEncoding;
+        static Encoding originalEncoding;
 
         public static void OnExit()
         {

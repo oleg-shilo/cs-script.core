@@ -23,7 +23,6 @@
 #endregion Licence...
 
 using System;
-using System.Collections;
 
 using System.Collections.Generic;
 using System.Globalization;
@@ -240,13 +239,13 @@ namespace CSScriptLib
                 InternalInit(parts, 1);
             }
 
-            private ImportInfo(string[] parts)
+            ImportInfo(string[] parts)
             {
                 this.file = parts[0];
                 InternalInit(parts, 1);
             }
 
-            private void InternalInit(string[] statementParts, int startIndex)
+            void InternalInit(string[] statementParts, int startIndex)
             {
                 List<string[]> renameingMap = new List<string[]>();
 

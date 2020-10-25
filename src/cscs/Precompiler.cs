@@ -94,17 +94,15 @@ namespace csscript
         {
             int line = -1;
             int col = -1;
-            using (var sr = new StringReader(text.Substring(0, pos)))
+            using var sr = new StringReader(text.Substring(0, pos));
+            string line_str;
+            while ((line_str = sr.ReadLine()) != null)
             {
-                string line_str;
-                while ((line_str = sr.ReadLine()) != null)
-                {
-                    line++;
-                    col = line_str.Length;
-                }
-                if (line == -1) line = 0;
-                if (col == -1) col = 0;
+                line++;
+                col = line_str.Length;
             }
+            if (line == -1) line = 0;
+            if (col == -1) col = 0;
 
             return new[] { line, col };
         }
@@ -276,157 +274,156 @@ namespace csscript
             // int insertBreakpointAtLine = -1;
 
             string line;
-            using (var sr = new StringReader(content))
+            using var sr = new StringReader(content);
+
+            bool autoCodeInjected = false;
+            int lineCount = 0;
+            while ((line = sr.ReadLine()) != null)
             {
-                bool autoCodeInjected = false;
-                int lineCount = 0;
-                while ((line = sr.ReadLine()) != null)
+                string lineText = line.TrimStart();
+
+                if (!stopDecoratingDetected && (lineText.Trim() == "//css_ac_end" || lineText.Trim() == "//css_autoclass_end"))
                 {
-                    string lineText = line.TrimStart();
+                    stopDecoratingDetected = true;
+                    footer.AppendLine("#line " + (lineCount + 1) + " \"" + scriptFile + "\"");
+                    result.FooterInjectedLine = lineCount;
 
-                    if (!stopDecoratingDetected && (lineText.Trim() == "//css_ac_end" || lineText.Trim() == "//css_autoclass_end"))
+                    // One is "} ///CS-Script auto-class generation"
+                    // And another one "#line "
+                    result.FooterInjectedLineCount = 2;
+                }
+
+                if (stopDecoratingDetected)
+                {
+                    footer.AppendLine(line);
+                    continue;
+                }
+
+                if (!headerProcessed && (lineText.StartsWith("//css_autoclass") || lineText.StartsWith("//css_ac")))
+                {
+                    autoClassMode = lineText.Replace("//css_ac", "")
+                                            .Replace("//css_autoclass", "")
+                                            .Trim();
+                }
+
+                if (!headerProcessed && !lineText.TrimStart().StartsWith("using ")) //not using...; statement of the file header
+                {
+                    if (!lineText.StartsWith("//") && lineText.Trim() != "") //not comments or empty line
                     {
-                        stopDecoratingDetected = true;
-                        footer.AppendLine("#line " + (lineCount + 1) + " \"" + scriptFile + "\"");
-                        result.FooterInjectedLine = lineCount;
+                        headerProcessed = true;
 
-                        // One is "} ///CS-Script auto-class generation"
-                        // And another one "#line "
-                        result.FooterInjectedLineCount = 2;
-                    }
+                        result.InjectionPos = code.Length;
+                        string tempText = "public class ScriptClass { public ";
 
-                    if (stopDecoratingDetected)
-                    {
-                        footer.AppendLine(line);
-                        continue;
-                    }
-
-                    if (!headerProcessed && (lineText.StartsWith("//css_autoclass") || lineText.StartsWith("//css_ac")))
-                    {
-                        autoClassMode = lineText.Replace("//css_ac", "")
-                                                .Replace("//css_autoclass", "")
-                                                .Trim();
-                    }
-
-                    if (!headerProcessed && !lineText.TrimStart().StartsWith("using ")) //not using...; statement of the file header
-                    {
-                        if (!lineText.StartsWith("//") && lineText.Trim() != "") //not comments or empty line
+                        if (autoClassMode == "freestyle")
                         {
-                            headerProcessed = true;
+                            var setConsoleEncoding = "";
+                            if (!consoleEncoding.SameAs(Settings.DefaultEncodingName))
+                                setConsoleEncoding = "try { System.Console.OutputEncoding = System.Text.Encoding.GetEncoding(\"" + consoleEncoding + "\"); } catch {} ";
 
-                            result.InjectionPos = code.Length;
-                            string tempText = "public class ScriptClass { public ";
+                            tempText += "static void Main(string[] args) { " + setConsoleEncoding + " main_impl(args); } ///CS-Script auto-class generation" + Environment.NewLine;
 
-                            if (autoClassMode == "freestyle")
-                            {
-                                var setConsoleEncoding = "";
-                                if (!consoleEncoding.SameAs(Settings.DefaultEncodingName))
-                                    setConsoleEncoding = "try { System.Console.OutputEncoding = System.Text.Encoding.GetEncoding(\"" + consoleEncoding + "\"); } catch {} ";
+                            //"#line" must be injected before the method name. Injecting into the first line in body does not work. probably related to JIT
+                            tempText += "#line " + (lineCount) + " \"" + scriptFile + "\"" + Environment.NewLine;
+                            tempText += "static public void main_impl(string[] args) { ///CS-Script auto-class generation" + Environment.NewLine;
+                            result.BodyInjectedLine = lineCount;
+                            result.InjectionLength += tempText.Length;
+                            result.BodyInjectedLineCount = 3;
 
-                                tempText += "static void Main(string[] args) { " + setConsoleEncoding + " main_impl(args); } ///CS-Script auto-class generation" + Environment.NewLine;
-
-                                //"#line" must be injected before the method name. Injecting into the first line in body does not work. probably related to JIT
-                                tempText += "#line " + (lineCount) + " \"" + scriptFile + "\"" + Environment.NewLine;
-                                tempText += "static public void main_impl(string[] args) { ///CS-Script auto-class generation" + Environment.NewLine;
-                                result.BodyInjectedLine = lineCount;
-                                result.InjectionLength += tempText.Length;
-                                result.BodyInjectedLineCount = 3;
-
-                                autoCodeInjected = true;
-                            }
+                            autoCodeInjected = true;
+                        }
 #if net4
 #if !InterfaceAssembly
                             if (decorateAutoClassAsCS6)
                                 code.Append("using static dbg; ");
 #endif
 #endif
-                            code.Append(tempText);
+                        code.Append(tempText);
 
-                            result.InjectionLength += tempText.Length;
-                            entryPointInjectionPos = code.Length;
-                        }
+                        result.InjectionLength += tempText.Length;
+                        entryPointInjectionPos = code.Length;
                     }
-
-                    if (!autoCodeInjected && entryPointInjectionPos != -1 && !Utils.IsNullOrWhiteSpace(lineText))
-                    {
-                        bracket_count += lineText.Split('{').Length - 1;
-                        bracket_count -= lineText.Split('}').Length - 1;
-
-                        if (!lineText.StartsWith("//"))
-                        {
-                            // static void Main(string[] args)
-                            // or
-                            // int main(string[] args)
-
-                            MatchCollection matches = Regex.Matches(lineText, @"\s+main\s*\(", RegexOptions.IgnoreCase);
-                            foreach (Match match in matches)
-                            {
-                                // Ignore VB entry point
-                                if (lineText.TrimStart().StartsWith("Sub Main", StringComparison.OrdinalIgnoreCase))
-                                    continue;
-
-                                // Ignore assembly pseudo entry point "instance main"
-                                if (match.Value.Contains("main"))
-                                {
-                                    bool noargs = Regex.Matches(lineText, @"\s+main\s*\(\s*\)").Count != 0;
-                                    bool noReturn = Regex.Matches(lineText, @"void\s+main\s*\(").Count != 0;
-
-                                    string actualArgs = (noargs ? "" : "args");
-
-                                    string entryPointDefinition = "static int Main(string[] args) { ";
-
-                                    if (!consoleEncoding.SameAs(Settings.DefaultEncodingName))
-                                        entryPointDefinition += "try { System.Console.OutputEncoding = System.Text.Encoding.GetEncoding(\"" + consoleEncoding + "\"); } catch {} ";
-
-                                    if (noReturn)
-                                        entryPointDefinition += "new ScriptClass().main(" + actualArgs + "); return 0; } ";
-                                    else
-                                        entryPointDefinition += "return (int)new ScriptClass().main(" + actualArgs + "); } ";
-
-                                    // point to the next line
-                                    entryPointDefinition += "///CS-Script auto-class generation" + Environment.NewLine +
-                                                             "#line " + (lineCount + 1) + " \"" + scriptFile + "\"";
-                                    // if (injectBreakPoint)
-                                    //     insertBreakpointAtLine = lineCount + 1;
-                                    result.BodyInjectedLine = lineCount;
-                                    result.InjectionLength += entryPointDefinition.Length;
-                                    result.BodyInjectedLineCount = 2;
-                                    code.Insert(entryPointInjectionPos, entryPointDefinition + Environment.NewLine);
-                                }
-                                else if (match.Value.Contains("Main")) //assembly entry point "static Main"
-                                {
-                                    if (lineText.Contains("static"))
-                                    {
-                                        if (bracket_count > 0) //not classless but a complete class with static Main
-                                        {
-                                            return result.Reset();
-                                        }
-                                    }
-
-                                    string entryPointDefinition = "///CS-Script auto-class generation" + Environment.NewLine +
-                                               "#line " + (lineCount + 1) + " \"" + scriptFile + "\"";
-
-                                    result.BodyInjectedLine = lineCount;
-                                    result.BodyInjectedLineCount = 2;
-                                    code.AppendLine(entryPointDefinition);
-                                    result.InjectionLength += entryPointDefinition.Length;
-                                    // insertBreakpointAtLine = lineCount + 1;
-                                }
-                                autoCodeInjected = true;
-                                break;
-                            }
-                        }
-                    }
-                    code.Append(line);
-                    code.Append(Environment.NewLine);
-
-                    lineCount++;
                 }
 
-                if (!autoCodeInjected)
+                if (!autoCodeInjected && entryPointInjectionPos != -1 && !Utils.IsNullOrWhiteSpace(lineText))
                 {
-                    return result.Reset();
+                    bracket_count += lineText.Split('{').Length - 1;
+                    bracket_count -= lineText.Split('}').Length - 1;
+
+                    if (!lineText.StartsWith("//"))
+                    {
+                        // static void Main(string[] args)
+                        // or
+                        // int main(string[] args)
+
+                        MatchCollection matches = Regex.Matches(lineText, @"\s+main\s*\(", RegexOptions.IgnoreCase);
+                        foreach (Match match in matches)
+                        {
+                            // Ignore VB entry point
+                            if (lineText.TrimStart().StartsWith("Sub Main", StringComparison.OrdinalIgnoreCase))
+                                continue;
+
+                            // Ignore assembly pseudo entry point "instance main"
+                            if (match.Value.Contains("main"))
+                            {
+                                bool noargs = Regex.Matches(lineText, @"\s+main\s*\(\s*\)").Count != 0;
+                                bool noReturn = Regex.Matches(lineText, @"void\s+main\s*\(").Count != 0;
+
+                                string actualArgs = (noargs ? "" : "args");
+
+                                string entryPointDefinition = "static int Main(string[] args) { ";
+
+                                if (!consoleEncoding.SameAs(Settings.DefaultEncodingName))
+                                    entryPointDefinition += "try { System.Console.OutputEncoding = System.Text.Encoding.GetEncoding(\"" + consoleEncoding + "\"); } catch {} ";
+
+                                if (noReturn)
+                                    entryPointDefinition += "new ScriptClass().main(" + actualArgs + "); return 0; } ";
+                                else
+                                    entryPointDefinition += "return (int)new ScriptClass().main(" + actualArgs + "); } ";
+
+                                // point to the next line
+                                entryPointDefinition += "///CS-Script auto-class generation" + Environment.NewLine +
+                                                         "#line " + (lineCount + 1) + " \"" + scriptFile + "\"";
+                                // if (injectBreakPoint)
+                                //     insertBreakpointAtLine = lineCount + 1;
+                                result.BodyInjectedLine = lineCount;
+                                result.InjectionLength += entryPointDefinition.Length;
+                                result.BodyInjectedLineCount = 2;
+                                code.Insert(entryPointInjectionPos, entryPointDefinition + Environment.NewLine);
+                            }
+                            else if (match.Value.Contains("Main")) //assembly entry point "static Main"
+                            {
+                                if (lineText.Contains("static"))
+                                {
+                                    if (bracket_count > 0) //not classless but a complete class with static Main
+                                    {
+                                        return result.Reset();
+                                    }
+                                }
+
+                                string entryPointDefinition = "///CS-Script auto-class generation" + Environment.NewLine +
+                                           "#line " + (lineCount + 1) + " \"" + scriptFile + "\"";
+
+                                result.BodyInjectedLine = lineCount;
+                                result.BodyInjectedLineCount = 2;
+                                code.AppendLine(entryPointDefinition);
+                                result.InjectionLength += entryPointDefinition.Length;
+                                // insertBreakpointAtLine = lineCount + 1;
+                            }
+                            autoCodeInjected = true;
+                            break;
+                        }
+                    }
                 }
+                code.Append(line);
+                code.Append(Environment.NewLine);
+
+                lineCount++;
+            }
+
+            if (!autoCodeInjected)
+            {
+                return result.Reset();
             }
 
             if (autoClassMode == "freestyle")

@@ -354,7 +354,7 @@ namespace csscript
                         //it happens that user has no rights to do so.
                         //Ignore the error and it will be reported when get.exe will try to download the package(s) into
                         //this cache directory.
-                        Environment.SetEnvironmentVariable("css_nuget", NuGet.NuGetCacheView);
+                        Utils.SetEnvironmentVariable("css_nuget", NuGet.NuGetCacheView);
                     }
                     catch (Exception e)
                     {

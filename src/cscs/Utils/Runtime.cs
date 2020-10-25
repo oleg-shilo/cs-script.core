@@ -38,28 +38,12 @@ namespace csscript
         public static bool IsLinux { get; } = (Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX);
 
         /// <summary>
-        /// Gets a value indicating whether the runtime is Mono.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if the runtime is Mono; otherwise, <c>false</c>.
-        /// </value>
-        public static bool IsMono { get; } = (Type.GetType("Mono.Runtime") != null);
-
-        /// <summary>
         /// Gets a value indicating whether the runtime is  core.
         /// </summary>
         /// <value>
         ///   <c>true</c> if the runtime is  core; otherwise, <c>false</c>.
         /// </value>
         public static bool IsCore { get; } = "".GetType().Assembly.Location.Split(Path.DirectorySeparatorChar).Contains("Microsoft.NETCore.App");
-
-        /// <summary>
-        /// Gets a value indicating whether the runtime is .Net
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if the runtime is .Net; otherwise, <c>false</c>.
-        /// </value>
-        public static bool IsNet { get; } = !IsMono && !IsCore;
 
         static internal string CustomCommandsDir
             => Environment.SpecialFolder.CommonApplicationData.GetPath()

@@ -242,17 +242,10 @@ namespace csscript
 
         string InitDefaultRefAssemblies()
         {
-            if (Runtime.IsMono)
-            {
-                return "System; System.Core;";
-            }
+            if (Utils.IsNet45Plus())
+                return "System; System.Core; System.Linq;";
             else
-            {
-                if (Utils.IsNet45Plus())
-                    return "System; System.Core; System.Linq;";
-                else
-                    return "System; System.Core;";
-            }
+                return "System; System.Core;";
         }
 
         /// <summary>
@@ -405,21 +398,7 @@ namespace csscript
         /// Gets or sets the concurrency control model.
         /// </summary>
         /// <value>The concurrency control.</value>
-        public ConcurrencyControl ConcurrencyControl
-        {
-            get
-            {
-                if (concurrencyControl == ConcurrencyControl.HighResolution && Runtime.IsMono)
-                    concurrencyControl = ConcurrencyControl.Standard;
-                return concurrencyControl;
-            }
-            set
-            {
-                concurrencyControl = value;
-            }
-        }
-
-        ConcurrencyControl concurrencyControl = ConcurrencyControl.Standard;
+        public ConcurrencyControl ConcurrencyControl { get; set; } = ConcurrencyControl.Standard;
 
         /// <summary>
         /// Serializes instance of Settings.
@@ -625,8 +604,6 @@ namespace csscript
         /// <summary>
         /// Gets the default configuration file path. It is a "css_config.xml" file located in the same directory where the assembly
         /// being executed is (e.g. cscs.exe).
-        /// <para>Note, when running under Mono the "css_config.mono.xml" file will have higher precedence than "css_config.xml".
-        /// This way you can have Mono specific settings without affecting the settings for non-Mono runtimes.</para>
         /// </summary>
         /// <value>
         /// The default configuration file location. Returns null if the file is not found.
@@ -638,17 +615,8 @@ namespace csscript
                 try
                 {
                     string asm_path = Assembly.GetExecutingAssembly().Location;
-                    if (!string.IsNullOrEmpty(asm_path))
-                    {
-                        if (Runtime.IsMono)
-                        {
-                            var monoFileName = Path.Combine(Path.GetDirectoryName(asm_path), "css_config.mono.xml");
-                            if (File.Exists(monoFileName))
-                                return monoFileName;
-                        }
-
-                        return Path.Combine(Path.GetDirectoryName(asm_path), "css_config.xml");
-                    }
+                    if (asm_path.IsNotEmpty())
+                        return asm_path.ChangeFileName("css_config.xml");
                 }
                 catch { }
                 return null;
@@ -721,7 +689,7 @@ namespace csscript
                     node = data.SelectSingleNode(nameof(HideCompilerWarnings)); if (node != null) settings.HideCompilerWarnings = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(InMemoryAssembly)); if (node != null) settings.InMemoryAssembly = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(ResolveRelativeFromParentScriptLocation)); if (node != null) settings.ResolveRelativeFromParentScriptLocation = node.InnerText.ToBool();
-                    node = data.SelectSingleNode(nameof(ConcurrencyControl)); if (node != null) settings.concurrencyControl = (ConcurrencyControl)Enum.Parse(typeof(ConcurrencyControl), node.InnerText, false);
+                    node = data.SelectSingleNode(nameof(ConcurrencyControl)); if (node != null) settings.ConcurrencyControl = (ConcurrencyControl)Enum.Parse(typeof(ConcurrencyControl), node.InnerText, false);
                     node = data.SelectSingleNode(nameof(TargetFramework)); if (node != null) settings.TargetFramework = node.InnerText;
                     node = data.SelectSingleNode(nameof(DefaultRefAssemblies)); if (node != null) settings.defaultRefAssemblies = node.InnerText;
                     node = data.SelectSingleNode(nameof(OpenEndDirectiveSyntax)); if (node != null) settings.OpenEndDirectiveSyntax = node.InnerText.ToBool();
@@ -732,7 +700,7 @@ namespace csscript
                     node = data.SelectSingleNode(nameof(Precompiler)); if (node != null) settings.Precompiler = node.InnerText;
                     node = data.SelectSingleNode(nameof(CustomHashing)); if (node != null) settings.CustomHashing = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(ConsoleEncoding)); if (node != null) settings.ConsoleEncoding = node.InnerText;
-                    node = data.SelectSingleNode(nameof(ConcurrencyControl)); if (node != null) settings.concurrencyControl = (ConcurrencyControl)Enum.Parse(typeof(ConcurrencyControl), node.InnerText, false);
+                    node = data.SelectSingleNode(nameof(ConcurrencyControl)); if (node != null) settings.ConcurrencyControl = (ConcurrencyControl)Enum.Parse(typeof(ConcurrencyControl), node.InnerText, false);
                 }
                 catch
                 {

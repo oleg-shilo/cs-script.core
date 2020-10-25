@@ -154,19 +154,6 @@ namespace csscript
             return !string.IsNullOrEmpty(text);
         }
 
-        // Mono doesn't like referencing assemblies without dll or exe extension
-        public static string EnsureAsmExtension(this string asmName)
-        {
-            if (asmName != null && Runtime.IsMono)
-            {
-                if (!asmName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) &&
-                    !asmName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                    asmName = asmName + ".dll";
-            }
-
-            return asmName;
-        }
-
         public static IEnumerable<T> Map<T>(this IEnumerable<T> source, params Func<T, T>[] selectors)
         {
             IEnumerable<T> result = source;
@@ -258,6 +245,8 @@ namespace csscript
 
         public static string ChangeExtension(this string path, string extension) => Path.ChangeExtension(path, extension);
 
+        public static string ChangeFileName(this string path, string fileName) => path.GetDirName().PathJoin(fileName);
+
         class Win32
         {
             [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -268,7 +257,7 @@ namespace csscript
         {
             Environment.SetEnvironmentVariable(name, value);
             if (Runtime.IsWin)
-                try { Win32.SetEnvironmentVariable(name, value); } catch { } // so the child process can consume that var
+                try { Win32.SetEnvironmentVariable(name, value); } catch { } // so the child process can consume this var
         }
 
         public static void FileDelete(string path) => FileDelete(path, false);
@@ -502,24 +491,13 @@ namespace csscript
             => Assembly.LoadFile(asmFile);
 
         public static string DbgFileOf(string assemblyFileName)
-        {
-            return DbgFileOf(assemblyFileName, Runtime.IsMono);
-        }
+            => assemblyFileName.ChangeExtension(".pdb");
 
-        internal static string DbgFileOf(string assemblyFileName, bool is_mono)
-        {
-            // .NET changes the asm extension to '.pdb'
-            // Mono adds '.mdb' to the asm file name
-            if (is_mono)
-                return assemblyFileName + ".mdb";
-            else
-                return Path.ChangeExtension(assemblyFileName, ".pdb");
-        }
-
-        public static bool ContainsPath(string path, string subPath)
-        {
-            return path.Substring(0, subPath.Length).SamePathAs(subPath);
-        }
+        // [Obsolete]
+        // public static bool ContainsPath(string path, string subPath)
+        // {
+        //     return path.Substring(0, subPath.Length).SamePathAs(subPath);
+        // }
 
         public static bool IsNullOrWhiteSpace(string text)
         {
@@ -588,88 +566,85 @@ partial class dbg
 
             string dbg_injection_version = DbgInjectionCode.GetHashCode().ToString();
 
-            using (SystemWideLock fileLock = new SystemWideLock("CS-Script.dbg.injection", dbg_injection_version))
-            {
-                //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
-                //throw a nice informative exception.
-                if (Runtime.IsWin)
-                    fileLock.Wait(1000);
+            using SystemWideLock fileLock = new SystemWideLock("CS-Script.dbg.injection", dbg_injection_version);
 
-                var cache_dir = Path.Combine(CSExecutor.GetScriptTempDir(), "Cache");
-                var dbg_file = Path.Combine(cache_dir, "dbg.inject." + dbg_injection_version + ".cs");
-                var dbg_interface_file = Path.Combine(cache_dir, "dbg.cs");
+            //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
+            //throw a nice informative exception.
+            if (Runtime.IsWin)
+                fileLock.Wait(1000);
 
-                if (!File.Exists(dbg_file))
-                    File.WriteAllText(dbg_file, DbgInjectionCode);
+            var cache_dir = Path.Combine(CSExecutor.GetScriptTempDir(), "Cache");
+            var dbg_file = Path.Combine(cache_dir, "dbg.inject." + dbg_injection_version + ".cs");
+            var dbg_interface_file = Path.Combine(cache_dir, "dbg.cs");
 
-                CreateDbgInjectionInterfaceCode(scriptFileName);
+            if (!File.Exists(dbg_file))
+                File.WriteAllText(dbg_file, DbgInjectionCode);
 
-                foreach (var item in Directory.GetFiles(cache_dir, "dbg.inject.*.cs"))
-                    if (item != dbg_file)
-                        try
-                        {
-                            File.Delete(item);
-                        }
-                        catch { }
+            CreateDbgInjectionInterfaceCode(scriptFileName);
 
-                return dbg_file;
-            }
+            foreach (var item in Directory.GetFiles(cache_dir, "dbg.inject.*.cs"))
+                if (item != dbg_file)
+                    try
+                    {
+                        File.Delete(item);
+                    }
+                    catch { }
+
+            return dbg_file;
         }
 
         internal static string GetScriptedCodeAttributeInjectionCode(string scriptFileName)
         {
-            using (SystemWideLock fileLock = new SystemWideLock(scriptFileName, "attr"))
+            using SystemWideLock fileLock = new SystemWideLock(scriptFileName, "attr");
+
+            //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
+            //throw a nice informative exception.
+            if (Runtime.IsWin)
+                fileLock.Wait(1000);
+
+            string code = $"[assembly: System.Reflection.AssemblyDescriptionAttribute(@\"{scriptFileName}\")]";
+
+            if (scriptFileName.GetExtension().SameAs(".vb"))
+                code = $"<Assembly: System.Reflection.AssemblyDescriptionAttribute(\"{scriptFileName.Replace(@"\", @"\\")}\")>";
+
+            string currentCode = "";
+
+            string file = Path.Combine(CSExecutor.GetCacheDirectory(scriptFileName), Path.GetFileNameWithoutExtension(scriptFileName) + $".attr.g{scriptFileName.GetExtension()}");
+
+            Exception lastError = null;
+
+            for (int i = 0; i < 3; i++)
             {
-                //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
-                //throw a nice informative exception.
-                if (Runtime.IsWin)
-                    fileLock.Wait(1000);
-
-                string code = $"[assembly: System.Reflection.AssemblyDescriptionAttribute(@\"{scriptFileName}\")]";
-
-                if (scriptFileName.GetExtension().SameAs(".vb"))
-                    code = $"<Assembly: System.Reflection.AssemblyDescriptionAttribute(\"{scriptFileName.Replace(@"\", @"\\")}\")>";
-
-                string currentCode = "";
-
-                string file = Path.Combine(CSExecutor.GetCacheDirectory(scriptFileName), Path.GetFileNameWithoutExtension(scriptFileName) + $".attr.g{scriptFileName.GetExtension()}");
-
-                Exception lastError = null;
-
-                for (int i = 0; i < 3; i++)
+                try
                 {
-                    try
+                    if (File.Exists(file))
+                        using (var sr = new StreamReader(file))
+                            currentCode = sr.ReadToEnd();
+
+                    if (currentCode != code)
                     {
-                        if (File.Exists(file))
-                            using (StreamReader sr = new StreamReader(file))
-                                currentCode = sr.ReadToEnd();
+                        string dir = Path.GetDirectoryName(file);
 
-                        if (currentCode != code)
-                        {
-                            string dir = Path.GetDirectoryName(file);
+                        if (!Directory.Exists(dir))
+                            Directory.CreateDirectory(dir);
 
-                            if (!Directory.Exists(dir))
-                                Directory.CreateDirectory(dir);
+                        using (var sw = new StreamWriter(file)) //there were reports about the files being locked. Possibly by csc.exe so allow retry
 
-                            using (StreamWriter sw = new StreamWriter(file)) //there were reports about the files being locked. Possibly by csc.exe so allow retry
-                            {
-                                sw.Write(code);
-                            }
-                        }
-                        break;
+                            sw.Write(code);
                     }
-                    catch (Exception e)
-                    {
-                        lastError = e;
-                    }
-                    Thread.Sleep(200);
+                    break;
                 }
-
-                if (!File.Exists(file))
-                    throw new ApplicationException("Failed to create AttributeInjection file", lastError);
-
-                return file;
+                catch (Exception e)
+                {
+                    lastError = e;
+                }
+                Thread.Sleep(200);
             }
+
+            if (!File.Exists(file))
+                throw new ApplicationException("Failed to create AttributeInjection file", lastError);
+
+            return file;
         }
 
         public static bool HaveSameTimestamp(string file1, string file2)
@@ -1545,95 +1520,91 @@ partial class dbg
                 var asmExtension = ".dll";
                 string precompilerAsm = Path.Combine(CSExecutor.GetCacheDirectory(sourceFile), Path.GetFileName(sourceFile) + asmExtension);
 
-                using (Mutex fileLock = new Mutex(false, "CSSPrecompiling." + CSSUtils.GetHashCodeEx(precompilerAsm))) //have to use hash code as path delimiters are illegal in the mutex name
+                using Mutex fileLock = new Mutex(false, "CSSPrecompiling." + CSSUtils.GetHashCodeEx(precompilerAsm)); //have to use hash code as path delimiters are illegal in the mutex name
+
+                //let other thread/process (if any) to finish loading/compiling the same file; 3 seconds should be enough
+                //if not we will just fail to compile as precompilerAsm will still be locked.
+                //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
+                //throw a nice informative exception.
+                fileLock.WaitOne(3000, false);
+
+                if (File.Exists(precompilerAsm))
                 {
-                    //let other thread/process (if any) to finish loading/compiling the same file; 3 seconds should be enough
-                    //if not we will just fail to compile as precompilerAsm will still be locked.
-                    //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
-                    //throw a nice informative exception.
-                    fileLock.WaitOne(3000, false);
+                    if (File.GetLastWriteTimeUtc(sourceFile) <= File.GetLastWriteTimeUtc(precompilerAsm))
+                        return Assembly_LoadFrom(precompilerAsm);
 
-                    if (File.Exists(precompilerAsm))
+                    Utils.FileDelete(precompilerAsm, true);
+                }
+
+                var parser = new ScriptParser(sourceFile, searchDirs);
+
+                var compilerParams = new CompilerParameters();
+
+                compilerParams.IncludeDebugInformation = true;
+                compilerParams.GenerateExecutable = false;
+                compilerParams.GenerateInMemory = false;
+                compilerParams.OutputAssembly = precompilerAsm;
+
+                List<string> refAssemblies = new List<string>();
+
+                //add local and global assemblies (if found) that have the same assembly name as a namespace
+                foreach (string nmSpace in parser.ReferencedNamespaces)
+                    foreach (string asm in AssemblyResolver.FindAssembly(nmSpace, searchDirs))
                     {
-                        if (File.GetLastWriteTimeUtc(sourceFile) <= File.GetLastWriteTimeUtc(precompilerAsm))
-                            return Assembly_LoadFrom(precompilerAsm);
-
-                        Utils.FileDelete(precompilerAsm, true);
+                        refAssemblies.Add(asm);
                     }
 
-                    var parser = new ScriptParser(sourceFile, searchDirs);
+                //add assemblies referenced from code
+                foreach (string asmName in parser.ReferencedAssemblies)
+                    if (asmName.StartsWith("\"") && asmName.EndsWith("\"")) //absolute path
+                    {
+                        //not-searchable assemblies
+                        string asm = asmName.Replace("\"", "");
+                        refAssemblies.Add(asm);
+                    }
+                    else
+                    {
+                        string nameSpace = asmName.RemoveAssemblyExtension();
 
-                    var compilerParams = new CompilerParameters();
+                        string[] files = AssemblyResolver.FindAssembly(nameSpace, searchDirs);
 
-                    compilerParams.IncludeDebugInformation = true;
-                    compilerParams.GenerateExecutable = false;
-                    compilerParams.GenerateInMemory = false;
-                    compilerParams.OutputAssembly = precompilerAsm;
-
-                    List<string> refAssemblies = new List<string>();
-
-                    //add local and global assemblies (if found) that have the same assembly name as a namespace
-                    foreach (string nmSpace in parser.ReferencedNamespaces)
-                        foreach (string asm in AssemblyResolver.FindAssembly(nmSpace, searchDirs))
+                        if (files.Length > 0)
                         {
-                            refAssemblies.Add(asm.EnsureAsmExtension());
-                        }
-
-                    //add assemblies referenced from code
-                    foreach (string asmName in parser.ReferencedAssemblies)
-                        if (asmName.StartsWith("\"") && asmName.EndsWith("\"")) //absolute path
-                        {
-                            //not-searchable assemblies
-                            string asm = asmName.Replace("\"", "");
-                            refAssemblies.Add(asm);
+                            refAssemblies.AddRange(files);
                         }
                         else
                         {
-                            string nameSpace = asmName.RemoveAssemblyExtension();
-
-                            string[] files = AssemblyResolver.FindAssembly(nameSpace, searchDirs);
-
-                            if (files.Length > 0)
-                            {
-                                foreach (string asm in files)
-                                {
-                                    refAssemblies.Add(asm.EnsureAsmExtension());
-                                }
-                            }
-                            else
-                            {
-                                refAssemblies.Add(nameSpace + ".dll");
-                            }
+                            refAssemblies.Add(nameSpace + ".dll");
                         }
-
-                    try
-                    {
-                        compilerParams.ReferencedAssemblies.Add(Assembly.GetExecutingAssembly().Location);
-                    }
-                    catch { }
-
-                    ////////////////////////////////////////
-                    foreach (string asm in refAssemblies.ToArray().RemovePathDuplicates())
-                    {
-                        compilerParams.ReferencedAssemblies.Add(asm);
                     }
 
-                    compilerParams.IncludeDebugInformation = true;
-
-                    var result = CSharpCompiler.Create().CompileAssemblyFromFile(compilerParams, sourceFile);
-
-                    if (result.Errors.Any())
-                        throw CompilerException.Create(result.Errors, true, false);
-
-                    if (!File.Exists(precompilerAsm))
-                        throw new Exception("Unknown building error");
-
-                    File.SetLastWriteTimeUtc(precompilerAsm, File.GetLastWriteTimeUtc(sourceFile));
-
-                    Assembly retval = Assembly_LoadFrom(precompilerAsm);
-
-                    return retval;
+                try
+                {
+                    compilerParams.ReferencedAssemblies.Add(Assembly.GetExecutingAssembly().Location);
                 }
+                catch { }
+
+                ////////////////////////////////////////
+                foreach (string asm in refAssemblies.ToArray().RemovePathDuplicates())
+                {
+                    compilerParams.ReferencedAssemblies.Add(asm);
+                }
+
+                compilerParams.IncludeDebugInformation = true;
+
+                var result = CSharpCompiler.Create().CompileAssemblyFromFile(compilerParams, sourceFile);
+
+                if (result.Errors.Any())
+                    throw CompilerException.Create(result.Errors, true, false);
+
+                if (!File.Exists(precompilerAsm))
+                    throw new Exception("Unknown building error");
+
+                File.SetLastWriteTimeUtc(precompilerAsm, File.GetLastWriteTimeUtc(sourceFile));
+
+                Assembly retval = Assembly_LoadFrom(precompilerAsm);
+
+                return retval;
             }
             catch (Exception e)
             {
@@ -1986,21 +1957,20 @@ partial class dbg
 
             try
             {
-                using (FileStream fs = new FileStream(file, FileMode.Open))
-                {
-                    fs.Seek(0, SeekOrigin.End);
-                    using (var w = new BinaryWriter(fs))
-                    {
-                        char[] data = this.ToString().ToCharArray();
-                        w.Write(data);
-                        w.Write((Int32)data.Length);
-                        w.Write((Int32)(CSExecutor.options.DBG ? 1 : 0));
-                        w.Write((Int32)(CSExecutor.options.compilationContext));
-                        w.Write((Int32)CSSUtils.GetHashCodeEx(Environment.Version.ToString()));
+                using FileStream fs = new FileStream(file, FileMode.Open);
 
-                        w.Write((Int32)stampID);
-                    }
-                }
+                fs.Seek(0, SeekOrigin.End);
+
+                using var w = new BinaryWriter(fs);
+
+                char[] data = this.ToString().ToCharArray();
+                w.Write(data);
+                w.Write((Int32)data.Length);
+                w.Write((Int32)(CSExecutor.options.DBG ? 1 : 0));
+                w.Write((Int32)(CSExecutor.options.compilationContext));
+                w.Write((Int32)CSSUtils.GetHashCodeEx(Environment.Version.ToString()));
+
+                w.Write((Int32)stampID);
             }
             catch (Exception ex)
             {
@@ -2033,46 +2003,43 @@ partial class dbg
         {
             try
             {
-                using (FileStream fs = new FileStream(file, FileMode.Open, FileAccess.Read))
+                using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
+                using var r = new BinaryReader(fs);
+
+                int offset = 0;
+                int stamp = ReadIntBackwards(r, ref offset);
+
+                if (stamp == stampID)
                 {
-                    using (BinaryReader r = new BinaryReader(fs))
+                    int value = ReadIntBackwards(r, ref offset);
+                    if (value != CSSUtils.GetHashCodeEx(Environment.Version.ToString()))
                     {
-                        int offset = 0;
-                        int stamp = ReadIntBackwards(r, ref offset);
-
-                        if (stamp == stampID)
-                        {
-                            int value = ReadIntBackwards(r, ref offset);
-                            if (value != CSSUtils.GetHashCodeEx(Environment.Version.ToString()))
-                            {
-                                return false;
-                            }
-
-                            value = ReadIntBackwards(r, ref offset);
-                            if (value != CSExecutor.options.compilationContext)
-                            {
-                                return false;
-                            }
-
-                            value = ReadIntBackwards(r, ref offset);
-                            if (value != (CSExecutor.options.DBG ? 1 : 0))
-                            {
-                                return false;
-                            }
-
-                            int dataSize = ReadIntBackwards(r, ref offset);
-                            if (dataSize != 0)
-                            {
-                                fs.Seek(-(offset + dataSize), SeekOrigin.End);
-                                var result = this.Parse(new string(r.ReadChars(dataSize)));
-                                return result;
-                            }
-                            else
-                                return true;
-                        }
                         return false;
                     }
+
+                    value = ReadIntBackwards(r, ref offset);
+                    if (value != CSExecutor.options.compilationContext)
+                    {
+                        return false;
+                    }
+
+                    value = ReadIntBackwards(r, ref offset);
+                    if (value != (CSExecutor.options.DBG ? 1 : 0))
+                    {
+                        return false;
+                    }
+
+                    int dataSize = ReadIntBackwards(r, ref offset);
+                    if (dataSize != 0)
+                    {
+                        fs.Seek(-(offset + dataSize), SeekOrigin.End);
+                        var result = this.Parse(new string(r.ReadChars(dataSize)));
+                        return result;
+                    }
+                    else
+                        return true;
                 }
+                return false;
             }
             catch
             {

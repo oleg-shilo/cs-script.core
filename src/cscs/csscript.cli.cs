@@ -45,33 +45,14 @@ namespace csscript
                 else if (command.StartsWith("set:"))
                 {
                     // set:DefaultArguments=-ac
-                    // set:roslyn
                     string name, value;
 
-                    if (command.SameAs("set:roslyn"))
-                    {
-                        var asmDir = Assembly.GetExecutingAssembly().GetAssemblyDirectoryName();
+                    string[] tokens = command.Substring(4).Split(new char[] { '=', ':' }, 2);
+                    if (tokens.Length != 2)
+                        throw new CLIException("Invalid set config property expression. Must be in name 'set:<name>=<value>' format.");
 
-                        var providerFile = ExistingFile(asmDir, "CSSRoslynProvider.dll") ??
-                                           ExistingFile(asmDir, "Lib", "CSSRoslynProvider.dll");
-
-                        if (providerFile != null)
-                        {
-                            name = "UseAlternativeCompiler";
-                            value = providerFile;
-                        }
-                        else
-                            throw new CLIException("Cannot locate Roslyn provider CSSRoslynProvider.dll");
-                    }
-                    else
-                    {
-                        string[] tokens = command.Substring(4).Split(new char[] { '=', ':' }, 2);
-                        if (tokens.Length != 2)
-                            throw new CLIException("Invalid set config property expression. Must be in name 'set:<name>=<value>' format.");
-
-                        name = tokens[0];
-                        value = tokens[1].Trim().Trim('"');
-                    }
+                    name = tokens[0];
+                    value = tokens[1].Trim().Trim('"');
 
                     var currentConfig = Settings.Load(true) ?? new Settings();
                     currentConfig.Set(name, value);

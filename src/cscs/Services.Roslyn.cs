@@ -342,20 +342,18 @@ class Script
                 foreach (string file in Directory.GetFiles(gac, "System.*.dll"))
                     try
                     {
-                        var asm = Assembly.LoadFile(file);
-                        scriptOptions = scriptOptions.AddReferences(asm);
+                        scriptOptions = scriptOptions.AddReferences(Assembly.LoadFile(file));
                     }
                     catch { }
 
                 var compilation = CSharpScript.Create(code, scriptOptions)
                                               .GetCompilation();
 
-                using (var pdb = new MemoryStream())
-                using (var asm = new MemoryStream())
-                {
-                    var emitResult = compilation.Emit(asm, pdb, options: new EmitOptions(false, DebugInformationFormat.PortablePdb));
-                    return BuildResult.From(emitResult);
-                }
+                using var pdb = new MemoryStream();
+                using var asm = new MemoryStream();
+
+                var emitResult = compilation.Emit(asm, pdb, options: new EmitOptions(false, DebugInformationFormat.PortablePdb));
+                return BuildResult.From(emitResult);
             }
             catch { }
             return null;
@@ -363,28 +361,27 @@ class Script
 
         static BuildResult build_locally(Compilation compilation, string assemblyFile, bool IsDebug, EmitOptions emitOptions, bool doNotSave = false)
         {
-            using (var asm = new MemoryStream())
-            using (var pdb = new MemoryStream())
+            using var asm = new MemoryStream();
+            using var pdb = new MemoryStream();
+
+            var emitResult = compilation.Emit(asm, pdb, options: emitOptions);
+
+            if (emitResult.Success && !doNotSave)
             {
-                var emitResult = compilation.Emit(asm, pdb, options: emitOptions);
+                asm.Seek(0, SeekOrigin.Begin);
+                byte[] buffer = asm.GetBuffer();
 
-                if (emitResult.Success && !doNotSave)
+                File.WriteAllBytes(assemblyFile, buffer);
+
+                if (IsDebug)
                 {
-                    asm.Seek(0, SeekOrigin.Begin);
-                    byte[] buffer = asm.GetBuffer();
+                    pdb.Seek(0, SeekOrigin.Begin);
+                    byte[] pdbBuffer = pdb.GetBuffer();
 
-                    File.WriteAllBytes(assemblyFile, buffer);
-
-                    if (IsDebug)
-                    {
-                        pdb.Seek(0, SeekOrigin.Begin);
-                        byte[] pdbBuffer = pdb.GetBuffer();
-
-                        File.WriteAllBytes(assemblyFile.ChangeExtension(".pdb"), pdbBuffer);
-                    }
+                    File.WriteAllBytes(assemblyFile.ChangeExtension(".pdb"), pdbBuffer);
                 }
-                return BuildResult.From(emitResult);
             }
+            return BuildResult.From(emitResult);
         }
     }
 }

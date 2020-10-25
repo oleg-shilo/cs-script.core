@@ -374,7 +374,6 @@ namespace csscript
                                                   " -config:set:name=value     - ${<==}sets current config value",
                                                   " -config:set:name=add:value - ${<==}updates the current config value content by appending the specified value.",
                                                   " -config:set:name=del:value - ${<==}updates the current config value content by removing all occurrences of the specified value.",
-                                                  " -config:set:roslyn         - ${<==}enables Roslyn integration via configuration (C#7 support)",
                                                   " -config:<file>             - ${<==}uses custom config file",
                                                   " ",
                                                       "Note: The property name in -config:set and -config:set is case insensitive and can also contain '_' " +

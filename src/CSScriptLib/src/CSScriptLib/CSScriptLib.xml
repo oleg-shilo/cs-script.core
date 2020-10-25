@@ -1869,28 +1869,12 @@
             For example path being case sensitive
             </summary>
         </member>
-        <member name="P:CSScriptLib.Runtime.IsMono">
-            <summary>
-            Gets a value indicating whether the runtime is Mono.
-            </summary>
-            <value>
-              <c>true</c> if the runtime is Mono; otherwise, <c>false</c>.
-            </value>
-        </member>
         <member name="P:CSScriptLib.Runtime.IsCore">
             <summary>
             Gets a value indicating whether the runtime is  core.
             </summary>
             <value>
               <c>true</c> if the runtime is  core; otherwise, <c>false</c>.
-            </value>
-        </member>
-        <member name="P:CSScriptLib.Runtime.IsNet">
-            <summary>
-            Gets a value indicating whether the runtime is .Net
-            </summary>
-            <value>
-              <c>true</c> if the runtime is .Net; otherwise, <c>false</c>.
             </value>
         </member>
         <member name="P:CSScriptLib.Runtime.DesktopAssembliesDir">

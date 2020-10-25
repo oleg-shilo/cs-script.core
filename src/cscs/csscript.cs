@@ -366,7 +366,7 @@ namespace csscript
                     var host_dir = this.GetType().Assembly.GetAssemblyDirectoryName();
                     var local_dir = Path.GetDirectoryName(Path.GetFullPath(options.scriptFileName));
 
-                    using (var currDir = new CurrentDirGuard())
+                    using (new CurrentDirGuard())
                     {
                         if (options.local)
                             Environment.CurrentDirectory = Path.GetDirectoryName(Path.GetFullPath(options.scriptFileName));
@@ -434,7 +434,7 @@ namespace csscript
                     {
                         List<string> newSearchDirs = new List<string>(options.searchDirs);
 
-                        using (IDisposable currDir = new CurrentDirGuard())
+                        using (new CurrentDirGuard())
                         {
                             Environment.CurrentDirectory = Path.GetDirectoryName(Path.GetFullPath(options.scriptFileName));
 
@@ -1732,15 +1732,11 @@ namespace csscript
                     Console.WriteLine("> ----------------");
                 }
 
-                string symbFileName = Utils.DbgFileOf(assemblyFileName);
-                string pdbFileName = Utils.DbgFileOf(assemblyFileName, false);
+                string pdbFileName = Utils.DbgFileOf(assemblyFileName);
 
                 if (!options.DBG) //.pdb and imported files might be needed for the debugger
                 {
                     parser.DeleteImportedFiles();
-                    Utils.FileDelete(symbFileName);
-
-                    // Roslyn always generates pdb files
                     Utils.FileDelete(pdbFileName);
                 }
 
@@ -1779,7 +1775,7 @@ namespace csscript
                     if (Settings.legacyTimestampCaching)
                     {
                         var asmFile = new FileInfo(assemblyFileName);
-                        var pdbFile = new FileInfo(symbFileName);
+                        var pdbFile = new FileInfo(pdbFileName);
 
                         if (scriptFile.Exists && asmFile.Exists)
                         {
@@ -1806,8 +1802,6 @@ namespace csscript
             }
         }
 
-        static public void SetScriptTempDir(string path) => tempDir = path;
-
         /// <summary>
         /// Returns the name of the temporary folder in the CSSCRIPT subfolder of Path.GetTempPath().
         /// <para>Under certain circumstances it may be desirable to the use the alternative location for the CS-Script temporary files.
@@ -1821,7 +1815,8 @@ namespace csscript
             {
                 tempDir = Environment.GetEnvironmentVariable("CSS_CUSTOM_TEMPDIR") ??
                           Path.GetTempPath().PathJoin("csscript.core");
-                tempDir.EnsureDir()
+
+                tempDir.EnsureDir();
             }
             return tempDir;
         }
@@ -1832,10 +1827,7 @@ namespace csscript
         /// Sets the location for the CS-Script temporary files directory.
         /// </summary>
         /// <param name="path">The path for the temporary directory.</param>
-        static public void SetScriptTempDir(string path)
-        {
-            tempDir = path;
-        }
+        static public void SetScriptTempDir(string path) => tempDir = path;
 
         /// <summary>
         /// Generates the name of the cache directory for the specified script file.
@@ -1882,8 +1874,8 @@ namespace csscript
             if (!File.Exists(infoFile))
                 try
                 {
-                    using (StreamWriter sw = new StreamWriter(infoFile))
-                        sw.Write(Environment.Version.ToString() + "\n" + directoryPath + "\n");
+                    using var sw = new StreamWriter(infoFile);
+                    sw.Write(Environment.Version.ToString() + "\n" + directoryPath + "\n");
                 }
                 catch
                 {

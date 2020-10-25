@@ -10,28 +10,9 @@ using System.Text;
 /*
  Limitations comparing to CS-Script for .NET
 
- CS-Script todo:
-    - Refactoring
-        - Major refactoring to meet C# 7 standards
-        - Share source modules between cscs and CSScriptLib
-    - Functionality
-        - Decide which NuGet engine to invoke
-        - Handle //css_nuget -rt:<name> directive arg in .NET Full NuGet.exe use-case
-        + Full support for std in, out and error in css launcher
-        + remove all code (and config) for -inmem:0 use-case
-        + Process CompilerParameters during compilation
-        + Ensure the cached script is not used/shared between .NET Full and Core launchers
-        + Ensure ".NET standard" class libraries can be referenced from .NET Full cscs.exe
-        + In -ver output handle/reflect absent config
-        + Ensure C# 7 syntax
-        + Ensure inmem loading
-        + NuGet support
-        + Ensure default '-l:1'
-        + Describe //css_nuget -rt:<name> directive arg
-
  CS-Script limitations:
     - No support for script app.config file
-    - No building "*.exe"
+    - No building single-file "*.exe"
     - No NuGet inter-package dependencies resolving. All packages (including dependency packages) must be specified in the script
     - Huge compilation startup delay (.NET Core offers no VBCSCompiler.exe optimisation)
       There may be some hope as VS actually runs "dotnet VBCSCompiler.dll -namedpipe:..."
@@ -65,7 +46,7 @@ using System.Text;
 /// </summary>
 namespace csscript
 {
-    internal delegate void PrintDelegate(string msg);
+    delegate void PrintDelegate(string msg);
 
     /// <summary>
     /// Wrapper class that runs CSExecutor within console application context.
@@ -138,78 +119,12 @@ namespace csscript
                 Host.OnExit();
             }
         }
-
-        // static void RunConsoleApp(string app, string args)
-        // {
-        //     var process = new Process();
-        //     process.StartInfo.FileName = app;
-        //     process.StartInfo.Arguments = args;
-        //     process.StartInfo.WorkingDirectory = Environment.CurrentDirectory;
-
-        //     process.StartInfo.UseShellExecute = false;
-        //     process.StartInfo.RedirectStandardOutput = true;
-        //     process.StartInfo.RedirectStandardInput = true;
-        //     process.StartInfo.RedirectStandardError = true;
-        //     process.StartInfo.ErrorDialog = false;
-        //     process.StartInfo.CreateNoWindow = true;
-
-        //     process.Start();
-
-        //     ManualResetEvent outputThreadDone = new ManualResetEvent(false);
-        //     ManualResetEvent errorOutputThreadDone = new ManualResetEvent(false);
-
-        //     void redirect(StreamReader src, Stream dest, ManualResetEvent doneEvent)
-        //     {
-        //         try
-        //         {
-        //             while (true)
-        //             {
-        //                 char[] buffer = new char[1000];
-        //                 int size = src.Read(buffer, 0, 1000);
-        //                 if (size == 0)
-        //                     break;
-
-        //                 var data = new string(buffer, 0, size);
-        //                 var bytes = src.CurrentEncoding.GetBytes(data);
-        //                 dest.Write(bytes, 0, bytes.Length);
-        //                 dest.Flush();
-        //             }
-        //         }
-        //         finally
-        //         {
-        //             doneEvent.Set();
-        //         }
-        //     }
-
-        //     ThreadPool.QueueUserWorkItem(x =>
-        //         redirect(process.StandardOutput, Console.OpenStandardOutput(), outputThreadDone));
-
-        //     ThreadPool.QueueUserWorkItem(x =>
-        //         redirect(process.StandardError, Console.OpenStandardError(), errorOutputThreadDone));
-
-        //     ThreadPool.QueueUserWorkItem(x =>
-        //     {
-        //         while (true)
-        //         {
-        //             int nextChar = Console.Read();
-        //             process.StandardInput.Write((char)nextChar);
-        //             process.StandardInput.Flush();
-        //         }
-        //     });
-
-        //     process.WaitForExit();
-        //     Environment.ExitCode = process.ExitCode;
-
-        //     //the output buffers may still contain some data just after the process exited
-        //     outputThreadDone.WaitOne();
-        //     errorOutputThreadDone.WaitOne();
-        // }
     }
 
     /// <summary>
     /// Repository for application specific data
     /// </summary>
-    internal class AppInfo
+    class AppInfo
     {
         public static string appName = Environment.GetEnvironmentVariable("ENTRY_ASM") ?? Assembly.GetExecutingAssembly().GetName().Name;
         public static bool appConsole = true;
@@ -222,7 +137,7 @@ namespace csscript
             $"C# Script execution engine (.NET Core). Version{Assembly.GetExecutingAssembly().GetName().Version}.\n";
     }
 
-    internal class Host
+    class Host
     {
         static Encoding originalEncoding;
 
@@ -307,7 +222,7 @@ namespace csscript
 
         public static string NormaliseEncodingName(string name)
         {
-            if (name.SameAs(Settings.DefaultEncodingName))
+            if (name.SameAs(Settings.DefaultEncodingName, ignoreCase: true))
                 return Settings.DefaultEncodingName;
             else
                 return name;

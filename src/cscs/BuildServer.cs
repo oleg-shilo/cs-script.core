@@ -12,23 +12,19 @@ namespace CSScripting.CodeDom
 
         static public string SentRequest(string request)
         {
-            using (var clientSocket = new TcpClient())
-            {
-                clientSocket.Connect(IPAddress.Loopback, serverPort);
-                clientSocket.WriteAllBytes(request.GetBytes());
-                return clientSocket.ReadAllBytes().GetString();
-            }
+            using var clientSocket = new TcpClient();
+            clientSocket.Connect(IPAddress.Loopback, serverPort);
+            clientSocket.WriteAllBytes(request.GetBytes());
+            return clientSocket.ReadAllBytes().GetString();
         }
 
         public static void Stop()
         {
             try
             {
-                using (var clientSocket = new TcpClient())
-                {
-                    clientSocket.Connect(IPAddress.Loopback, serverPort);
-                    clientSocket.WriteAllText("-exit");
-                }
+                using var clientSocket = new TcpClient();
+                clientSocket.Connect(IPAddress.Loopback, serverPort);
+                clientSocket.WriteAllText("-exit");
             }
             catch { }
         }

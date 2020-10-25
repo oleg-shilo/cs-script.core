@@ -84,7 +84,7 @@ namespace csscript
             searchDirs.AddRange(defaultSearchDirs);
 
             ScriptParser parser;
-            using (var currDir = new CurrentDirGuard())
+            using (new CurrentDirGuard())
             {
                 Environment.CurrentDirectory = Path.GetDirectoryName(script);
                 parser = new ScriptParser(script, searchDirs.ToArray(), false);
@@ -116,7 +116,7 @@ namespace csscript
             project.Files = sources.Distinct().Select<string, string>(Utils.PathNormaliseSeparators).ToArray();
 
             project.Refs = parser.AgregateReferences(probingDirs, defaultRefAsms, defaultNamespaces)
-                                 .Map(Utils.PathNormaliseSeparators, Utils.EnsureAsmExtension)
+                                 .Map(Utils.PathNormaliseSeparators)
                                  .ToArray();
 
             project.Refs = project.Refs.ConcatWith(precompiling.NewReferences);

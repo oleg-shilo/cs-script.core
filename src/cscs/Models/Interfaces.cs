@@ -125,7 +125,7 @@ namespace csscript
         {
             string assemblyID = Path.GetFileName(location).ToUpperInvariant();
             if (!locations.ContainsKey(assemblyID))
-                locations[assemblyID] = location.EnsureAsmExtension();
+                locations[assemblyID] = location;
         }
 
         public bool ContainsAssembly(string name)

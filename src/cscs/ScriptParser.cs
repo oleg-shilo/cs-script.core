@@ -464,7 +464,7 @@ namespace CSScriptLib
                     // complex file names as simple name + extension:
                     // System.Core -> System
                     // System.dll  -> System
-                    string name = Path.GetFileNameWithoutExtension(item.EnsureAsmExtension());
+                    string name = item.GetFileNameWithoutExtension();
                     if (!asmNames.Contains(name))
                     {
                         uniqueAsms.Add(item);

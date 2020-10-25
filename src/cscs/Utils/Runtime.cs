@@ -72,7 +72,7 @@ namespace csscript
             {
                 var globalIncluds = Environment.GetEnvironmentVariable("CSSCRIPT_INC");
                 if (globalIncluds.IsNotEmpty())
-                    return globalIncluds;
+                    return globalIncluds.EnsureDir();
 
                 return Environment.SpecialFolder.CommonApplicationData.GetPath()
                                             .PathJoin("cs-script", "inc")

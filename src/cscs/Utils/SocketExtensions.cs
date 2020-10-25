@@ -2,7 +2,7 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 
-public static class SocketExtensions
+static class SocketExtensions
 {
     public static byte[] GetBytes(this string data) => Encoding.UTF8.GetBytes(data);
 

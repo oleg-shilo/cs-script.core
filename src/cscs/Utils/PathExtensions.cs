@@ -13,7 +13,7 @@ namespace csscript
     /// <summary>
     /// Various PATH extensions
     /// </summary>
-    internal static class PathExtensions
+    static class PathExtensions
     {
         public static string GetExtension(this string path) => Path.GetExtension(path);
 

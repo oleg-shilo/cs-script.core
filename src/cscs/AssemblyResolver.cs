@@ -247,14 +247,6 @@ namespace csscript
         {
             var retval = new List<string>();
 
-            if (Runtime.IsMono)
-            {
-                if (Utils.MonoGAC.Contains(namespaceStr))
-                {
-                    retval.Add(namespaceStr);
-                }
-            }
-
             if (retval.Count == 0 && namespaceStr.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase))
                 retval.Add(namespaceStr); //in case of if the namespaceStr is a dll name
 

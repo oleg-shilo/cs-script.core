@@ -216,7 +216,7 @@ namespace csscript
         {
             if (!this.searchDirs.Contains(dir))
             {
-                this.searchDirs = this.searchDirs.ToList().AddIfNotThere(dir, section).ToArray();
+                this.searchDirs = this.searchDirs.ToList().AddPathIfNotThere(dir, section).ToArray();
             }
         }
     }

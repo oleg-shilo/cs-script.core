@@ -149,22 +149,6 @@ namespace csscript
                 return new Exception(message, childException);
         }
 
-        // internal static string NormaliseAsDirectiveOf(this string statement, string parentScript)
-        // {
-        //     var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
-
-        //     if (text.Length > 1 && (text[0] == '.' && text[1] != '.')) // just a single-dot start dir
-        //         text = parentScript.GetDirName().PathJoin(text).GetFullPath();
-
-        //     return text.Expand().Trim();
-        // }
-
-        // internal static string NormaliseAsDirective(this string statement)
-        // {
-        //     var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
-        //     return Environment.ExpandEnvironmentVariables(text).Trim();
-        // }
-
         public static bool NotEmpty(this string text)
         {
             return !string.IsNullOrEmpty(text);
@@ -201,13 +185,6 @@ namespace csscript
         {
             string location = asm.Location();
             return location == "" ? "" : Path.GetDirectoryName(location);
-        }
-
-        public static bool IsSharedAssembly(string path)
-        {
-            // <root>/<shared>/<runtime>/<asm_version>
-            return path.Contains("GAC_MSIL") ||
-                   Path.GetFullPath(path).StartsWith((Path.GetDirectoryName(Path.GetDirectoryName("".GetType().Assembly.Location))));
         }
 
         public static string DeleteDirContent(this string path)
@@ -261,12 +238,6 @@ namespace csscript
             return path;
         }
 
-        public static string CopyFileTo(this string file, string destDir)
-        {
-            File.Copy(file, destDir.PathJoin(file.GetFileName()), true);
-            return file;
-        }
-
         public static string DeleteIfExists(this string path)
         {
             if (Directory.Exists(path))
@@ -281,33 +252,11 @@ namespace csscript
             return Directory.GetDirectories(path, mask);
         }
 
-        public static string[] PathGetFiles(this string path, string mask)
-        {
-            return Directory.GetFiles(path, mask);
-        }
-
         public static string GetFileNameWithoutExtension(this string path) => Path.GetFileNameWithoutExtension(path);
 
         public static bool FileExists(this string path) => path.IsNotEmpty() ? File.Exists(path) : false;
 
         public static string ChangeExtension(this string path, string extension) => Path.ChangeExtension(path, extension);
-
-        public static void ClearFile(string path)
-        {
-            string parentDir = null;
-
-            if (File.Exists(path))
-                parentDir = Path.GetDirectoryName(path);
-
-            FileDelete(path, false);
-
-            if (parentDir != null && Directory.GetFiles(parentDir).Length == 0)
-                try
-                {
-                    Directory.Delete(parentDir);
-                }
-                catch { }
-        }
 
         class Win32
         {
@@ -322,10 +271,7 @@ namespace csscript
                 try { Win32.SetEnvironmentVariable(name, value); } catch { } // so the child process can consume that var
         }
 
-        public static void FileDelete(string path)
-        {
-            FileDelete(path, false);
-        }
+        public static void FileDelete(string path) => FileDelete(path, false);
 
         public static void CleanAbandonedCache()
         {
@@ -438,34 +384,6 @@ namespace csscript
             }
         }
 
-        //public static Mutex FileLock_(string file, object context)
-        //{
-        //    if (!IsLinux())
-        //        file = file.ToLower(CultureInfo.InvariantCulture);
-
-        //    string mutexName = context.ToString() + "." + CSSUtils.GetHashCodeEx(file).ToString();
-
-        //    if (Utils.IsLinux())
-        //    {
-        //        //Utils.Ge
-        //        //scriptTextCRC = Crc32.Compute(Encoding.UTF8.GetBytes(scriptText));
-        //    }
-
-        //    return new Mutex(false, mutexName);
-        //}
-
-        //public static bool Wait(Mutex @lock, int millisecondsTimeout)
-        //{
-        //    return @lock.WaitOne(millisecondsTimeout, false);
-        //}
-
-        //public static void ReleaseFileLock(Mutex @lock)
-        //{
-        //    if (@lock != null)
-        //        try { @lock.ReleaseMutex(); }
-        //        catch { }
-        //}
-
         public delegate string ProcessNewEncodingHandler(string requestedEncoding);
 
         public static ProcessNewEncodingHandler ProcessNewEncoding = DefaultProcessNewEncoding;
@@ -550,11 +468,6 @@ namespace csscript
             return !Runtime.IsCore && Environment.Version.Major >= 4;
         }
 
-        public static bool IsNet20Plus()
-        {
-            return !Runtime.IsCore && Environment.Version.Major >= 2;
-        }
-
         internal static bool IsSpeedTest => Environment.GetCommandLineArgs().Contains($"-{AppArgs.speed}");
 
         public static bool IsRuntimeCompatibleAsm(string file)
@@ -566,12 +479,6 @@ namespace csscript
             }
             catch { }
             return false;
-        }
-
-        internal static void SetMonoRootDirEnvvar()
-        {
-            if (Environment.GetEnvironmentVariable("MONO") == null && Runtime.IsMono)
-                Environment.SetEnvironmentVariable("MONO", MonoRootDir);
         }
 
         public static string MonoRootDir
@@ -588,21 +495,6 @@ namespace csscript
                     }
                     catch { }
                 return null;
-            }
-        }
-
-        public static string[] MonoGAC
-        {
-            get
-            {
-                try
-                {
-                    // C:\Program Files(x86)\Mono\lib\mono\gac
-                    var gacDir = Path.Combine(MonoRootDir, "gac");
-                    return Directory.GetDirectories(gacDir).Select(x => Path.GetFileName(x)).ToArray();
-                }
-                catch { }
-                return new string[0];
             }
         }
 

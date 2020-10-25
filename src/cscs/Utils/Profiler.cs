@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace csscript
 {
-    internal class Profiler
+    class Profiler
     {
         static public Stopwatch Stopwatch = new Stopwatch();
 

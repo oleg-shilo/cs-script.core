@@ -155,7 +155,7 @@ namespace csscript
 
 #if !class_lib
 
-        public static List<string> AddIfNotThere(this List<string> items, string item, string section)
+        public static List<string> AddPathIfNotThere(this List<string> items, string item, string section)
         {
             if (item != null && item != "")
             {
@@ -233,14 +233,15 @@ namespace csscript
             return Environment.ExpandEnvironmentVariables(text).Trim();
         }
 
-        internal static T2 MapValue<T1, T2>(this T1 value, params (T1, T2)[] patterenMap) where T1 : class
-        {
-            foreach (var (pattern, result) in patterenMap)
-                if (value.Equals(pattern))
-                    return result;
+        // [Obsolete]
+        // internal static T2 MapValue<T1, T2>(this T1 value, params (T1, T2)[] patterenMap) where T1 : class
+        // {
+        //     foreach (var (pattern, result) in patterenMap)
+        //         if (value.Equals(pattern))
+        //             return result;
 
-            return default(T2);
-        }
+        //     return default(T2);
+        // }
 
         internal static T2 MapValue<T1, T2>(this T1 value, params (T1, Func<object, T2>)[] patterenMap) where T1 : class
         {

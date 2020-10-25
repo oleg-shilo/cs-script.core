@@ -371,22 +371,22 @@ namespace csscript
                         if (options.local)
                             Environment.CurrentDirectory = Path.GetDirectoryName(Path.GetFullPath(options.scriptFileName));
 
-                        dirs.AddIfNotThere(Environment.CurrentDirectory, Settings.local_dirs_section);
-                        dirs.AddIfNotThere(local_dir, Settings.local_dirs_section);
+                        dirs.AddPathIfNotThere(Environment.CurrentDirectory, Settings.local_dirs_section);
+                        dirs.AddPathIfNotThere(local_dir, Settings.local_dirs_section);
 
                         foreach (string dir in options.searchDirs) //some directories may be already set from command-line
                         {
                             // command line dirs resolved against current dir
                             if (!dir.IsDirSectionSeparator())
-                                dirs.AddIfNotThere(Path.GetFullPath(dir), Settings.cmd_dirs_section);
+                                dirs.AddPathIfNotThere(Path.GetFullPath(dir), Settings.cmd_dirs_section);
                         }
 
                         if (settings != null)
                             foreach (string dir in Environment.ExpandEnvironmentVariables(settings.SearchDirs).Split(",;".ToCharArray()))
                                 if (dir.Trim() != "")
-                                    dirs.AddIfNotThere(Path.GetFullPath(dir), Settings.config_dirs_section);
+                                    dirs.AddPathIfNotThere(Path.GetFullPath(dir), Settings.config_dirs_section);
 
-                        dirs.AddIfNotThere(host_dir, Settings.local_dirs_section);
+                        dirs.AddPathIfNotThere(host_dir, Settings.local_dirs_section);
                     }
 
                     options.scriptFileName = FileParser.ResolveFile(options.scriptFileName, dirs.ToArray());
@@ -406,7 +406,7 @@ namespace csscript
                     {
                         if (!Settings.ProbingLegacyOrder)
                         {
-                            dirs.AddIfNotThere(CSExecutor.ScriptCacheDir, Settings.internal_dirs_section);
+                            dirs.AddPathIfNotThere(CSExecutor.ScriptCacheDir, Settings.internal_dirs_section);
                         }
                     }
 
@@ -441,7 +441,7 @@ namespace csscript
                             var code_probing_dirs = parser.ExtraSearchDirs.Select<string, string>(Path.GetFullPath);
 
                             foreach (string dir in code_probing_dirs)
-                                newSearchDirs.AddIfNotThere(dir, Settings.code_dirs_section.Expand());
+                                newSearchDirs.AddPathIfNotThere(dir, Settings.code_dirs_section.Expand());
 
                             foreach (string file in parser.RefAssemblies)
                             {
@@ -450,7 +450,7 @@ namespace csscript
                                 if (dir != "")
                                 {
                                     dir = Path.GetFullPath(dir);
-                                    newSearchDirs.AddIfNotThere(dir, Settings.code_dirs_section);
+                                    newSearchDirs.AddPathIfNotThere(dir, Settings.code_dirs_section);
                                 }
                             }
                             options.searchDirs = newSearchDirs.ToArray();
@@ -1325,7 +1325,7 @@ namespace csscript
 
             if (options.enableDbgPrint)
             {
-                if (Utils.IsNet40Plus() && !Runtime.IsMono)
+                if (Utils.IsNet40Plus())
                 {
                     addByAsmName("System.Linq"); // Implementation of System.Linq namespace
                     addByAsmName("System.Core"); // dependency of System.Linq namespace assembly
@@ -1642,7 +1642,7 @@ namespace csscript
                             {
                                 if (attempts > 2)
                                 {
-                                    //yep we can get here as Mono 1.2.4 on Windows never ever releases the assembly
+                                    // yep we can get here as Mono 1.2.4 on Windows never ever releases the assembly
                                     File.Copy(compilerParams.OutputAssembly, Path.ChangeExtension(compilerParams.OutputAssembly, originalExtension), true);
                                     break;
                                 }
@@ -1740,9 +1740,8 @@ namespace csscript
                     parser.DeleteImportedFiles();
                     Utils.FileDelete(symbFileName);
 
-                    // Roslyn always generates pdb files, even under Mono
-                    if (Runtime.IsMono)
-                        Utils.FileDelete(pdbFileName);
+                    // Roslyn always generates pdb files
+                    Utils.FileDelete(pdbFileName);
                 }
 
                 if (options.useCompiled)
@@ -1807,6 +1806,8 @@ namespace csscript
             }
         }
 
+        static public void SetScriptTempDir(string path) => tempDir = path;
+
         /// <summary>
         /// Returns the name of the temporary folder in the CSSCRIPT subfolder of Path.GetTempPath().
         /// <para>Under certain circumstances it may be desirable to the use the alternative location for the CS-Script temporary files.
@@ -1818,14 +1819,9 @@ namespace csscript
         {
             if (tempDir == null)
             {
-                tempDir = Environment.GetEnvironmentVariable("CSS_CUSTOM_TEMPDIR");
-                if (tempDir == null)
-                {
-                    // tempDir = Path.Combine(Path.GetTempPath(), Utils.IsCore ? "csscript.core" : "csscript");
-                    tempDir = Path.GetTempPath().PathJoin("csscript.core");
-                    if (!Directory.Exists(tempDir))
-                        Directory.CreateDirectory(tempDir);
-                }
+                tempDir = Environment.GetEnvironmentVariable("CSS_CUSTOM_TEMPDIR") ??
+                          Path.GetTempPath().PathJoin("csscript.core");
+                tempDir.EnsureDir()
             }
             return tempDir;
         }

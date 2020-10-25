@@ -1426,7 +1426,6 @@ namespace csscript
             //System.Diagnostics.Debug.Assert(false);
             // if no request to build executable or dll is made then use exe format as it is the only format that allows
             // top-level statements (classless scripts)
-            // bool generateExe = options.buildExecutable || !options.buildExecutable;
             bool generateExe = options.buildExecutable;
 
             string scriptDir = Path.GetDirectoryName(scriptFileName);
@@ -1483,8 +1482,7 @@ namespace csscript
                 Utils.AddCompilerOptions(compilerParams, "/d:DEBUG /d:TRACE");
 
             compilerParams.IncludeDebugInformation = options.DBG;
-            // compilerParams.GenerateExecutable = generateExe;
-            compilerParams.GenerateExecutable = true;
+            compilerParams.GenerateExecutable = !options.compileDLL;
             compilerParams.GenerateInMemory = false;
             compilerParams.WarningLevel = (options.hideCompilerWarnings ? -1 : 4);
 

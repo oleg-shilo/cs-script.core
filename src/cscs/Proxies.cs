@@ -408,10 +408,13 @@ EndProject
 Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
         Debug|Any CPU = Debug|Any CPU
+        Release|Any CPU = Release|Any CPU
     EndGlobalSection
     GlobalSection(ProjectConfigurationPlatforms) = postSolution
         {03A7169D-D1DD-498A-86CD-7C9587D3DBDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {03A7169D-D1DD-498A-86CD-7C9587D3DBDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {03A7169D-D1DD-498A-86CD-7C9587D3DBDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03A7169D-D1DD-498A-86CD-7C9587D3DBDD}.Release|Any CPU.Build.0 = Release|Any CPU
     EndGlobalSection
     GlobalSection(ExtensibilityGlobals) = postSolution
         SolutionGuid = {629108FC-1E4E-4A2B-8D8E-159E40FF5950}

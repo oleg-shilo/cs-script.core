@@ -232,7 +232,7 @@ namespace CSScripting.CodeDom
             var scriptOptions = ScriptOptions.Default;
 
             foreach (string file in refs)
-                try { scriptOptions = scriptOptions.AddReferences(Assembly.LoadFrom(file)); }
+                try { scriptOptions = scriptOptions.AddReferences(Assembly.LoadFile(file)); }
                 catch { }
 
             // scriptOptions = scriptOptions.AddReferences(Assembly.GetExecutingAssembly()); // zos
@@ -260,7 +260,7 @@ namespace CSScripting.CodeDom
             {
                 try
                 {
-                    var asm = Assembly.LoadFrom(file); // may fail for some gac assemblies
+                    var asm = Assembly.LoadFile(file); // may fail for some gac assemblies
                     scriptOptions = scriptOptions.AddReferences(asm);
                 }
                 catch { }
@@ -342,7 +342,7 @@ class Script
                 foreach (string file in Directory.GetFiles(gac, "System.*.dll"))
                     try
                     {
-                        var asm = Assembly.LoadFrom(file);
+                        var asm = Assembly.LoadFile(file);
                         scriptOptions = scriptOptions.AddReferences(asm);
                     }
                     catch { }

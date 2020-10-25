@@ -592,8 +592,11 @@ namespace csscript
                 searchDirs.AddRange(workingDir.GetMatchingDirs(pattern));
             }
 
-            if (GetRawStatements("//css_winapp", endCodePos).Any())
+            if (HasRawStatement("//css_winapp", endCodePos))
+            {
                 searchDirs.Add("%WINDOWS_DESKTOP_APP%".Expand());
+                refAssemblies.Add("System.Windows.Forms");
+            }
 
             //analyse namespace references
             foreach (string statement in GetRawStatements(code, "using", endCodePos, true))
@@ -851,6 +854,9 @@ namespace csscript
         /// Enables omitting closing character (";") for CS-Script directives (e.g. "//css_ref System.Xml.dll" instead of "//css_ref System.Xml.dll;").
         /// </summary>
         public static bool OpenEndDirectiveSyntax = true;
+
+        bool HasRawStatement(string pattern, int endIndex)
+            => IndexOf(pattern, 0, endIndex) != -1;
 
         private string[] GetRawStatements(string pattern, int endIndex, bool canBeEmpty = false)
         {

@@ -24,6 +24,13 @@ namespace css
             Environment.SetEnvironmentVariable("Console.WindowWidth", Console.WindowWidth.ToString());
             Environment.SetEnvironmentVariable("ENTRY_ASM", Assembly.GetExecutingAssembly().GetName().Name);
             bool hideConsole = false;
+            bool winApp = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CSS_WINAPP"));
+
+            if (args.Contains("-win"))
+            {
+                winApp = true;
+                args = args.Where(x => x != "-win").ToArray();
+            }
 
             if (args.Contains("-noconsole") || args.Contains("-nc"))
             {
@@ -89,7 +96,7 @@ namespace css
             {
                 host = "dotnet";
                 var engine = "cscs.dll";
-                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("CSS_WINAPP")))
+                if (winApp)
                     engine = "csws.dll";
                 arguments.Insert(0, Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), engine));
             }

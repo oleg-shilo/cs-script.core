@@ -22,6 +22,7 @@ namespace csscript
         internal const string code_dirs_section = dirs_section_prefix + "dirs from code" + dirs_section_suffix;
         internal const string config_dirs_section = dirs_section_prefix + "dirs from config" + dirs_section_suffix;
         internal const string internal_dirs_section = dirs_section_prefix + "cs-script special dirs" + dirs_section_suffix;
+
         internal static string[] PseudoDirItems = new[]
         {
             local_dirs_section,
@@ -271,7 +272,9 @@ namespace csscript
             set { searchDirs = value; }
         }
 
-        string searchDirs = "%CSSCRIPT_DIR%" + Path.DirectorySeparatorChar + "lib;%CSSCRIPT_INC%;";
+        string searchDirs = "%CSSCRIPT_DIR%".PathJoin("lib") + ";" +
+                            Runtime.CustomCommandsDir + ";" +
+                            "%CSSCRIPT_INC%;";
 
         /// <summary>
         /// Add search directory to the search (probing) path Settings.SearchDirs.

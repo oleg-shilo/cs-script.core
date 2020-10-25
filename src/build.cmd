@@ -30,13 +30,15 @@ cd ..\out\.NET Core
 del *.dbg
 del *.pdb
 
-echo > -code.header    using System;
+echo >  -code.header    using System;
 echo >> -code.header    using System.IO;
+echo >> -code.header    using System.Collections;
+echo >> -code.header    using System.Collections.Generic;
+echo >> -code.header    using System.Linq;
 echo >> -code.header    using System.Reflection;
 echo >> -code.header    using System.Diagnostics;
 echo >> -code.header    using static dbg;
 echo >> -code.header    using static System.Environment;
-
 
 echo off
 

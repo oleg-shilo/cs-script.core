@@ -194,7 +194,8 @@ namespace csscript
             switch1Help[ew] = new ArgInfo("-ew",
                                           "Compiles script into Windows application executable.");
             switch1Help[c] = new ArgInfo("-c[:<0|1>]",
-                                         "Uses compiled file cache file (e.g. <cache dir>/script.cs.dll) if found (to improve performance).",
+                                         "Executes compiled script cache (e.g. <cache dir>/script.cs.dll) if found.",
+                                         "This command improves performance by avoiding compiling the script if it was not changed since last execution.",
                                              "   -c:1|-c  enable caching",
                                              "   -c:0     disable caching (which might be enabled globally)");
             switch1Help[ca] = new ArgInfo("-ca",
@@ -226,6 +227,7 @@ namespace csscript
                                                  "(e.g. " + AppInfo.appName + " -s:7 > sample.cs).");
 
             switch1Help[@new] = new ArgInfo("-new[:<type>] [<script name>]",
+                                            "Creates a new script.",
                                             HelpProvider.BuildSampleHelp());
 
             switch1Help[code] = new ArgInfo("-code[:show] <script code>",
@@ -234,6 +236,7 @@ namespace csscript
                                                     " ",
                                                     AppInfo.appName + " -code \"Console.WriteLine(Environment.UserDomainName);#n" +
                                                     "Console.WriteLine(#''%USERNAME%#'');\"",
+                                                    AppInfo.appName + " -code \"SetEnvironmentVariable(`ntp`,`notepad.exe`, EnvironmentVariableTarget.Machine)\"",
                                                     " ",
                                                     "The -code argument must be the last argument in the command. The only argument that is allowed " +
                                                     "after the <script code> is '//x'",
@@ -251,7 +254,7 @@ namespace csscript
                                                     "#n        ->    <\\n>",
                                                     "#r        ->    <\\r>",
                                                     "#''       ->    \"   ",
-                                                    "'''       ->    \"   ",
+                                                    "''        ->    \"   ",
                                                     "#``       ->    \"   ",
                                                     "`n        ->    <\\n>",
                                                     "`r        ->    <\\r>",
@@ -265,7 +268,7 @@ namespace csscript
                                                     "prompt - if none specified 'Press any key to continue...' will be used");
             switch1Help[ac] =
             switch1Help[autoclass] = new ArgInfo("-ac|-autoclass[:<0|1|2|out>]",
-                                                 "",
+                                                 "Legacy command: executes scripts without class definition. Use top-level scripts instead.",
                                                      " -ac     - enables auto-class decoration (which might be disabled globally).",
                                                      " -ac:0   - disables auto-class decoration (which might be enabled globally).",
                                                      " -ac:1   - same as '-ac'",
@@ -388,12 +391,14 @@ namespace csscript
                                             "Forces the script to be compiled into a specific location.",
                                                 "Used only for very fine hosting tuning.",
                                                     "(e.g. " + AppInfo.appName + " -out:%temp%\\%pid%\\sample.dll sample.cs");
-            switch2Help[sconfig] = new ArgInfo("-sconfig[:<file>|none]",
-                                               "Uses custom config file as a .NET app.config.",
-                                                   "This option might be useful for running scripts, which usually cannot be executed without custom configuration file (e.g. WCF, Remoting).",
-                                                   "By default CS-Script expects script config file name to be <script_name>.cs.config or <script_name>.exe.config. " +
-                                                   "However if <file> value is specified the it is used as a config file. ",
-                                                   "(e.g. if -sconfig:myApp.config is used the expected config file name is myApp.config)");
+            // .NET core does not support custom app.config
+            // switch2Help[sconfig] = new ArgInfo("-sconfig[:<file>|none]",
+            //                                    "Uses custom config file as a .NET app.config.",
+            //                                        "This option might be useful for running scripts, which usually cannot be executed without custom configuration file (e.g. WCF, Remoting).",
+            //                                        "By default CS-Script expects script config file name to be <script_name>.cs.config or <script_name>.exe.config. " +
+            //                                        "However if <file> value is specified the it is used as a config file. ",
+            //                                        "(e.g. if -sconfig:myApp.config is used the expected config file name is myApp.config)");
+
             switch2Help[r] = new ArgInfo("-r:<assembly 1>,<assembly N>",
                                          "Uses explicitly referenced assembly.", "It is required only for " +
                                              "rare cases when namespace cannot be resolved into assembly.",
@@ -1049,6 +1054,7 @@ namespace csscript
             { "freestyle", CSharp_freestyle_Sample},
             { "auto", CSharp_auto_Sample},
             { "winform", CSharp_winforms_Sample},
+            { "cmd", CSharp_command_Sample},
             { "winform-vb", DefaultVbDesktopSample},
             { "wpf", CSharp_wpf_Sample },
             { "wpf-cm", CSharp_wpf_ss_Sample },
@@ -1091,10 +1097,38 @@ Examples:
                 throw new Exception($"Specified unknown script type '{appType}'");
         }
 
+        private static SampleInfo[] CSharp_command_Sample(string context)
+        {
+            var cs =
+@$"using System;
+using System.IO;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Diagnostics;
+using static dbg;
+using static System.Console;
+using static System.Environment;
+
+var help =
+@""CS-Script custom command for...
+  css {context} [args]"";
+
+if (""?,-?,-help,--help"".Split(',').Contains(args.FirstOrDefault()))
+{{
+	WriteLine(help);
+ 	return;
+}}
+
+WriteLine($""Executing {context} for: [{{string.Join(args, "","")}}]"");
+";
+            return new[] { new SampleInfo(cs.NormalizeNewLines(), ".cs") };
+        }
+
         private static SampleInfo[] CSharp_winforms_Sample(string context)
         {
             var cs =
-    @"//css_dir %WINDOWS_DESKTOP_APP%
+    @"//css_winapp
 using System;
 using System.Windows.Forms;
 
@@ -1124,10 +1158,10 @@ class Program
                     .ToString();
 
             var cs = new StringBuilder()
+                .AppendLine("//css_winapp")
                 .AppendLine("//css_nuget -ver:3.2.0 -noref Caliburn.Micro")
                 .AppendLine(@"//css_dir %css_nuget%\caliburn.micro\3.2.0\lib\net45")
                 .AppendLine(@"//css_dir %css_nuget%\caliburn.micro.core\3.2.0\lib\net45")
-                .AppendLine("//css_dir %WINDOWS_DESKTOP_APP%")
                 .AppendLine($"//css_inc {Path.GetFileNameWithoutExtension(context)}.xaml")
                 .AppendLine("//css_ref PresentationFramework")
                 .AppendLine("//css_ref Caliburn.Micro.dll;")
@@ -1206,7 +1240,7 @@ class Program
                     .ToString();
 
             var cs = new StringBuilder()
-                .AppendLine("//css_dir %WINDOWS_DESKTOP_APP%")
+                .AppendLine("//css_winapp")
                 .AppendLine($"//css_inc {Path.GetFileNameWithoutExtension(context)}.xaml")
                 .AppendLine("//css_ref PresentationFramework")
                 .AppendLine("")
@@ -1383,7 +1417,7 @@ End Module";
         private static SampleInfo[] DefaultVbDesktopSample(string context)
         {
             var code =
-        @"' //css_dir %WINDOWS_DESKTOP_APP%
+        @"' //css_winapp
 ' //css_ref System
 ' //css_ref System.Windows.Forms
 
@@ -1475,7 +1509,7 @@ nvironment.NewLine);
                         builder.Append(alt_compiler + "\n");
                         try
                         {
-                            var asm = Assembly.LoadFrom(CSExecutor.LookupAltCompilerFile(alt_compiler));
+                            var asm = Assembly.LoadFile(CSExecutor.LookupAltCompilerFile(alt_compiler));
                             Type[] types = asm.GetModules()[0].FindTypes(Module.FilterTypeName, "CSSCodeProvider");
 
                             MethodInfo method = types[0].GetMethod("GetCompilerInfo");
@@ -1502,6 +1536,8 @@ nvironment.NewLine);
 
                 builder.Append("   NuGet manager:   " + NuGet.NuGetExeView + "\n");
                 builder.Append("   NuGet cache:     " + NuGet.NuGetCacheView + "\n");
+                builder.Append("   Custom commands: " + Runtime.CustomCommandsDir + "\n");
+                builder.Append("   Global includes: " + Runtime.GlobalIncludsDir + "\n");
                 // builder.Append("   Runtime isLinux:     " + Runtime.IsLinux + "\n");
                 // builder.Append("   Runtime isWin:     " + Runtime.IsWin + "\n");
             }

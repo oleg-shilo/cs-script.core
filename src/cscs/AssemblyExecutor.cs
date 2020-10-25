@@ -64,7 +64,7 @@ namespace csscript
                    probe(args.Name.Split(',').First()); // repeat it again but with the short name
         }
 
-        public Assembly ResolveResEventHandler(object sender, ResolveEventArgs args) => Assembly.LoadFrom(this.asmFile);
+        public Assembly ResolveResEventHandler(object sender, ResolveEventArgs args) => Assembly.LoadFile(this.asmFile);
 
         private string asmFile = "";
 
@@ -81,7 +81,7 @@ namespace csscript
 
             if (!ExecuteOptions.options.inMemoryAsm)
             {
-                assembly = Assembly.LoadFrom(filename);
+                assembly = Assembly.LoadFile(filename);
             }
             else
             {

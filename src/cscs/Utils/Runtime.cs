@@ -61,6 +61,30 @@ namespace csscript
         /// </value>
         public static bool IsNet { get; } = !IsMono && !IsCore;
 
+        static internal string CustomCommandsDir
+            => Environment.SpecialFolder.CommonApplicationData.GetPath()
+                                        .PathJoin("cs-script", "commands")
+                                        .EnsureDir();
+
+        static internal string GlobalIncludsDir
+        {
+            get
+            {
+                var globalIncluds = Environment.GetEnvironmentVariable("CSSCRIPT_INC");
+                if (globalIncluds.IsNotEmpty())
+                    return globalIncluds;
+
+                return Environment.SpecialFolder.CommonApplicationData.GetPath()
+                                            .PathJoin("cs-script", "inc")
+                                            .With(x =>
+                                            {
+                                                Environment.SetEnvironmentVariable("CSSCRIPT_INC", x, EnvironmentVariableTarget.User);
+                                                return x;
+                                            })
+                                            .EnsureDir();
+            }
+        }
+
         /// <summary>
         /// Returns path to the `Microsoft.WindowsDesktop.App` shared assemblies of the compatible runtime version.
         /// <para>Note, there is no warranty that the dotnet dedktop assemblies belong to the same distro version as dotnet Core:

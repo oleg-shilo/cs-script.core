@@ -77,5 +77,16 @@ namespace csscript
             }
             return collection;
         }
+
+        internal static T With<T>(this T @object, Action<T> action)
+        {
+            action(@object);
+            return @object;
+        }
+
+        internal static T2 With<T, T2>(this T @object, Func<T, T2> action)
+        {
+            return action(@object);
+        }
     }
 }

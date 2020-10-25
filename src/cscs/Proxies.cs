@@ -398,6 +398,27 @@ namespace CSScripting.CodeDom
             var projectFile = build_dir.PathJoin(projectShortName + Path.GetExtension(template));
             File.WriteAllText(projectFile, project_element.ToString());
 
+            var solution = @"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30608.117
+MinimumVisualStudioVersion = 10.0.40219.1
+Project(`{9A19103F-16F7-4668-BE54-9A1E7A4F7556}`) = `{proj_name}`, `{proj_name}.csproj`, `{03A7169D-D1DD-498A-86CD-7C9587D3DBDD}`
+EndProject
+Global
+    GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        Debug|Any CPU = Debug|Any CPU
+    EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {03A7169D-D1DD-498A-86CD-7C9587D3DBDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {03A7169D-D1DD-498A-86CD-7C9587D3DBDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    EndGlobalSection
+    GlobalSection(ExtensibilityGlobals) = postSolution
+        SolutionGuid = {629108FC-1E4E-4A2B-8D8E-159E40FF5950}
+    EndGlobalSection
+EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWithoutExtension());
+            File.WriteAllText(projectFile.ChangeExtension(".sln"), solution);
+
             return projectFile;
         }
 

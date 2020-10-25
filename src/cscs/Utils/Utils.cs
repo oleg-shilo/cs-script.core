@@ -203,14 +203,6 @@ namespace csscript
             return location == "" ? "" : Path.GetDirectoryName(location);
         }
 
-        public static string EnsureDir(this string path)
-        {
-            // if (!Directory.Exists(path))  // the checking can be inaccurate (e.g. file/dir just has been deleted but the checking reports "exists")
-            if (!path.IsEmpty())
-                Directory.CreateDirectory(path);
-            return path;
-        }
-
         public static bool IsSharedAssembly(string path)
         {
             // <root>/<shared>/<runtime>/<asm_version>
@@ -282,11 +274,6 @@ namespace csscript
             else if (File.Exists(path))
                 File.Delete(path);
             return path;
-        }
-
-        public static string GetPath(this Environment.SpecialFolder folder)
-        {
-            return Environment.GetFolderPath(folder);
         }
 
         public static string[] PathGetDirs(this string path, string mask)
@@ -382,6 +369,18 @@ namespace csscript
                     }
                     catch { }
             }
+        }
+
+        public static void CleanAbandonedProcessDirs(string rootDir)
+        {
+            if (Directory.Exists(rootDir))
+                foreach (var pid in Directory.GetFiles(rootDir, "pid"))
+                    try
+                    {
+                        if (int.TryParse(File.ReadAllText(pid), out int id) && !Process.GetProcesses().Any(p => p.Id == id))
+                            DeleteDir(pid.GetDirName());
+                    }
+                    catch { }
         }
 
         public static void CleanSnippets()
@@ -608,28 +607,7 @@ namespace csscript
         }
 
         public static Assembly AssemblyLoad(string asmFile)
-        {
-            try
-            {
-                return Assembly.LoadFrom(asmFile);
-            }
-            catch (FileNotFoundException)
-            {
-                if (!Runtime.IsMono)
-                    throw;
-                else
-                    try
-                    {
-                        // GAC assemblies on Mono are returned as asm partial name not a file path.
-                        // So file_not_found failures are expected so try load by name.
-                        return Assembly.Load(asmFile);
-                    }
-                    catch
-                    {
-                        throw;
-                    }
-            }
-        }
+            => Assembly.LoadFile(asmFile);
 
         public static string DbgFileOf(string assemblyFileName)
         {
@@ -1486,7 +1464,7 @@ partial class dbg
                                      File.ReadAllBytes(dbg));
             }
             else
-                return Assembly.LoadFrom(file);
+                return Assembly.LoadFile(file);
         }
 
         internal static Dictionary<string, List<object>> LoadPrecompilers(ExecuteOptions options)
@@ -1533,7 +1511,7 @@ partial class dbg
                             asm = Assembly.Load(data, dbgData);
                         }
                         else
-                            asm = Assembly.LoadFrom(sourceFile);
+                            asm = Assembly.LoadFile(sourceFile);
                     }
                     else
                         asm = CompilePrecompilerScript(sourceFile, options.searchDirs);
@@ -2494,14 +2472,14 @@ partial class dbg
                 {
                     string file = Path.Combine(dir, args.Name.Split(',').First().Trim() + ".dll");
                     if (File.Exists(file))
-                        return (cache[shortName] = Assembly.LoadFrom(file));
+                        return (cache[shortName] = Assembly.LoadFile(file));
                 }
                 catch { }
             }
 
             try
             {
-                return (cache[shortName] = Assembly.LoadFrom(shortName));
+                return (cache[shortName] = Assembly.LoadFrom(shortName)); // will try to load by the asm file name without the path
             }
             catch
             {

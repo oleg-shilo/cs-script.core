@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 
@@ -26,6 +27,17 @@ namespace csscript
         {
             var allParts = new[] { path ?? "" }.Concat(parts.Select(x => x?.ToString() ?? ""));
             return Path.Combine(allParts.ToArray());
+        }
+
+        public static string GetPath(this Environment.SpecialFolder folder)
+        {
+            return Environment.GetFolderPath(folder);
+        }
+
+        public static string EnsureDir(this string path)
+        {
+            Directory.CreateDirectory(path);
+            return path;
         }
 
         public static string GetDirName(this string path)

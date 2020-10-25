@@ -295,7 +295,7 @@ namespace CSScriptLib
 
             if (info?.PreferLoadingFromFile == true && info?.AssemblyFile.IsNotEmpty() == true)
             {
-                return Assembly.LoadFrom(info.AssemblyFile);
+                return Assembly.LoadFile(info.AssemblyFile);
             }
             else
             {
@@ -611,7 +611,7 @@ namespace CSScriptLib
             //which only referenced already loaded assemblies but not file locations
             var assemblies = CompilerSettings.MetadataReferences
                                              .OfType<PortableExecutableReference>()
-                                             .Select(r => Assembly.LoadFrom(r.FilePath))
+                                             .Select(r => Assembly.LoadFile(r.FilePath))
                                              .ToArray();
 
             return assemblies;
@@ -913,7 +913,7 @@ namespace CSScriptLib
             if (asmFile == null)
                 throw new Exception("Cannot find referenced assembly '" + assembly + "'");
 
-            ReferenceAssembly(Assembly.LoadFrom(asmFile));
+            ReferenceAssembly(Assembly.LoadFile(asmFile));
             return this;
         }
 

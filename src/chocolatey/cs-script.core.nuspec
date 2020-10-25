@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>cs-script.core</id>
-        <version>1.4.1.0</version>
+        <version>1.4.2.0-preview</version>
         <title>CS-Script.Core</title>
         <authors>Oleg Shilo</authors>
         <owners>Oleg Shilo</owners>
@@ -23,10 +23,15 @@
 </description>
         <summary>CS-Script.Core</summary>
         <releaseNotes>
-# .NET5 Preview Release
-- Build for .NET 5.0.100-preview.7.20366.6
-- Improved special characters escaping for `-code`
-
+# .NET5 Preview Release (RC2)
+- Migrated to .NET5 RC2
+- Implemented `//css_winapp` for WinForm and WPF applications
+- Added `-new:toplevel` CLI parameter
+- Added support for -vscode switch to open script in visual studio
+- Added support for -vs switch to open script folder in visual studio code
+- Added support for top-level statements (new classless script approach)
+- Added CLI switch -profile for testing script loading performance
+- Added CLI `-speed` for compiler performance testing
         </releaseNotes>
         <copyright>Oleg Shilo</copyright>
         <tags>cs-script C# script dynamic hosting</tags>

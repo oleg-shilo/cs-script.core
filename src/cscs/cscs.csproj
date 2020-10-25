@@ -6,7 +6,7 @@
 		<AssemblyName>cscs</AssemblyName>
 		<RootNamespace>CSScripting</RootNamespace>
 		<StartupObject />
-		<Version>1.4.2.0</Version>
+		<Version>1.4.3.0</Version>
 		<Authors>Oleg Shilo</Authors>
 		<Product>CS-Script</Product>
 		<Copyright>(C) 2004-2020 Oleg Shilo</Copyright>

@@ -120,10 +120,20 @@ namespace csscript
             }
             else
             {
-                foreach (var sample in HelpProvider.BuildSampleCode(appType, outFile))
+                var context = outFile;
+                if (appType == "cmd")
+                    context = outFile ?? "-new_command";
+
+                foreach (var sample in HelpProvider.BuildSampleCode(appType, context))
                 {
                     if (outFile.IsNotEmpty())
                     {
+                        if (appType == "cmd" && outFile.GetDirName().IsEmpty())
+                        {
+                            // the command output file specified by command name only
+                            outFile = Runtime.CustomCommandsDir.PathJoin(outFile);
+                        }
+
                         var file = Path.GetFullPath(outFile).ChangeExtension(sample.FileExtension);
 
                         print?.Invoke($"Created: {file}");
@@ -131,7 +141,7 @@ namespace csscript
                     }
                     else
                     {
-                        print?.Invoke($"\nsample{sample.FileExtension}:\n----------");
+                        print?.Invoke($"\n{context}{sample.FileExtension}:\n----------");
                         print?.Invoke(sample.Code);
                     }
                 }

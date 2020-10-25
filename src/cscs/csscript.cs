@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using CSScripting.CodeDom;
 using CSScriptLib;
 
@@ -59,27 +60,34 @@ namespace csscript
                 compileParams.ReferencedAssemblies.AddRange(project.Refs);
                 compileParams.GenerateExecutable = true;
 
-                var projectFile = CSharpCompiler.CreateProject(compileParams, project.Files);
+                var projectFile = CSharpCompiler.CreateProject(compileParams, project.Files, ScriptVsDir);
 
                 print("Opening project: " + projectFile);
 
                 var envarName = request == AppArgs.vs ? "CSSCRIPT_VSEXE" : "CSSCRIPT_VSCODEEXE";
                 var vs_exe = Environment.GetEnvironmentVariable(envarName);
 
+                Process p = null;
                 if (request == AppArgs.vs)
                 {
                     if (vs_exe.IsEmpty())
-                        print(@"Error: you need to set environment variable '{envarName}' to the valid path to Viual Studio executable devenv.exe.");
+                        print($"Error: you need to set environment variable '{envarName}' to the valid path to Viual Studio executable devenv.exe.");
                     else
-                        Process.Start(vs_exe, projectFile);
+                        p = Process.Start(vs_exe, projectFile);
                 }
                 else
                 {
                     if (vs_exe.IsEmpty())
-                        print(@"Error: you need to set environment variable '{envarName}' to the valid path to Viual Studio Code executable code.exe.");
+                        print($"Error: you need to set environment variable '{envarName}' to the valid path to Viual Studio Code executable code.exe.");
                     else
-                        Process.Start(vs_exe, projectFile.GetDirName());
+                        p = Process.Start(vs_exe, projectFile.GetDirName());
                 }
+
+                if (p != null)
+                    File.WriteAllText(ScriptVsDir.PathJoin("pid"), p.Id.ToString());
+
+                Task.Run(() =>
+                    Utils.CleanAbandonedProcessDirs(ScriptVsDir));
             }
             else if (request == AppArgs.proj || request == AppArgs.proj_dbg || request == AppArgs.proj_csproj)
             {
@@ -215,8 +223,10 @@ namespace csscript
                        .Substring(pos + (AppArgs.code.Length + 1))
                        .Replace("#``", "\"")
                        .Replace("#''", "\"")
+                       .Replace("#'", "'")
                        .Replace("''", "\"")
                        .Replace("``", "\"")
+                       .Replace("`", "\"")
                        .Replace("`n", "\n")
                        .Replace("#n", "\n")
                        .Replace("`r", "\r")
@@ -224,12 +234,14 @@ namespace csscript
                        .Trim(" \"".ToCharArray())
                        .Expand();
 
-            var commonHeader = "using System; using System.Diagnostics; using System.IO;\n";
+            var commonHeader = "using System; using System.Diagnostics; using System.IO;\n\n";
             var customHeaderFile = this.GetType().Assembly.Location.GetDirName().PathJoin("-code.header");
             if (File.Exists(customHeaderFile))
             {
-                commonHeader = File.ReadAllText(customHeaderFile).Replace("\r\n", "\n").TrimEnd() + "\n";
+                commonHeader = File.ReadAllLines(customHeaderFile).Select(x => "   " + x.Trim()).JoinBy("\n") +
+                               "\n// --------------------\n";
             }
+
             code = commonHeader + code;
 
             if (!code.EndsWith(";"))
@@ -244,15 +256,20 @@ namespace csscript
             {
                 if (args.Contains("-code:show"))
                 {
-                    Console.WriteLine("--------------------");
-                    Console.WriteLine("> CS-Script args:");
+                    Console.WriteLine("/*--------------------");
+                    Console.WriteLine("CS-Script args:");
                     for (int i = 0; i < args.Length; i++)
-                        Console.WriteLine($"{i}: {args[i]}");
-                    Console.WriteLine("--------------------");
+                        Console.WriteLine($"  {i}: {args[i].Replace("-code:show", "-code")}");
+                    Console.WriteLine("--------------------*/");
                 }
-                Console.WriteLine("> Interpreted C# code:");
+                Console.WriteLine("// Interpreted C# code:");
+                if (File.Exists(customHeaderFile))
+                {
+                    Console.WriteLine("// --------------------");
+                    Console.WriteLine("// common header: " + customHeaderFile);
+                }
                 Console.WriteLine(code);
-                Console.WriteLine("--------------------");
+                Console.WriteLine("// --------------------");
                 throw new CLIExitRequest();
             }
 
@@ -1166,7 +1183,7 @@ namespace csscript
                 {
                     var compilerAsmFile = LookupAltCompilerFile(options.altCompiler, scriptDir);
 
-                    var asm = Assembly.LoadFrom(compilerAsmFile);
+                    var asm = Assembly.LoadFile(compilerAsmFile);
                     Type[] types = asm.GetModules()[0].FindTypes(Module.FilterTypeName, "CSSCodeProvider");
 
                     MethodInfo method = types[0].GetMethod("CreateCompilerVersion");
@@ -1810,7 +1827,7 @@ namespace csscript
                 if (tempDir == null)
                 {
                     // tempDir = Path.Combine(Path.GetTempPath(), Utils.IsCore ? "csscript.core" : "csscript");
-                    tempDir = Path.Combine(Path.GetTempPath(), "csscript.core");
+                    tempDir = Path.GetTempPath().PathJoin("csscript.core");
                     if (!Directory.Exists(tempDir))
                         Directory.CreateDirectory(tempDir);
                 }
@@ -1890,6 +1907,9 @@ namespace csscript
         /// Contains the name of the temporary cache folder in the CSSCRIPT subfolder of Path.GetTempPath(). The cache folder is specific for every script file.
         /// </summary>
         static public string ScriptCacheDir { get; private set; } = "";
+
+        // "<temp_dir>\csscript.core\cache\<script_hash>"
+        static internal string ScriptVsDir => CSExecutor.ScriptCacheDir.Replace("cache", ".vs");
 
         /// <summary>
         /// Generates the name of the temporary cache folder in the CSSCRIPT subfolder of Path.GetTempPath(). The cache folder is specific for every script file.

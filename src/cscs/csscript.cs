@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using static System.Environment;
 
 namespace csscript
 {
@@ -231,12 +232,12 @@ namespace csscript
                        .Trim(" \"".ToCharArray())
                        .Expand();
 
-            var commonHeader = "using System; using System.Diagnostics; using System.IO;\n\n";
+            var commonHeader = $"using System; using System.Diagnostics; using System.IO;{NewLine}{NewLine}";
             var customHeaderFile = this.GetType().Assembly.Location.GetDirName().PathJoin("-code.header");
             if (File.Exists(customHeaderFile))
             {
-                commonHeader = File.ReadAllLines(customHeaderFile).Select(x => "   " + x.Trim()).JoinBy("\n") +
-                               "\n// --------------------\n";
+                commonHeader = File.ReadAllLines(customHeaderFile).Select(x => "   " + x.Trim()).JoinBy(NewLine) +
+                               $"{NewLine}// --------------------{NewLine}";
             }
 
             code = commonHeader + code;
@@ -896,10 +897,10 @@ namespace csscript
                                 {
                                     if (!CSSUtils.IsRuntimeErrorReportingSuppressed)
                                     {
-                                        print("Error: Specified file could not be compiled.\n");
+                                        print($"Error: Specified file could not be compiled.{NewLine}");
                                         if (NuGet.newPackageWasInstalled)
                                         {
-                                            print("> -----\nA new NuGet package has been installed. If some of it's components are not found you may need to restart the script again.\n> -----\n");
+                                            print($"> -----{NewLine}A new NuGet package has been installed. If some of it's components are not found you may need to restart the script again.{NewLine}> -----{NewLine}");
                                         }
                                     }
                                 }
@@ -922,7 +923,7 @@ namespace csscript
                             {
                                 Console.WriteLine("  Loading script from cache...");
                                 if (options.verbose)
-                                    Console.WriteLine("  Cache file: \n       " + assemblyFileName);
+                                    Console.WriteLine($"  Cache file: {NewLine}       " + assemblyFileName);
                                 Console.WriteLine("> ----------------");
                                 Console.WriteLine("Initialization time: " + Profiler.Stopwatch.Elapsed.TotalMilliseconds + " msec");
                                 Console.WriteLine("> ----------------");
@@ -966,7 +967,7 @@ namespace csscript
                             catch
                             {
                                 if (!CSSUtils.IsRuntimeErrorReportingSuppressed)
-                                    print("Error: Specified file could not be executed.\n");
+                                    print("Error: Specified file could not be executed." + NewLine);
                                 throw;
                             }
                         }
@@ -1000,7 +1001,7 @@ namespace csscript
                             Assembly.GetExecutingAssembly().GetName().Name == "cscs" && // console app
                             (message.Contains("'System.Windows.DependencyObject'") || message.Contains("'WindowsBase,")))
                         {
-                            message += "\n\nNOTE: If you are trying to use WPF ensure you have enabled WPF support " +
+                            message += $"{NewLine}{NewLine}NOTE: If you are trying to use WPF ensure you have enabled WPF support " +
                                 "with `dotnet cscs.dll -wpf:enable`";
                         }
 
@@ -1198,7 +1199,7 @@ namespace csscript
                 {
                     try
                     {
-                        var errorMessage = "\nCannot find alternative compiler (" + options.altCompiler + "). Loading default compiler instead.";
+                        var errorMessage = $"{NewLine}Cannot find alternative compiler (" + options.altCompiler + "). Loading default compiler instead.";
 
                         if (!File.Exists(options.altCompiler)) //Invalid alt-compiler configured
                             print(errorMessage);
@@ -1209,7 +1210,7 @@ namespace csscript
                     catch { }
 
                     // Debug.Assert(false);
-                    throw new ApplicationException("Cannot use alternative compiler (" + options.altCompiler + "). You may want to adjust 'CSSCRIPT_ROOT' environment variable or disable alternative compiler by setting 'useAlternativeCompiler' to empty value in the css_config.xml file.\n\nError Details:", ex);
+                    throw new ApplicationException($"Cannot use alternative compiler (" + options.altCompiler + $"). You may want to adjust 'CSSCRIPT_ROOT' environment variable or disable alternative compiler by setting 'useAlternativeCompiler' to empty value in the css_config.xml file.{NewLine}{NewLine}Error Details:", ex);
                 }
             }
             return compiler;
@@ -1596,7 +1597,7 @@ namespace csscript
                     filesToCompile = filesToCompile.ConcatWith(filesToInject);
                 }
 
-                CSSUtils.VerbosePrint("  Output file: \n       " + assemblyFileName, options);
+                CSSUtils.VerbosePrint($"  Output file: {NewLine}       " + assemblyFileName, options);
                 CSSUtils.VerbosePrint("", options);
 
                 CSSUtils.VerbosePrint("  Files to compile: ", options);
@@ -1705,7 +1706,7 @@ namespace csscript
 
                 if (options.syntaxCheck)
                 {
-                    Console.WriteLine("Compile: {0} error(s)\n{1}", ex.ErrorCount, ex.Message.Trim());
+                    Console.WriteLine("Compile: {0} error(s)" + NewLine + "{1}", ex.ErrorCount, ex.Message.Trim());
                 }
                 else
                     throw ex;
@@ -1875,7 +1876,7 @@ namespace csscript
                 try
                 {
                     using var sw = new StreamWriter(infoFile);
-                    sw.Write(Environment.Version.ToString() + "\n" + directoryPath + "\n");
+                    sw.Write(Environment.Version.ToString() + NewLine + directoryPath + NewLine);
                 }
                 catch
                 {

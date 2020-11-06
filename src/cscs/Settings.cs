@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml;
+using static System.Environment;
 
 namespace csscript
 {
@@ -411,7 +412,7 @@ namespace csscript
                             .Where(p => p.CanRead && p.CanWrite)
                             .Where(p => p.Name != "SuppressTimestamping")
                             .Select(p => " " + p.Name + ": " + (p.PropertyType == typeof(string) ? "\"" + p.GetValue(this, dummy) + "\"" : p.GetValue(this, dummy)))
-                            .JoinBy("\n");
+                            .JoinBy(NewLine);
 
             return props;
         }
@@ -561,9 +562,10 @@ namespace csscript
 
                 //note node.ParentNode.InsertAfter(doc.CreateComment("") injects int node inner text and it is not what we want
                 //very simplistic formatting
-                var xml = doc.InnerXml.Replace("><", ">\n  <")
+                var xml = doc.InnerXml.Replace("><", $">{NewLine}  <")
                                       .Replace(">\n  </", "></")
-                                      .Replace("></CSSConfig>", ">\n</CSSConfig>");
+                                      .Replace(">\r\n  </", "></")
+                                      .Replace("></CSSConfig>", $">{NewLine}</CSSConfig>");
 
                 xml = CommentElement(xml, "consoleEncoding", "if 'default' then system default is used; otherwise specify the name of the encoding (e.g. 'utf-8')");
                 xml = CommentElement(xml, "autoclass.decorateAsCS6", "if 'true' auto-class decoration will inject C# 6 specific syntax expressions (e.g. 'using static dbg;')");

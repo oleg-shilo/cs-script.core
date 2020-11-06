@@ -323,7 +323,7 @@ namespace CSScriptLib
                     }
                     catch (Exception e)
                     {
-                        System.Diagnostics.Debug.WriteLine("Cannot initialize NuGet cache folder.\n" + e);
+                        System.Diagnostics.Debug.WriteLine($"Cannot initialize NuGet cache folder.{Environment.NewLine}{e}");
                     }
                 }
                 NeedInitEnvironment = false;

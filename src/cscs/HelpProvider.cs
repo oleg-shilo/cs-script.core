@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using static System.Environment;
 
 namespace csscript
 {
@@ -493,7 +494,7 @@ namespace csscript
                          "If for whatever reason it is preferred to always resolve path expression with respect to the parent script location " +
                          "you can configure the script engine to do it with the following command:",
                          " ",
-                         "   cscs -config:set: ResolveRelativeFromParentScriptLocation = true",
+                         "   cscs -config:set:ResolveRelativeFromParentScriptLocation = true",
                          " ",
                          "Note if you use wildcard in the imported script name (e.g. *_build.cs) the directive will only import from the first " +
                          "probing directory where the matching file(s) is found. Be careful with the wide wildcard as '*.cs' as they may lead to " +
@@ -708,7 +709,7 @@ namespace csscript
                          "           ${<==}While this feature useful it is to be deprecated when .NET Core starts distributing its own properly" +
                          "working build server VBCSCompiler.exe." +
                          " ",
-                         " Example: //css_compiler roslyn\n",
+                         " Example: //css_compiler roslyn" + NewLine,
                          section_sep, //------------------------------------
                          "//css_ignore_namespace <namespace>;",
                          " ",
@@ -869,7 +870,7 @@ namespace csscript
             var directives = syntaxHelp.Split('\n')
                                        .Where(x => x.StartsWith("//css_"))
                                        .Select(x => "- " + x.TrimEnd())
-                                       .JoinBy(Environment.NewLine);
+                                       .JoinBy(NewLine);
 
             syntaxHelp = syntaxHelp.Replace("{$directives}", directives);
 
@@ -890,13 +891,13 @@ namespace csscript
                         Settings settings = CSExecutor.LoadSettings(options);
 
                         StringBuilder builder = new StringBuilder();
-                        builder.Append(string.Format("{0}\n", Environment.CurrentDirectory));
+                        builder.AppendLine(CurrentDirectory);
 
                         foreach (string dir in Environment.ExpandEnvironmentVariables(settings.SearchDirs).Split(",;".ToCharArray()))
                             if (dir.Trim() != "")
-                                builder.Append(string.Format("{0}\n", dir));
+                                builder.AppendLine(dir);
 
-                        builder.Append(string.Format("{0}\n", typeof(HelpProvider).Assembly.GetAssemblyDirectoryName()));
+                        builder.AppendLine(typeof(HelpProvider).Assembly.GetAssemblyDirectoryName());
                         return builder.ToString();
                     }
                 case AppArgs.syntax:
@@ -916,7 +917,7 @@ namespace csscript
                                                 .TakeWhile(x => x != AppArgs.section_sep)
                                                 .Reverse()
                                                 .Concat(bottom_lines.TakeWhile(x => x != AppArgs.section_sep))
-                                                .JoinBy("\n");
+                                                .JoinBy(NewLine);
                             return help;
                         }
                         // else
@@ -963,8 +964,8 @@ namespace csscript
                         foreach (string key in map.Keys)
                         {
                             string arg = map[key].Trim();
-                            arg = String.Format("{0,-" + longestArg + "}", arg);
-                            builder.Append(string.Format("{0}   {1}\n", arg, key));
+                            arg = string.Format("{0,-" + longestArg + "}", arg);
+                            builder.AppendLine($"{arg}   {key}");
                         }
                         return builder.ToString();
                     }
@@ -1483,18 +1484,17 @@ nvironment.NewLine);
             }
             else
             {
-                builder.Append(AppInfo.appLogo.TrimEnd() + " www.csscript.net (github.com/oleg-shilo/cs-script.core)\n");
-                builder.Append("\n");
-                builder.Append("   CLR:             " + Environment.Version + (dotNetVer != null ? " (.NET Framework v" + dotNetVer + ")" : "") + "\n");
-                builder.Append("   System:          " + Environment.OSVersion + "\n");
-                builder.Append("   Architecture:    " + (Environment.Is64BitProcess ? "x64" : "x86") + "\n");
+                builder.AppendLine(AppInfo.appLogo.TrimEnd() + " www.csscript.net (github.com/oleg-shilo/cs-script.core)")
+                       .AppendLine()
+                       .AppendLine("   CLR:             " + Environment.Version + (dotNetVer != null ? " (.NET Framework v" + dotNetVer + ")" : ""))
+                       .AppendLine("   System:          " + Environment.OSVersion)
+                       .AppendLine("   Architecture:    " + (Environment.Is64BitProcess ? "x64" : "x86"));
                 if (Runtime.IsWin)
-                    builder.Append("   Install dir:     " + (Environment.GetEnvironmentVariable("CSSCRIPT_ROOT") ?? "<not integrated>") + "\n");
+                    builder.AppendLine("   Install dir:     " + (Environment.GetEnvironmentVariable("CSSCRIPT_ROOT") ?? "<not integrated>"));
 
                 var asm_path = Assembly.GetExecutingAssembly().Location;
-                builder.Append("   Location:        " + asm_path + "\n");
-
-                builder.Append("   Config file:     " + (Settings.DefaultConfigFile.FileExists() ? Settings.DefaultConfigFile : "<none>") + "\n");
+                builder.AppendLine("   Location:        " + asm_path);
+                builder.AppendLine("   Config file:     " + (Settings.DefaultConfigFile.FileExists() ? Settings.DefaultConfigFile : "<none>"));
                 builder.Append("   Engine:          ");
                 var compiler = "<default>";
 
@@ -1505,7 +1505,7 @@ nvironment.NewLine);
 
                     if (!string.IsNullOrEmpty(alt_compiler))
                     {
-                        builder.Append(alt_compiler + "\n");
+                        builder.AppendLine(alt_compiler);
                         try
                         {
                             var asm = Assembly.LoadFile(CSExecutor.LookupAltCompilerFile(alt_compiler));
@@ -1519,26 +1519,24 @@ nvironment.NewLine);
                                 var maxLength = info.Keys.Max(x => x.Length);
 
                                 foreach (var key in info.Keys)
-                                    builder.AppendLine("                    " + key + " - \n                        " + info[key]);
+                                    builder.AppendLine("                    " + key + $" - {NewLine}                        " + info[key]);
                             }
                         }
                         catch { }
                     }
                     else
                     {
-                        builder.Append(compiler + "\n");
+                        builder.AppendLine(compiler);
                     }
-                    builder.Append($"                    {CSScripting.CodeDom.CSharpCompiler.csc_dll}\n");
+                    builder.AppendLine($"                    {CSScripting.CodeDom.CSharpCompiler.csc_dll}");
                 }
                 else
-                    builder.Append(compiler + "\n");
+                    builder.AppendLine(compiler);
 
-                builder.Append("   NuGet manager:   " + NuGet.NuGetExeView + "\n");
-                builder.Append("   NuGet cache:     " + NuGet.NuGetCacheView + "\n");
-                builder.Append("   Custom commands: " + Runtime.CustomCommandsDir + "\n");
-                builder.Append("   Global includes: " + Runtime.GlobalIncludsDir + "\n");
-                // builder.Append("   Runtime isLinux:     " + Runtime.IsLinux + "\n");
-                // builder.Append("   Runtime isWin:     " + Runtime.IsWin + "\n");
+                builder.AppendLine("   NuGet manager:   " + NuGet.NuGetExeView)
+                       .AppendLine("   NuGet cache:     " + NuGet.NuGetCacheView)
+                       .AppendLine("   Custom commands: " + Runtime.CustomCommandsDir)
+                       .AppendLine("   Global includes: " + Runtime.GlobalIncludsDir);
             }
             return builder.ToString();
         }

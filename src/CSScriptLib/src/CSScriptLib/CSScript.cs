@@ -179,8 +179,8 @@ namespace CSScriptLib
         static internal string WrapMethodToAutoClass(string methodCode, bool injectStatic, bool injectNamespace, string inheritFrom = null)
         {
             var code = new StringBuilder(4096);
-            code.Append("//Auto-generated file\r\n"); //cannot use AppendLine as it is not available in StringBuilder v1.1
-            code.Append("using System;\r\n");
+            code.AppendLine("//Auto-generated file")
+                .AppendLine("using System;");
 
             bool headerProcessed = false;
 
@@ -198,37 +198,36 @@ namespace CSScriptLib
 
                             if (injectNamespace)
                             {
-                                code.Append("namespace Scripting\r\n");
-                                code.Append("{\r\n");
+                                code.AppendLine("namespace Scripting")
+                                    .AppendLine("{");
                             }
 
                             if (inheritFrom != null)
-                                code.Append($"   public class {DynamicWrapperClassName} : " + inheritFrom + "\r\n");
+                                code.AppendLine($"   public class {DynamicWrapperClassName} : " + inheritFrom);
                             else
-                                code.Append($"   public class {DynamicWrapperClassName}\r\n");
+                                code.AppendLine($"   public class {DynamicWrapperClassName}");
 
-                            code.Append("   {\r\n");
+                            code.AppendLine("   {");
                             string[] tokens = line.Split("\t ".ToCharArray(), 3, StringSplitOptions.RemoveEmptyEntries);
 
                             if (injectStatic)
                             {
                                 //IE "unsafe public static"
                                 if (!tokens.Contains("static"))
-                                    code.Append("   static\r\n");
+                                    code.AppendLine("   static");
                             }
 
                             if (!tokens.Contains("public"))
-                                code.Append("   public\r\n");
+                                code.AppendLine("   public");
                         }
                     }
 
-                    code.Append(line);
-                    code.Append("\r\n");
+                    code.AppendLine(line);
                 }
 
-            code.Append("   }\r\n");
+            code.AppendLine("   }");
             if (injectNamespace)
-                code.Append("}\r\n");
+                code.AppendLine("}");
 
             return code.ToString();
         }

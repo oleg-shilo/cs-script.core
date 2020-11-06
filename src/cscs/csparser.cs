@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using CSScriptLib;
+using static System.Environment;
 
 namespace csscript
 {
@@ -232,7 +233,7 @@ namespace csscript
                     else
                     {
                         if (statement.Length > 1 && (statement[0] == '.' && statement[1] != '.')) //just a single-dot start dir
-                            statement = Path.Combine(Path.GetDirectoryName(parentScript), statement);
+                            statement = parentScript.GetDirName().PathJoin(statement).GetFullPath();
 
                         return new[] { new ImportInfo(statement, parentScript, context) };
                     }
@@ -243,8 +244,8 @@ namespace csscript
                     {
                         if (statement.IndexOfAny(DirectiveDelimiters) != -1) // contains any unescaped delimiter
                         {
-                            throw new InvalidDirectiveException(e.Message +
-                                "\nEnsure your directive escapes all delimiters ('" + new string(DirectiveDelimiters) + "') by doubling the delimiter character.");
+                            throw new InvalidDirectiveException(e.Message + NewLine +
+                                "Ensure your directive escapes all delimiters ('" + new string(DirectiveDelimiters) + "') by doubling the delimiter character.");
                         }
                     }
                     throw;
@@ -358,7 +359,7 @@ namespace csscript
                     }
                     catch (Exception e)
                     {
-                        System.Diagnostics.Trace.WriteLine("Cannot initialize NuGet cache folder.\n" + e);
+                        System.Diagnostics.Trace.WriteLine($"Cannot initialize NuGet cache folder.{NewLine}" + e);
                     }
                 }
                 NeedInitEnvironment = false;
@@ -882,8 +883,10 @@ namespace csscript
                         else
                             endPos = IndexOfDelimiter(pos, codeToAnalyse.Length - 1, ';');
 
-                        if (endPos != -1)
-                            retval.Add(codeToAnalyse.Substring(pos, endPos - pos).Trim());
+                        if (endPos == -1)
+                            endPos = codeToAnalyse.Length;
+
+                        retval.Add(codeToAnalyse.Substring(pos, endPos - pos).Trim());
                     }
                 }
                 pos = codeToAnalyse.IndexOf(pattern, pos + 1);

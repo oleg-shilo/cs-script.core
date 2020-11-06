@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using static System.Environment;
 
 namespace csscript
 {
@@ -114,7 +115,7 @@ namespace csscript
                     }
                     else
                     {
-                        print?.Invoke($"\n{context}{sample.FileExtension}:\n----------");
+                        print?.Invoke($"{NewLine}{context}{sample.FileExtension}:{NewLine}----------");
                         print?.Invoke(sample.Code);
                     }
                 }

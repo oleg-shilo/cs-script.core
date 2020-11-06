@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using static System.Environment;
 
 [assembly: InternalsVisibleTo("cscs.tests")]
 /*
@@ -130,11 +131,11 @@ namespace csscript
         public static bool appConsole = true;
 
         public static string appLogo =>
-            $"C# Script execution engine (.NET Core). Version {Assembly.GetExecutingAssembly().GetName().Version}.\n" +
-            "Copyright (C) 2004-2020 Oleg Shilo.\n";
+            $"C# Script execution engine (.NET Core). Version {Assembly.GetExecutingAssembly().GetName().Version}.{NewLine}" +
+            "Copyright (C) 2004-2020 Oleg Shilo." + NewLine;
 
         public static string appLogoShort =>
-            $"C# Script execution engine (.NET Core). Version{Assembly.GetExecutingAssembly().GetName().Version}.\n";
+            $"C# Script execution engine (.NET Core). Version{Assembly.GetExecutingAssembly().GetName().Version}.{NewLine}";
     }
 
     class Host

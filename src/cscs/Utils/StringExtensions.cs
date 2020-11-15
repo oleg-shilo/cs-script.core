@@ -33,6 +33,8 @@ namespace csscript
         /// </returns>
         public static bool IsNotEmpty(this string text) => !string.IsNullOrEmpty(text);
 
+        public static bool HasText(this string text) => !string.IsNullOrWhiteSpace(text) && !string.IsNullOrEmpty(text);
+
         /// <summary>
         /// Trims a single character form the head and the end of the string.
         /// </summary>

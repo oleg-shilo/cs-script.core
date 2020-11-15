@@ -6,6 +6,28 @@ using static System.Console;
 
 namespace CSScripting.CodeDom
 {
+    public static class CscBuildServer
+    {
+        public static string build_server = Assembly.GetExecutingAssembly().Location.GetDirName().PathJoin("build.dll");
+
+        public static void Start()
+        {
+            // A simple Process.Start does not work as the child process will be linked to the parent Console
+            // killed and this will mess up on whole process life time management of the child (build.dll) and
+            // the grand-child process.
+            //      Process.Start("dotnet", $"\"{build_server}\" -start");
+            // Thus just start server with `-start` and if it is already started then it will gracefully exit
+            try { "dotnet".StartWithoutConsole($"{build_server} -start"); }
+            catch { /**/}
+        }
+
+        public static void Stop()
+        {
+            try { "dotnet".StartWithoutConsole($"{build_server} -stop"); }
+            catch { /**/}
+        }
+    }
+
     public static class BuildServer
     {
         public static int serverPort = 17001;

@@ -98,8 +98,8 @@ namespace CSScripting.CodeDom
 
                 default:
                     // return RoslynService.CompileAssemblyFromFileBatch_with_roslyn(options, fileNames);
-                    // return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
-                    return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
+                    return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
+                    // return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
             }
         }
 
@@ -123,7 +123,6 @@ namespace CSScripting.CodeDom
                     var dirs = dotnet_root.PathJoin("sdk")
                                           .PathGetDirs("*")
                                           .Where(dir => char.IsDigit(dir.GetFileName()[0]))
-                                          // .Where(dir => !dir.GetFileName().Contains('-'))            // ignoring all preview
                                           .OrderBy(x => Version.Parse(x.GetFileName().Split('-').First()))
                                           .SelectMany(dir => dir.PathGetDirs("Roslyn"))
                                           .ToArray();
@@ -135,10 +134,40 @@ namespace CSScripting.CodeDom
             }
         }
 
+        class FileWatcher
+        {
+            public static string WaitForCreated(string dir, string filter, int timeout)
+            {
+                var result = new FileSystemWatcher(dir, filter).WaitForChanged(WatcherChangeTypes.Created, timeout);
+                return result.TimedOut ? null : Path.Combine(dir, result.Name);
+            }
+        }
+
+        static public string BuildOnServer(string[] args)
+        {
+            string jobQueue = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                                      "cs-script", "compiler", "1.0.0.0", "queue");
+
+            Directory.CreateDirectory(jobQueue);
+            var requestName = $"{Guid.NewGuid()}.rqst";
+            var responseName = Path.ChangeExtension(requestName, ".resp");
+
+            Directory.CreateDirectory(jobQueue);
+            var request = Path.Combine(jobQueue, requestName);
+
+            // first arg is the compiler identifier: csc|vbc
+            File.WriteAllLines(request, args.Skip(1));
+
+            string responseFile = FileWatcher.WaitForCreated(jobQueue, responseName, timeout: 5 * 60 * 1000);
+
+            if (responseFile != null)
+                return File.ReadAllText(responseFile);
+            else
+                return "Error: cannot process compile request on CS-Script build server ";
+        }
+
         CompilerResults CompileAssemblyFromFileBatch_with_Csc(CompilerParameters options, string[] fileNames)
         {
-            // C:\Program Files\dotnet\sdk\1.1.10\Roslyn\bincore\csc.dll
-
             string projectName = fileNames.First().GetFileName();
 
             var engine_dir = this.GetType().Assembly.Location.GetDirName();
@@ -190,38 +219,48 @@ namespace CSScripting.CodeDom
             //pseudo-gac as .NET core does not support GAC but rather common assemblies.
             var gac = typeof(string).Assembly.Location.GetDirName();
 
-            var refs_args = "";
-            var source_args = "";
+            List<string> refs_args = new();
+            List<string> source_args = new();
+            List<string> common_args = new();
 
-            var common_args = "/utf8output /nostdlib+ ";
+            common_args.Add("/utf8output");
+            common_args.Add("/nostdlib+");
+
             if (options.GenerateExecutable)
-                common_args += "/t:exe ";
+                common_args.Add("/t:exe");
             else
-                common_args += "/t:library ";
+                common_args.Add("/t:library");
 
             if (options.IncludeDebugInformation)
-                common_args += "/debug:portable ";  // on .net full it is "/debug+"
+                common_args.Add("/debug:portable");  // on .net full it is "/debug+"
 
-            if (options.CompilerOptions.IsNotEmpty())
-                common_args += $"{options.CompilerOptions} ";
+            if (options.CompilerOptions.HasText())
+                common_args.Add(options.CompilerOptions);
 
-            common_args += "-define:TRACE;NETCORE;CS_SCRIPT";
+            common_args.Add("-define:TRACE;NETCORE;CS_SCRIPT");
 
             var gac_asms = Directory.GetFiles(gac, "System.*.dll").ToList();
             gac_asms.AddRange(Directory.GetFiles(gac, "netstandard.dll"));
             // Microsoft.DiaSymReader.Native.amd64.dll is a native dll
             gac_asms.AddRange(Directory.GetFiles(gac, "Microsoft.*.dll").Where(x => !x.Contains("Native")));
 
-            foreach (string file in gac_asms)
-                refs_args += $"/r:\"{file}\" ";
-
-            foreach (string file in ref_assemblies)
-                refs_args += $"/r:\"{file}\" ";
+            foreach (string file in gac_asms.Concat(ref_assemblies))
+                refs_args.Add($"/r:\"{file}\"");
 
             foreach (string file in sources)
-                source_args += $"\"{file}\" ";
+                source_args.Add($"\"{file}\"");
 
-            var cmd = $@"""{csc_dll}"" {common_args} {refs_args} {source_args} /out:""{assembly}""";
+            bool compile_on_server = true;
+            string cmd;
+
+            if (compile_on_server)
+            {
+                CscBuildServer.Start();
+
+                cmd = $@"""{CscBuildServer.build_server}"" csc {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
+            }
+            else
+                cmd = $@"""{csc_dll}"" {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
             //----------------------------
 
             Profiler.get("compiler").Start();
@@ -543,7 +582,7 @@ EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWith
 
                     if (line.Contains("CSC : error ") || line.Contains("): error ") || line.StartsWith("error CS") || line.StartsWith("vbc : error BC") || line.Contains("MSBUILD : error "))
                     {
-                        var error = CompilerError.Parser(line);
+                        var error = CompilerError.Parse(line);
                         if (error != null)
                             Errors.Add(error);
                     }
@@ -552,7 +591,7 @@ EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWith
                 {
                     if (line.IsNotEmpty())
                     {
-                        var error = CompilerError.Parser(line);
+                        var error = CompilerError.Parse(line);
                         if (error != null)
                             Errors.Add(error);
                     }
@@ -586,7 +625,7 @@ EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWith
         public bool IsWarning { get; set; }
         public string FileName { get; set; }
 
-        public static CompilerError Parser(string compilerOutput)
+        public static CompilerError Parse(string compilerOutput)
         {
             // C:\Program Files\dotnet\sdk\2.1.300-preview1-008174\Sdks\Microsoft.NET.Sdk\build\Microsoft.NET.ConflictResolution.targets(59,5): error MSB4018: The "ResolvePackageFileConflicts" task failed unexpectedly. [C:\Users\%username%\AppData\Local\Temp\csscript.core\cache\1822444284\.build\script.cs\script.csproj]
             // script.cs(11,8): error CS1029: #error: 'this is the error...' [C:\Users\%username%\AppData\Local\Temp\csscript.core\cache\1822444284\.build\script.cs\script.csproj]

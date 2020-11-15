@@ -374,6 +374,19 @@ namespace csscript
             }
         }
 
+        public static void StartWithoutConsole(this string executable, string arguments)
+        {
+            Process proc = new();
+
+            proc.StartInfo.FileName = executable;
+            proc.StartInfo.Arguments = arguments;
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.StartInfo.RedirectStandardError = true;
+            proc.StartInfo.CreateNoWindow = true;
+            proc.Start();
+        }
+
         public delegate string ProcessNewEncodingHandler(string requestedEncoding);
 
         public static ProcessNewEncodingHandler ProcessNewEncoding = DefaultProcessNewEncoding;

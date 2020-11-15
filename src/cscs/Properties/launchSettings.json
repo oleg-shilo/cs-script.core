@@ -2,6 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
+      "commandLineArgs": "-c:0 -profile E:\\dev\\dotnet_hot_load\\Program.cs",
       "workingDirectory": "E:\\Galos\\Projects\\cs-script.core\\src\\cscs\\bin\\Debug\\net5.0"
     }
   }

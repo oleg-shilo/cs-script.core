@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "csws": {
+      "commandName": "Project",
+      "commandLineArgs": "C:\\Users\\oleg.shilo\\show_properties.cs"
+    }
+  }
+}

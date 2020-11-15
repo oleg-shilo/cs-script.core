@@ -877,14 +877,14 @@ namespace csscript
                                     if (Profiler.has("compiler"))
                                         pureCompilerTime = Profiler.get("compiler").Elapsed;
 
-                                    if (options.verbose)
+                                    if (options.verbose || options.profile)
                                         Console.WriteLine("> ----------------");
 
                                     Console.WriteLine($"Initialization time: {initializationTime.TotalMilliseconds} msec");
                                     Console.WriteLine($"Compilation time:    {pureCompilerTime.TotalMilliseconds} msec");
                                     Console.WriteLine($"Total load time:     {compilationTime.TotalMilliseconds} msec");
 
-                                    if (options.verbose)
+                                    if (options.verbose || options.profile)
                                     {
                                         Console.WriteLine("> ----------------");
                                         Console.WriteLine("");

@@ -1069,8 +1069,8 @@ Type           Template
 ---------------------------------------------------
 console         Console script application (Default)
 console-vb      Console VB script application
-winforms        Windows Forms (WinForms) script application
-winforms-vb     Windows Forms (WinForms) VB script application
+winform        Windows Forms (WinForms) script application
+winform-vb     Windows Forms (WinForms) VB script application
 wpf             WPF script application
 wpf-cm          Cliburm.Micro based WPF script application
 toplevel|top    Top-level class script application with no entry point

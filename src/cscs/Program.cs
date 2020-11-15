@@ -6,8 +6,25 @@ using System.IO;
 using System.Linq;
 
 /*
-ensure -cd creates dll in the right folder
-ensure -cd does not creates static main
+ TODO:
+
+   csc_builder
+     - csc location on Linux
+     - test on Linux
+     - migrate IPC on sockets instead of file system
+     - add configurable exit on idle
+
+   cscs
+     - report using of csc_builder for WPF project
+     - add configurable use of csc_builder
+     - bind csc_builder to -server:exit and -server:start
+     - remove old Roslyn-based build server
+     - code cleanup
+     - check csc engine respects build dll and build exe
+
+   CSSCriptLib
+     - implement Engine.CodeDom
+     - ensure Engine.CodeDom supports multi-scripting
 */
 
 namespace cscs

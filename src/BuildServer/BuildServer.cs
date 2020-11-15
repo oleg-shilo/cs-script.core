@@ -18,7 +18,7 @@ namespace compile_server
         static public void SignalItselfAsRunning()
         {
             IsRunning(); // will claim mutex if it's not done yet
-            File.WriteAllText(Path.Combine(BuildServer.DefaultJobQueuePath, "server.pid"), Process.GetCurrentProcess().Id.ToString());
+            File.WriteAllText(Path.Combine(BuildServer.DefaultJobQueuePath, "server.pid"), System.Diagnostics.Process.GetCurrentProcess().Id.ToString());
         }
 
         static public bool IsRunning()
@@ -30,8 +30,8 @@ namespace compile_server
         static public void Log(string message)
         {
             Console.WriteLine(message);
-            File.WriteAllText(Path.Combine(BuildServer.DefaultJobQueuePath, "server.log"),
-                $"{Process.GetCurrentProcess().Id}:{DateTime.Now.ToString("-s")}:{message}{Environment.NewLine}");
+            // File.WriteAllText(Path.Combine(BuildServer.DefaultJobQueuePath, "server.log"),
+            //     $"{System.Diagnostics.Process.GetCurrentProcess().Id}:{DateTime.Now.ToString("-s")}:{message}{Environment.NewLine}");
         }
     }
 
@@ -96,7 +96,7 @@ namespace compile_server
         static public void Start()
         {
             App.SignalItselfAsRunning();
-            App.Log($"Server started ({Process.GetCurrentProcess().Id})...");
+            App.Log($"Server started ({System.Diagnostics.Process.GetCurrentProcess().Id})...");
 
             try
             {

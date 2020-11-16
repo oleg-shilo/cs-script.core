@@ -98,8 +98,8 @@ namespace CSScripting.CodeDom
 
                 default:
                     // return RoslynService.CompileAssemblyFromFileBatch_with_roslyn(options, fileNames);
-                    return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
-                    // return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
+                    // return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
+                    return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
             }
         }
 
@@ -212,6 +212,7 @@ namespace CSScripting.CodeDom
             if (!options.GenerateExecutable || !Runtime.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
             {
                 // todo
+                // nothing for now
             }
 
             //----------------------------
@@ -226,10 +227,7 @@ namespace CSScripting.CodeDom
             common_args.Add("/utf8output");
             common_args.Add("/nostdlib+");
 
-            if (options.GenerateExecutable)
-                common_args.Add("/t:exe");
-            else
-                common_args.Add("/t:library");
+            common_args.Add("/t:exe"); // need always build exe so "top-class" feature is supported even when building dlls
 
             if (options.IncludeDebugInformation)
                 common_args.Add("/debug:portable");  // on .net full it is "/debug+"
@@ -261,7 +259,6 @@ namespace CSScripting.CodeDom
             }
             else
                 cmd = $@"""{csc_dll}"" {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
-            //----------------------------
 
             Profiler.get("compiler").Start();
             result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
@@ -283,6 +280,20 @@ namespace CSScripting.CodeDom
             {
                 result.PathToAssembly = options.OutputAssembly;
                 File.Copy(assembly, result.PathToAssembly, true);
+
+                if (options.GenerateExecutable)
+                {
+                    var runtimeconfig = "{'runtimeOptions': {'framework': {'name': 'Microsoft.NETCore.App', 'version': '{version}'}}}"
+                                         .Replace("'", "\"")
+                                         .Replace("{version}", Environment.Version.ToString());
+
+                    File.WriteAllText(result.PathToAssembly.ChangeExtension(".runtimeconfig.json"), runtimeconfig);
+                    File.Copy(assembly, result.PathToAssembly.ChangeExtension(".exe"), true);
+                }
+                else
+                {
+                    File.Copy(assembly, result.PathToAssembly, true);
+                }
 
                 if (options.IncludeDebugInformation)
                     File.Copy(assembly.ChangeExtension(".pdb"),

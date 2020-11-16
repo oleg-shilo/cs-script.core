@@ -1359,7 +1359,7 @@ partial class dbg
             {
                 bool canHandleCShar6 = (!string.IsNullOrEmpty(options.altCompiler) || !Runtime.IsWin);
 
-                AutoclassPrecompiler.decorateAutoClassAsCS6 = (options.decorateAutoClassAsCS6 && options.enableDbgPrint && canHandleCShar6);
+                AutoclassPrecompiler.decorateAutoClassAsCS6 = true;
 
                 AutoclassPrecompiler.injectBreakPoint = options.autoClass_InjectBreakPoint;
                 if (retval.ContainsKey(Assembly.GetExecutingAssembly().Location))

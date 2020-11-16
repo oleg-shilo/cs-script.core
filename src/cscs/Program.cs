@@ -13,6 +13,7 @@ using System.Linq;
      - test on Linux
      - migrate IPC on sockets instead of file system
      - add configurable exit on idle
+     - cleanup job queue folder
 
    cscs
      - report using of csc_builder for WPF project
@@ -20,7 +21,8 @@ using System.Linq;
      - bind csc_builder to -server:exit and -server:start
      - remove old Roslyn-based build server
      - code cleanup
-     - check csc engine respects build dll and build exe
+     - check if nuget works
+     + check csc engine respects build dll and build exe
 
    CSSCriptLib
      - implement Engine.CodeDom

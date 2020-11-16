@@ -152,14 +152,13 @@ namespace csscript
                 options.reportDetailedErrorInfo = settings.ReportDetailedErrorInfo;
                 options.openEndDirectiveSyntax = settings.OpenEndDirectiveSyntax;
                 options.consoleEncoding = settings.ConsoleEncoding;
-                options.decorateAutoClassAsCS6 = settings.AutoClass_DecorateAsCS6;
+                options.compilerEngine = settings.DefaultCompilerEngine;
                 options.enableDbgPrint = settings.EnableDbgPrint;
                 options.inMemoryAsm = settings.InMemoryAssembly;
 
                 //options.useSurrogateHostingProcess = settings.UseSurrogateHostingProcess;
                 options.concurrencyControl = settings.ConcurrencyControl;
                 options.hideCompilerWarnings = settings.HideCompilerWarnings;
-                options.TargetFramework = settings.TargetFramework;
 
                 //process default command-line arguments
                 string[] defaultCmdArgs = settings.DefaultArguments
@@ -425,7 +424,9 @@ namespace csscript
                         options.autoClass = true;
                     }
 
-                    options.compilerEngine = parser.GetDirective(compilerDirective)?.LastOrDefault();
+                    var compilerDirectives = parser.GetDirective(compilerDirective);
+                    if (compilerDirectives.Any())
+                        options.compilerEngine = parser.GetDirective(compilerDirective)?.Last();
 
                     if (parser.Inits.Length != 0)
                         options.initContext = parser.Inits[0];

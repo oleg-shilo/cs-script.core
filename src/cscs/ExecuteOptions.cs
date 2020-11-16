@@ -87,7 +87,7 @@ namespace csscript
             clone.compilerEngine = this.compilerEngine;
             clone.autoClass = this.autoClass;
             clone.autoClass_InjectBreakPoint = this.autoClass_InjectBreakPoint;
-            clone.decorateAutoClassAsCS6 = this.decorateAutoClassAsCS6;
+            clone.defaultCompilerEngine = this.defaultCompilerEngine;
             clone.enableDbgPrint = this.enableDbgPrint;
             clone.initContext = this.initContext;
             clone.nonExecuteOpRquest = this.nonExecuteOpRquest;
@@ -143,7 +143,7 @@ namespace csscript
             clone.compilerEngine = this.compilerEngine;
             clone.autoClass = this.autoClass;
             clone.autoClass_InjectBreakPoint = this.autoClass_InjectBreakPoint;
-            clone.decorateAutoClassAsCS6 = this.decorateAutoClassAsCS6;
+            clone.defaultCompilerEngine = this.defaultCompilerEngine;
             clone.enableDbgPrint = this.enableDbgPrint;
             clone.customHashing = this.customHashing;
             clone.altConfig = this.altConfig;
@@ -192,7 +192,7 @@ namespace csscript
         public string altCompiler = "";
         public string roslynDir = "";
         public string consoleEncoding = "utf-8";
-        public bool decorateAutoClassAsCS6 = false;
+        public string defaultCompilerEngine = "dotnet";
         public bool enableDbgPrint = true;
         public string preCompilers = "";
         public string defaultRefAssemblies = "";

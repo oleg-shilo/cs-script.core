@@ -575,11 +575,14 @@ namespace csscript
             foreach (string statement in GetRawStatements("//css_ignore_ns", endCodePos))
                 ignoreNamespaces.Add(statement.Trim());
 
-            //analyse resource references
+            // analyze resource references
+            // this directive is special as it may contain two paths
+            // //css_res Resources1.resx;",
+            // //css_res Form1.resx, Scripting.Form1.resources;"
             foreach (string statement in GetRawStatements("//css_resource", endCodePos))
-                resFiles.Add(statement.NormaliseAsDirectiveOf(file));
+                resFiles.Add(statement.NormaliseAsDirectiveOf(file, multiPathDelimiter: ','));
             foreach (string statement in GetRawStatements("//css_res", endCodePos))
-                resFiles.Add(statement.NormaliseAsDirectiveOf(file));
+                resFiles.Add(statement.NormaliseAsDirectiveOf(file, multiPathDelimiter: ','));
 
             //analyse extra search (probing) dirs
             foreach (string statement in GetRawStatements("//css_searchdir", endCodePos))

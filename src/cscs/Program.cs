@@ -16,8 +16,8 @@ using System.Linq;
      - cleanup job queue folder
 
    cscs
-     - report using of csc_builder for WPF project
-     - add configurable use of csc_builder
+     + report using of csc_builder for WPF project
+     + add configurable use of csc_builder
      - bind csc_builder to -server:exit and -server:start
      - remove old Roslyn-based build server
      - code cleanup
@@ -37,6 +37,7 @@ namespace cscs
         static void Main(string[] args)
         {
             //Debug.Assert(false);
+
             Environment.SetEnvironmentVariable("DOTNET_SHARED", typeof(string).Assembly.Location.GetDirName().GetDirName());
             Environment.SetEnvironmentVariable("WINDOWS_DESKTOP_APP", Runtime.DesktopAssembliesDir);
             Environment.SetEnvironmentVariable("css_nuget", null);

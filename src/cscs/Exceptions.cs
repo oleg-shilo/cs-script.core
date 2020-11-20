@@ -99,18 +99,26 @@ namespace csscript
                 if (err.IsWarning && hideCompilerWarnings)
                     continue;
 
-                string file = err.FileName;
-                int line = err.Line;
+                if (err.FileName.HasText())
+                {
+                    string file = err.FileName;
+                    int line = err.Line;
 
-                if (resolveAutogenFilesRefs)
-                    CSSUtils.NormaliseFileReference(ref file, ref line);
+                    if (resolveAutogenFilesRefs)
+                        CSSUtils.NormaliseFileReference(ref file, ref line);
 
-                compileErr.Append(file)
-                          .Append("(")
-                          .Append(line)
-                          .Append(",")
-                          .Append(err.Column)
-                          .Append("): ");
+                    compileErr.Append(file)
+                              .Append("(")
+                              .Append(line)
+                              .Append(",")
+                              .Append(err.Column)
+                              .Append("): ");
+                }
+                else
+                {
+                    compileErr.Append("BUILD: ");
+                }
+
                 if (err.IsWarning)
                     compileErr.Append("warning ");
                 else

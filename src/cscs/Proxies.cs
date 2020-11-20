@@ -8,6 +8,8 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using static System.StringComparison;
+using static System.Environment;
 
 namespace CSScripting.CodeDom
 {
@@ -123,7 +125,7 @@ namespace CSScripting.CodeDom
                     var dirs = dotnet_root.PathJoin("sdk")
                                           .PathGetDirs("*")
                                           .Where(dir => char.IsDigit(dir.GetFileName()[0]))
-                                          .OrderBy(x => Version.Parse(x.GetFileName().Split('-').First()))
+                                          .OrderBy(x => System.Version.Parse(x.GetFileName().Split('-').First()))
                                           .SelectMany(dir => dir.PathGetDirs("Roslyn"))
                                           .ToArray();
                     var csc_exe = dirs.Select(dir => dir.PathJoin("bincore", "csc.dll"))
@@ -208,6 +210,18 @@ namespace CSScripting.CodeDom
             var assembly = build_dir.PathJoin(projectName + ".dll");
 
             var result = new CompilerResults();
+
+            var needCompileXaml = fileNames.Any(x => x.EndsWith(".xaml", OrdinalIgnoreCase));
+            if (needCompileXaml)
+            {
+                result.Errors.Add(new CompilerError
+                {
+                    ErrorText = $"In order to compile XAML you need to use `dotnet` compiler. " + NewLine +
+                    $"You can set it from code with \"//css_compler dotnet\" or as a config " +
+                    $"value \"dotnet .{Path.DirectorySeparatorChar}cscs.dll -config:set:DefaultCompilerEngine=dotnet\"."
+                });
+                return result;
+            }
 
             if (!options.GenerateExecutable || !Runtime.IsCore || DefaultCompilerRuntime == DefaultCompilerRuntime.Standard)
             {

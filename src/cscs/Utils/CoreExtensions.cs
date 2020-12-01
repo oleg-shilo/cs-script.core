@@ -123,6 +123,22 @@ namespace csscript
             catch { /* non critical exception */ }
             return ex;
         }
+        public static Exception ToNewException(this Exception ex, string message, bool encapsulate = true)
+        {
+            var topLevelMessage = message;
+            Exception childException = ex;
+            if (!encapsulate)
+            {
+                topLevelMessage += Environment.NewLine + ex.Message;
+                childException = null;
+            }
+            var constructor = ex.GetType().GetConstructor(new Type[] { typeof(string), typeof(Exception) });
+            if (constructor != null)
+                return (Exception)constructor.Invoke(new object[] { topLevelMessage, childException });
+            else
+                return new Exception(message, childException);
+        }
+
 
         /// <summary>
         /// Files the delete.

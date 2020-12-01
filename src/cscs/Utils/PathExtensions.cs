@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 #if class_lib
 
@@ -42,6 +43,15 @@ namespace csscript
 
         public static string GetDirName(this string path)
             => path == null ? null : Path.GetDirectoryName(path);
+
+        public static string ChangeFileName(this string path, string fileName) => path.GetDirName().PathJoin(fileName);
+
+        public static string GetFileNameWithoutExtension(this string path) => Path.GetFileNameWithoutExtension(path);
+
+        public static string PathNormaliseSeparators(this string path)
+        {
+            return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        }
 
 #if !class_lib
 

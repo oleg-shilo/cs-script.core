@@ -1846,11 +1846,11 @@ namespace csscript
             if (Runtime.IsWin)
             {
                 //Win is not case-sensitive so ensure, both lower and capital case path yield the same hash
-                dirHash = CSSUtils.GetHashCodeEx(directoryPath.ToLower()).ToString();
+                dirHash = directoryPath.ToLower().GetHashCodeEx().ToString();
             }
             else
             {
-                dirHash = CSSUtils.GetHashCodeEx(directoryPath).ToString();
+                dirHash = directoryPath.GetHashCodeEx().ToString();
             }
 
             cacheDir = Path.Combine(commonCacheDir, dirHash);

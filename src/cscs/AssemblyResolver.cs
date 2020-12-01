@@ -50,7 +50,7 @@ namespace csscript
         static HashSet<int> NotFoundAssemblies = new HashSet<int>();
 
         static int BuildHashSetValue(string assemblyName, string directory) =>
-            CSSUtils.GetHashCodeEx((assemblyName ?? "") + (directory ?? ""));
+            StringExtensions.GetHashCodeEx((assemblyName ?? "") + (directory ?? ""));
 
         static Assembly LoadAssemblyFrom(string assemblyName, string asmFile, bool throwException = false)
         {

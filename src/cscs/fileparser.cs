@@ -59,9 +59,7 @@ namespace CSScriptLib
         }
 
         public bool preserveMain = false;
-#if !class_lib
         public string importingErrorMessage;
-#endif
         List<string[]> renameNamespaceMap;
     }
 
@@ -187,7 +185,7 @@ namespace CSScriptLib
                 }
                 else
                 {
-                    fileNameImported = Path.Combine(CSExecutor.ScriptCacheDir, string.Format("i_{0}_{1}{2}", Path.GetFileNameWithoutExtension(fileName), CSSUtils.GetHashCodeEx(Path.GetDirectoryName(fileName)), Path.GetExtension(fileName)));
+                    fileNameImported = Path.Combine(CSExecutor.ScriptCacheDir, string.Format("i_{0}_{1}{2}", Path.GetFileNameWithoutExtension(fileName), Path.GetDirectoryName(fileName).GetHashCodeEx(), Path.GetExtension(fileName)));
                     if (!Directory.Exists(Path.GetDirectoryName(fileNameImported)))
                         Directory.CreateDirectory(Path.GetDirectoryName(fileNameImported));
                     if (File.Exists(fileNameImported))

@@ -50,6 +50,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="CSScriptLib.Eval.CodeDom.cs" />
     <Compile Remove="output\Test.cs" />
     <Compile Remove="sample.cs" />
     <Compile Remove="samples.cs" />
@@ -57,7 +58,11 @@
 
   <ItemGroup>
     <Compile Include="..\..\..\cscs\fileparser.cs" Link="fileparser.cs" />
+    <Compile Include="..\..\..\cscs\Project.cs" Link="Project.cs" />
+    <Compile Include="..\..\..\cscs\ScriptParser.cs" Link="ScriptParser.cs" />
+    <Compile Include="..\..\..\cscs\ScriptParsingResult.cs" Link="ScriptParsingResult.cs" />
     <Compile Include="..\..\..\cscs\Utils\CoreExtensions.cs" Link="Utils\CoreExtensions.cs" />
+    <Compile Include="..\..\..\cscs\Utils\CurrentDirGuard.cs" Link="Utils\CurrentDirGuard.cs" />
     <Compile Include="..\..\..\cscs\Utils\LinqExtensions.cs" Link="Utils\LinqExtensions.cs" />
     <Compile Include="..\..\..\cscs\Utils\PathExtensions.cs" Link="Utils\PathExtensions.cs" />
     <Compile Include="..\..\..\cscs\Utils\ReflectionExtensions.cs" Link="Utils\ReflectionExtensions.cs" />
@@ -74,14 +79,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Utils\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Include="..\..\..\logo\css_logo.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
+    <None Include="CSScriptLib.Eval.CodeDom.cs" />
     <None Include="samples.cs" />
   </ItemGroup>
 

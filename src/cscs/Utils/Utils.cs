@@ -134,22 +134,6 @@ namespace csscript
             return process.ExitCode;
         }
 
-        public static Exception ToNewException(this Exception ex, string message, bool encapsulate)
-        {
-            var topLevelMessage = message;
-            Exception childException = ex;
-            if (!encapsulate)
-            {
-                topLevelMessage += Environment.NewLine + ex.Message;
-                childException = null;
-            }
-            var constructor = ex.GetType().GetConstructor(new Type[] { typeof(string), typeof(Exception) });
-            if (constructor != null)
-                return (Exception)constructor.Invoke(new object[] { topLevelMessage, childException });
-            else
-                return new Exception(message, childException);
-        }
-
         public static bool NotEmpty(this string text)
         {
             return !string.IsNullOrEmpty(text);
@@ -161,11 +145,6 @@ namespace csscript
             foreach (Func<T, T> sel in selectors)
                 result = result.Select(sel);
             return result;
-        }
-
-        public static string PathNormaliseSeparators(this string path)
-        {
-            return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
 
         //to avoid throwing the exception
@@ -240,13 +219,9 @@ namespace csscript
             return Directory.GetDirectories(path, mask);
         }
 
-        public static string GetFileNameWithoutExtension(this string path) => Path.GetFileNameWithoutExtension(path);
-
         public static bool FileExists(this string path) => path.IsNotEmpty() ? File.Exists(path) : false;
 
         public static string ChangeExtension(this string path, string extension) => Path.ChangeExtension(path, extension);
-
-        public static string ChangeFileName(this string path, string fileName) => path.GetDirName().PathJoin(fileName);
 
         class Win32
         {
@@ -1514,7 +1489,7 @@ partial class dbg
             sb.Append(options.compilerOptions); // parser.CompilerOptions can be ignored as if they are changed the whole script timestamp is also changed
             sb.Append(string.Join("|", options.searchDirs)); // "Incorrect work of cache #86"
 
-            return CSSUtils.GetHashCodeEx(sb.ToString());
+            return sb.ToString().GetHashCodeEx();
         }
 
         public static string[] GetAppDomainAssemblies()
@@ -1534,7 +1509,7 @@ partial class dbg
                 var asmExtension = ".dll";
                 string precompilerAsm = Path.Combine(CSExecutor.GetCacheDirectory(sourceFile), Path.GetFileName(sourceFile) + asmExtension);
 
-                using Mutex fileLock = new Mutex(false, "CSSPrecompiling." + CSSUtils.GetHashCodeEx(precompilerAsm)); //have to use hash code as path delimiters are illegal in the mutex name
+                using Mutex fileLock = new Mutex(false, "CSSPrecompiling." + precompilerAsm.GetHashCodeEx()); //have to use hash code as path delimiters are illegal in the mutex name
 
                 //let other thread/process (if any) to finish loading/compiling the same file; 3 seconds should be enough
                 //if not we will just fail to compile as precompilerAsm will still be locked.
@@ -1636,32 +1611,8 @@ partial class dbg
             }
         }
 
-        public static int GetHashCodeEx(this string s)
-        {
-            //during the script first compilation GetHashCodeEx is called ~10 times
-            //during the cached execution ~5 times only
-            //and for hosted scenarios it is twice less
-
-            //The following profiling demonstrates that in the worst case scenario hashing would
-            //only add ~2 microseconds to the execution time
-
-            //Native executions cost (milliseconds)=> 100000: 7; 10 : 0.0007
-            //Custom Safe executions cost (milliseconds)=> 100000: 40; 10: 0.004
-            //Custom Unsafe executions cost (milliseconds)=> 100000: 13; 10: 0.0013
-
-            if (ExecuteOptions.options.customHashing)
-            {
-                //deterministic GetHashCode; useful for integration with third party products (e.g. CS-Script.Npp)
-                return GetHashCode32(s);
-            }
-            else
-            {
-                return s.GetHashCode();
-            }
-        }
-
         //needed to have reliable HASH as x64 and x32 have different algorithms; This leads to the inability of script clients calculate cache directory correctly
-        static int GetHashCode32(string s)
+        public static int GetHashCode32(this string s)
         {
             char[] chars = s.ToCharArray();
 
@@ -1978,7 +1929,7 @@ partial class dbg
                 w.Write((Int32)data.Length);
                 w.Write((Int32)(CSExecutor.options.DBG ? 1 : 0));
                 w.Write((Int32)(CSExecutor.options.compilationContext));
-                w.Write((Int32)CSSUtils.GetHashCodeEx(Environment.Version.ToString()));
+                w.Write((Int32)Environment.Version.ToString().GetHashCodeEx());
 
                 w.Write((Int32)stampID);
             }
@@ -2022,7 +1973,7 @@ partial class dbg
                 if (stamp == stampID)
                 {
                     int value = ReadIntBackwards(r, ref offset);
-                    if (value != CSSUtils.GetHashCodeEx(Environment.Version.ToString()))
+                    if (value != Environment.Version.ToString().GetHashCodeEx())
                     {
                         return false;
                     }
@@ -2090,7 +2041,7 @@ partial class dbg
             return true;
         }
 
-        int stampID = CSSUtils.GetHashCodeEx(Assembly.GetExecutingAssembly().FullName.Split(",".ToCharArray())[1]);
+        int stampID = Assembly.GetExecutingAssembly().FullName.Split(",".ToCharArray())[1].GetHashCodeEx();
 
         bool IsGACAssembly(string file)
         {

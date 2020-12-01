@@ -102,7 +102,11 @@ namespace CSScriptLib
         /// <returns>Collection of the referenced assembly files.</returns>
         public string[] ResolvePackages(bool suppressDownloading = false)
         {
+#if !class_lib
             return NuGet.Resolve(Packages, suppressDownloading, this.ScriptPath);
+#else
+            return new string[0];
+#endif
         }
 
         /// <summary>
@@ -174,8 +178,9 @@ namespace CSScriptLib
 
             //process main file
             FileParser mainFile = new FileParser(fileName, null, true, false, searchDirs, throwOnError);
+#if !class_lib
             this.apartmentState = mainFile.ThreadingModel;
-
+#endif
             foreach (string file in mainFile.Precompilers)
                 PushPrecompiler(file);
 
@@ -276,9 +281,11 @@ namespace CSScriptLib
             }
             catch (Exception e)
             {
-                throw e.ToNewException(
-                    fileInfo.parseParams.importingErrorMessage,
-                    ExecuteOptions.options.reportDetailedErrorInfo); // encapsulate: ExecuteOptions.options.reportDetailedErrorInfo
+                throw e.ToNewException(fileInfo.parseParams.importingErrorMessage
+#if !class_lib
+                    , ExecuteOptions.options.reportDetailedErrorInfo
+#endif
+                    );
             }
         }
 
@@ -311,14 +318,14 @@ namespace CSScriptLib
         /// </summary>
         public void DeleteImportedFiles()
         {
-            foreach (FileParser file in fileParsers)
+            foreach (FileParser fileParser in fileParsers)
             {
-                if (file.Imported && file.fileNameImported != file.fileName) //the file was copied
+                if (fileParser.Imported && fileParser.fileNameImported != fileParser.fileName) //the file was copied
                 {
                     try
                     {
-                        File.SetAttributes(file.FileToCompile, FileAttributes.Normal);
-                        Utils.FileDelete(file.FileToCompile);
+                        File.SetAttributes(fileParser.FileToCompile, FileAttributes.Normal);
+                        fileParser.FileToCompile.FileDelete(rethrow: false);
                     }
                     catch { }
                 }

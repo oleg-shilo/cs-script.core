@@ -58,12 +58,12 @@ namespace csscript
             bool isLinux = (Environment.OSVersion.Platform == PlatformID.Unix);
             if (isLinux)
             {
-                mutex = new LinuxSystemWideLock(context + "." + CSSUtils.GetHashCodeEx(file));
+                mutex = new LinuxSystemWideLock(context + "." + file.GetHashCodeEx());
             }
             else
             {
                 file = file.ToLower(CultureInfo.InvariantCulture);
-                mutex = new WinSystemWideLock(context + "." + CSSUtils.GetHashCodeEx(file));
+                mutex = new WinSystemWideLock(context + "." + file.GetHashCodeEx());
             }
         }
 

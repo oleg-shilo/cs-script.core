@@ -90,15 +90,16 @@ namespace csscript
                 parser = new ScriptParser(script, searchDirs.ToArray(), false);
             }
 
+#if !class_lib
+
             CSExecutor.options.preCompilers = parser.Precompilers
                                                     .Select(x => FileParser.ResolveFile(x, CSExecutor.options.searchDirs))
                                                     .AddItem(CSExecutor.options.preCompilers)
                                                     .JoinBy(",");
-
             PrecompilationContext precompiling = CSSUtils.Precompile(script,
                                                                      parser.FilesToCompile.Distinct(),
                                                                          CSExecutor.options);
-
+#endif
             // search dirs could be also defined in the script
             var probingDirs = searchDirs.Concat(parser.SearchDirs)
                                         .Where(x => !string.IsNullOrEmpty(x))
@@ -113,16 +114,18 @@ namespace csscript
             //    NotifyClient("Processing NuGet packages...");
             //}
 
-            project.Files = sources.Distinct().Select<string, string>(Utils.PathNormaliseSeparators).ToArray();
+            project.Files = sources.Distinct().Select<string, string>(PathExtensions.PathNormaliseSeparators).ToArray();
 
             project.Refs = parser.AgregateReferences(probingDirs, defaultRefAsms, defaultNamespaces)
-                                 .Map(Utils.PathNormaliseSeparators)
+                                 .Select(PathExtensions.PathNormaliseSeparators)
                                  .ToArray();
 
+#if !class_lib
             project.Refs = project.Refs.ConcatWith(precompiling.NewReferences);
             project.Files = project.Files.ConcatWith(precompiling.NewIncludes);
+#endif
 
-            project.SearchDirs = probingDirs.Select<string, string>(Utils.PathNormaliseSeparators).ToArray();
+            project.SearchDirs = probingDirs.Select<string, string>(PathExtensions.PathNormaliseSeparators).ToArray();
 
             return project;
         }
@@ -150,8 +153,12 @@ namespace csscript
 
                 var configFile = Settings.DefaultConfigFile;
                 var settings = Settings.Load(configFile);
-
+#if !class_lib
                 items.dirs.AddRange(splitPathItems(settings.SearchDirs));
+#else
+                items.dirs.AddRange(settings.SearchDirs);
+#endif
+
                 if (configFile != null && File.Exists(configFile))
                     items.dirs.Add(Path.Combine(Path.GetDirectoryName(configFile), "lib"));
                 items.asms.AddRange(splitPathItems(settings.DefaultRefAssemblies));

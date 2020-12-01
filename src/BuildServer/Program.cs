@@ -9,9 +9,6 @@ namespace compile_server
 {
     class Program
     {
-        // TODO:
-        // csc location on Linux
-
         static void Main(string[] args)
         {
             App.Log("Starting...");

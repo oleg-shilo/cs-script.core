@@ -304,7 +304,7 @@ namespace CSScriptLib
         }
 
 #endif
-        static bool NeedInitEnvironment = true;
+        public static bool NeedInitEnvironment = true;
 
         static void InitEnvironment()
         {

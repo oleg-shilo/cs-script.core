@@ -82,5 +82,34 @@ namespace csscript
         /// <returns></returns>
         public static string JoinBy(this IEnumerable<string> values, string separator)
             => string.Join(separator, values);
+
+        public static int GetHashCodeEx(this string s)
+        {
+            //during the script first compilation GetHashCodeEx is called ~10 times
+            //during the cached execution ~5 times only
+            //and for hosted scenarios it is twice less
+
+            //The following profiling demonstrates that in the worst case scenario hashing would
+            //only add ~2 microseconds to the execution time
+
+            //Native executions cost (milliseconds)=> 100000: 7; 10 : 0.0007
+            //Custom Safe executions cost (milliseconds)=> 100000: 40; 10: 0.004
+            //Custom Unsafe executions cost (milliseconds)=> 100000: 13; 10: 0.0013
+#if !class_lib
+            if (ExecuteOptions.options.customHashing)
+            {
+                // deterministic GetHashCode; useful for integration with third party products (e.g. CS-Script.Npp)
+                return s.GetHashCode32();
+            }
+            else
+            {
+                return s.GetHashCode();
+            }
+#else
+            return s.GetHashCode();
+#endif
+        }
+
+        //needed to have reliable HASH as x64 and x32 have different algorithms; This leads to the inability of script clients calculate cache directory correctly
     }
 }

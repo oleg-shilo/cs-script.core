@@ -309,7 +309,7 @@ namespace csscript
 
         PackageInfo FindPackage(string name, string version)
         {
-            return Directory.GetDirectories(NuGetCache, name, SearchOption.TopDirectoryOnly)
+            var packages = Directory.GetDirectories(NuGetCache, name, SearchOption.TopDirectoryOnly)
                             .SelectMany(x =>
                             {
                                 return Directory.GetFiles(x, "*.nuspec", SearchOption.AllDirectories)
@@ -330,7 +330,9 @@ namespace csscript
                             })
                             .OrderByDescending(x => x.Version)
                             .Where(x => x != null)
-                            .FirstOrDefault(x => x.Name == name && (version.IsEmpty() || version == x.Version));
+                            .ToArray();
+
+            return packages.FirstOrDefault(x => x.Name == name && (version.IsEmpty() || version == x.Version));
         }
 
         public string[] Resolve(string[] packages, bool suppressDownloading, string script)

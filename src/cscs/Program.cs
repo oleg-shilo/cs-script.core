@@ -18,10 +18,10 @@ using System.Linq;
    cscs
      + report using of csc_builder for WPF project
      + add configurable use of csc_builder
-     - bind csc_builder to -server:exit and -server:start
+     + bind csc_builder to -server:exit and -server:start
      - remove old Roslyn-based build server
      - code cleanup
-     - check if nuget works
+     + check if nuget works
      + check csc engine respects build dll and build exe
 
    CSSCriptLib
@@ -44,9 +44,9 @@ namespace cscs
             Runtime.GlobalIncludsDir.EnsureDir();
 
             if (args.Contains("-server:stop"))
-                BuildServer.Stop();
+                CscBuildServer.Stop();
             else if (args.Contains("-server") || args.Contains("-server:start"))
-                BuildServer.Start();
+                CscBuildServer.Start();
             else
                 CSExecutionClient.Run(args);
         }

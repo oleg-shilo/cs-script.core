@@ -1,4 +1,6 @@
+using CSScripting;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -15,6 +17,126 @@ namespace csscript
     /// </summary>
     public static class Runtime
     {
+        /// <summary>
+        /// Returns the name of the temporary folder in the CSSCRIPT subfolder of Path.GetTempPath().
+        /// <para>Under certain circumstances it may be desirable to the use the alternative location for the CS-Script temporary files.
+        /// In such cases use SetScriptTempDir() to set the alternative location.
+        /// </para>
+        /// </summary>
+        /// <returns>Temporary directory name.</returns>
+        static public string GetScriptTempDir()
+        {
+            if (tempDir == null)
+            {
+                tempDir = Environment.GetEnvironmentVariable("CSS_CUSTOM_TEMPDIR") ??
+                          Path.GetTempPath().PathJoin("csscript.core");
+
+                tempDir.EnsureDir();
+            }
+            return tempDir;
+        }
+
+        static string tempDir = null;
+
+        public static void CleanAbandonedCache()
+        {
+            var rootDir = GetScriptTempDir().PathJoin("cache");
+
+            if (Directory.Exists(rootDir))
+            {
+                foreach (var cacheDir in Directory.GetDirectories(rootDir))
+                    try
+                    {
+                        // line 0: <clr version>
+                        // line 1: <dir>
+                        var infoFile = cacheDir.PathJoin("css_info.txt");
+                        var sourceDir = File.Exists(infoFile) ? File.ReadAllLines(infoFile)[1] : null;
+
+                        if (sourceDir.IsEmpty() || !Directory.Exists(sourceDir))
+                        {
+                            cacheDir.DeleteDir();
+                        }
+                        else
+                        {
+                            string sourceName(string path) =>
+                                path.GetFileNameWithoutExtension(); // remove `.dll` in `script.cs.dll`
+
+                            var sorceFiles = Directory.GetFiles(cacheDir, "*.dll")
+                                                      .Select(x => new
+                                                      {
+                                                          Source = sourceDir.PathJoin(sourceName(x)),
+                                                          PureName = x.GetFileName().Split('.').First(),
+                                                      })
+                                                      .ToArray();
+
+                            sorceFiles.Where(x => !File.Exists(x.Source))
+                                      .ForEach(file => Directory.GetFiles(cacheDir, $"{file.PureName}.*")
+                                                                .ForEach(x =>
+                                                                {
+                                                                    x.FileDelete(rethrow: false);
+                                                                }));
+                        }
+                    }
+                    catch { }
+            }
+        }
+
+        public static void CleanSnippets()
+        {
+            // CSScript.GetScriptTempDir()
+            var dir = Runtime.GetScriptTempDir().PathJoin("snippets");
+
+            if (!Directory.Exists(dir))
+                return;
+
+            var runningProcesses = Process.GetProcesses().Select(x => x.Id);
+
+            foreach (var script in Directory.GetFiles(dir, "*.*.cs"))
+            {
+                int hostProcessId = int.Parse(script.GetFileName().Split('.')[1]);
+                if (Process.GetCurrentProcess().Id == hostProcessId || !runningProcesses.Contains(hostProcessId))
+                    script.FileDelete(rethrow: false);
+            }
+        }
+
+        public static void CleanUnusedTmpFiles(string dir, string pattern, bool verifyPid)
+        {
+            if (!Directory.Exists(dir))
+                return;
+
+            string[] oldTempFiles = Directory.GetFiles(dir, pattern);
+
+            foreach (string file in oldTempFiles)
+            {
+                try
+                {
+                    if (verifyPid)
+                    {
+                        string name = Path.GetFileName(file);
+
+                        int pos = name.IndexOf('.');
+
+                        if (pos > 0)
+                        {
+                            string pidValue = name.Substring(0, pos);
+
+                            int pid = 0;
+
+                            if (int.TryParse(pidValue, out pid))
+                            {
+                                //Didn't use GetProcessById as it throws if pid is not running
+                                if (Process.GetProcesses().Any(p => p.Id == pid))
+                                    continue; //still running
+                            }
+                        }
+                    }
+
+                    file.FileDelete(false);
+                }
+                catch { }
+            }
+        }
+
         /// <summary>
         /// Gets the nuget cache path in the form displayable in Console.
         /// </summary>

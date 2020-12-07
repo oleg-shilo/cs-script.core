@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml;
+using CSScripting;
 using static System.Environment;
 
 namespace csscript

@@ -28,11 +28,4 @@
     <ProjectReference Include="..\cscs\cscs.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="CSScriptLib">
-      <HintPath>..\CSScriptLib\src\CSScriptLib\output\CSScriptLib.dll</HintPath>
-      <Aliases>lib</Aliases>
-    </Reference>
-  </ItemGroup>
-
 </Project>

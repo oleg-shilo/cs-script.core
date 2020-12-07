@@ -1,3 +1,4 @@
+using CSScripting;
 using CSScripting.CodeDom;
 using System;
 using System.Collections.Generic;
@@ -105,7 +106,7 @@ namespace csscript
                     int line = err.Line;
 
                     if (resolveAutogenFilesRefs)
-                        CSSUtils.NormaliseFileReference(ref file, ref line);
+                        CoreExtensions.NormaliseFileReference(ref file, ref line);
 
                     compileErr.Append(file)
                               .Append("(")

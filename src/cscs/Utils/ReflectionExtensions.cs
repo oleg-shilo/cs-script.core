@@ -4,20 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-#if class_lib
-
-namespace CSScriptLib
-#else
-
-namespace csscript
-#endif
+namespace CSScripting
 {
-    public partial class CSScript
+    class Directives
     {
-        static internal string DynamicWrapperClassName = "DynamicClass";
-        static internal string RootClassName = "css_root";
-        // Roslyn still does not support anything else but `Submission#0` (17 Jul 2019)
-        // [update] Roslyn now does support alternative class names (1 Jan 2020)
+        public const string compiler = "//css_compiler";
+        public const string compiler_csc = "csc";
+        public const string compiler_roslyn = "roslyn";
+        public const string compiler_dotnet = "dotnet";
     }
 
     /// <summary>
@@ -103,8 +97,8 @@ namespace csscript
                 //Ignore Roslyn internal root type: "Submission#0"; real script class will be Submission#0+Script
 
                 var firstUserTypes = asm.GetTypes()
-                                        .FirstOrDefault(x => x.FullName.StartsWith(CSScript.RootClassName) &&
-                                                             x.FullName != CSScript.RootClassName);
+                                        .FirstOrDefault(x => x.FullName.StartsWith(Globals.RootClassName) &&
+                                                             x.FullName != Globals.RootClassName);
 
                 if (firstUserTypes != null)
                     return Activator.CreateInstance(firstUserTypes, args);
@@ -117,7 +111,7 @@ namespace csscript
 
                 Type[] types = asm.GetTypes()
                                   .Where(t => (t.FullName == name
-                                               || t.FullName == ($"{CSScript.RootClassName}+{name}")
+                                               || t.FullName == ($"{Globals.RootClassName}+{name}")
                                                || t.Name == name))
                                       .ToArray();
 
@@ -133,7 +127,7 @@ namespace csscript
             // exclude Roslyn internal types
             return asm
                 .ExportedTypes
-                .Where(t => t.FullName.StartsWith($"{CSScript.RootClassName}+")  // Submission#0+Script
+                .Where(t => t.FullName.StartsWith($"{Globals.RootClassName}+")  // Submission#0+Script
                             && !t.FullName.Contains("<<Initialize>>")) // Submission#0+<<Initialize>>d__0
 
                 .FirstOrDefault(x => typeof(T).IsAssignableFrom(x));

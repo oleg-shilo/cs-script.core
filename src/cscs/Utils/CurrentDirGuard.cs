@@ -1,6 +1,12 @@
 using System;
 
+#if !class_lib
+
 namespace csscript
+#else
+
+namespace CSScriptLib
+#endif
 {
     internal class CurrentDirGuard : IDisposable
     {

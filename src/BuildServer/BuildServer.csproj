@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy &quot;$(TargetDir)$(TargetName).dll&quot; &quot;$(ProjectDir)..\cscs\$(OutDir)$(TargetName).dll&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).deps.json&quot; &quot;$(ProjectDir)..\cscs\$(OutDir)$(TargetName).deps.json&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).runtimeconfig.json&quot; &quot;$(ProjectDir)..\cscs\$(OutDir)$(TargetName).runtimeconfig.json&quot;" />
+    <Exec Command="md &quot;$(ProjectDir)..\out\bin&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).dll&quot; &quot;$(ProjectDir)..\out\bin\$(TargetName).dll&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).deps.json&quot; &quot;$(ProjectDir)..\out\bin\$(TargetName).deps.json&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).runtimeconfig.json&quot; &quot;$(ProjectDir)..\out\bin\$(TargetName).runtimeconfig.json&quot;" />
   </Target>
 
 </Project>

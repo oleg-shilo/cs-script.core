@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using CSScripting;
 using System.Text;
 using static System.Environment;
 
@@ -152,9 +153,9 @@ namespace csscript
                 //collect abandoned temp files
                 if (Environment.GetEnvironmentVariable("CSScript_Suspend_Housekeeping") == null)
                 {
-                    Utils.CleanUnusedTmpFiles(CSExecutor.GetScriptTempDir(), "*????????-????-????-????-????????????.dll", false);
-                    Utils.CleanSnippets();
-                    Utils.CleanAbandonedCache();
+                    Runtime.CleanUnusedTmpFiles(Runtime.GetScriptTempDir(), "*????????-????-????-????-????????????.dll", false);
+                    Runtime.CleanSnippets();
+                    Runtime.CleanAbandonedCache();
                 }
             }
             catch { }

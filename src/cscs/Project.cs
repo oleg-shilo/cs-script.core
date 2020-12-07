@@ -4,8 +4,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using CSScripting;
 
+#if !class_lib
 namespace csscript
+#else
+
+namespace CSScriptLib
+#endif
 {
     /// <summary>
     /// Class that holds all information about the execution context

@@ -2,13 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-#if class_lib
-
-namespace CSScriptLib
-#else
-
-namespace csscript
-#endif
+namespace CSScripting
 {
     /// <summary>
     /// Various string extensions
@@ -55,6 +49,9 @@ namespace csscript
                 return text;
         }
 
+        public static bool Contains(this string text, string pattern, bool ignoreCase)
+            => text.IndexOf(pattern, ignoreCase ? StringComparison.OrdinalIgnoreCase : default(StringComparison)) != -1;
+
         /// <summary>
         /// Compares two strings.
         /// </summary>
@@ -96,7 +93,7 @@ namespace csscript
             //Custom Safe executions cost (milliseconds)=> 100000: 40; 10: 0.004
             //Custom Unsafe executions cost (milliseconds)=> 100000: 13; 10: 0.0013
 #if !class_lib
-            if (ExecuteOptions.options.customHashing)
+            if (csscript.ExecuteOptions.options.customHashing)
             {
                 // deterministic GetHashCode; useful for integration with third party products (e.g. CS-Script.Npp)
                 return s.GetHashCode32();

@@ -10,6 +10,13 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using static System.StringComparison;
 using static System.Environment;
+using static csscript.CoreExtensions;
+
+#if class_lib
+using CSScriptLib;
+#else
+using csscript;
+#endif
 
 namespace CSScripting.CodeDom
 {
@@ -46,8 +53,7 @@ namespace CSScripting.CodeDom
             throw new NotImplementedException();
         }
 
-        static string dotnet { get; } = Runtime.IsCore ?
-                                       "dotnet" : Process.GetCurrentProcess().MainModule.FileName;
+        static string dotnet { get; } = "dotnet";
 
         static string InitBuildTools(string fileType)
         {
@@ -62,7 +68,7 @@ namespace CSScripting.CodeDom
 
             if (!File.Exists(proj_template))
             {
-                Utils.Run("dotnet", $"new console -lang {language}", build_root);
+                dotnet.Run($"new console -lang {language}", build_root);
                 build_root.PathJoin($"Program{fileType}").DeleteIfExists();
                 Directory.Delete(build_root.PathJoin("obj"), true);
             }
@@ -102,37 +108,6 @@ namespace CSScripting.CodeDom
                     // return RoslynService.CompileAssemblyFromFileBatch_with_roslyn(options, fileNames);
                     // return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
                     return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
-            }
-        }
-
-        static public string csc_dll
-        {
-            get
-            {
-                // linux ~dotnet/.../3.0.100-preview5-011568/Roslyn/... (cannot find in preview)
-                // win: program_files/dotnet/sdk/<version>/Roslyn/csc.exe
-                var dotnet_root = "".GetType().Assembly.Location;
-
-                // find first "dotnet" parent dir by trimming till the last "dotnet" token
-                dotnet_root = dotnet_root.Split(Path.DirectorySeparatorChar)
-                                         .Reverse()
-                                         .SkipWhile(x => x != "dotnet")
-                                         .Reverse()
-                                         .JoinBy(Path.DirectorySeparatorChar.ToString());
-
-                if (dotnet_root.PathJoin("sdk").DirExists()) // need to check as otherwise it will throw
-                {
-                    var dirs = dotnet_root.PathJoin("sdk")
-                                          .PathGetDirs("*")
-                                          .Where(dir => char.IsDigit(dir.GetFileName()[0]))
-                                          .OrderBy(x => System.Version.Parse(x.GetFileName().Split('-').First()))
-                                          .SelectMany(dir => dir.PathGetDirs("Roslyn"))
-                                          .ToArray();
-                    var csc_exe = dirs.Select(dir => dir.PathJoin("bincore", "csc.dll"))
-                                      .LastOrDefault(File.Exists);
-                    return csc_exe;
-                }
-                return null;
             }
         }
 
@@ -234,9 +209,9 @@ namespace CSScripting.CodeDom
             //pseudo-gac as .NET core does not support GAC but rather common assemblies.
             var gac = typeof(string).Assembly.Location.GetDirName();
 
-            List<string> refs_args = new();
-            List<string> source_args = new();
-            List<string> common_args = new();
+            var refs_args = new List<string>();
+            var source_args = new List<string>();
+            var common_args = new List<string>();
 
             common_args.Add("/utf8output");
             common_args.Add("/nostdlib+");
@@ -272,7 +247,7 @@ namespace CSScripting.CodeDom
                 cmd = $@"""{CscBuildServer.build_server}"" csc {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
             }
             else
-                cmd = $@"""{csc_dll}"" {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
+                cmd = $@"""{Globals.csc_dll}"" {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
 
             Profiler.get("compiler").Start();
             result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
@@ -502,7 +477,7 @@ EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWith
             var config = options.IncludeDebugInformation ? "--configuration Debug" : "--configuration Release";
 
             Profiler.get("compiler").Start();
-            result.NativeCompilerReturnValue = Utils.Run(dotnet, $"build {config} -o {output} {options.CompilerOptions}", build_dir, x => result.Output.Add(x), x => Console.WriteLine("error> " + x));
+            result.NativeCompilerReturnValue = dotnet.Run($"build {config} -o {output} {options.CompilerOptions}", build_dir, x => result.Output.Add(x), x => Console.WriteLine("error> " + x));
             Profiler.get("compiler").Stop();
 
             if (CSExecutor.options.verbose)
@@ -575,56 +550,6 @@ EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWith
         CompilerResults CompileAssemblyFromSourceBatch(CompilerParameters options, string[] sources);
     }
 
-    public class CompilerResults
-    {
-        public TempFileCollection TempFiles { get; set; } = new TempFileCollection();
-        public List<string> ProbingDirs { get; set; } = new List<string>();
-        public Assembly CompiledAssembly { get; set; }
-        public List<CompilerError> Errors { get; set; } = new List<CompilerError>();
-        public List<string> Output { get; set; } = new List<string>();
-        public string PathToAssembly { get; set; }
-        public int NativeCompilerReturnValue { get; set; }
-
-        internal void ProcessErrors()
-        {
-            var isErrroSection = true;
-
-            // only dotnet has a distinctive error message that separates "info"
-            // and "error" section. It is particularly important to process only
-            // the "error" section as dotnet compiler prints the same errors in
-            // both of these sections.
-            if (CSExecutor.options.compilerEngine == null || CSExecutor.options.compilerEngine == Directives.compiler_dotnet)
-                isErrroSection = false;
-
-            // Build succeeded.
-            foreach (var line in Output)
-            {
-                if (!isErrroSection)
-                {
-                    // MSBUILD : error MSB1001: Unknown switch.
-                    if (line.StartsWith("Build FAILED.") || line.StartsWith("Build succeeded."))
-                        isErrroSection = true;
-
-                    if (line.Contains("CSC : error ") || line.Contains("): error ") || line.StartsWith("error CS") || line.StartsWith("vbc : error BC") || line.Contains("MSBUILD : error "))
-                    {
-                        var error = CompilerError.Parse(line);
-                        if (error != null)
-                            Errors.Add(error);
-                    }
-                }
-                else
-                {
-                    if (line.IsNotEmpty())
-                    {
-                        var error = CompilerError.Parse(line);
-                        if (error != null)
-                            Errors.Add(error);
-                    }
-                }
-            }
-        }
-    }
-
     public static class ProxyExtensions
     {
         public static bool HasErrors(this List<CompilerError> items) => items.Any(x => !x.IsWarning);
@@ -632,88 +557,6 @@ EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWith
 
     public class CodeCompileUnit
     {
-    }
-
-    public class TempFileCollection
-    {
-        public List<string> Items { get; set; } = new List<string>();
-
-        public void Clear() => Items.ForEach(File.Delete);
-    }
-
-    public class CompilerError
-    {
-        public int Line { get; set; }
-        public int Column { get; set; }
-        public string ErrorNumber { get; set; }
-        public string ErrorText { get; set; }
-        public bool IsWarning { get; set; }
-        public string FileName { get; set; }
-
-        public static CompilerError Parse(string compilerOutput)
-        {
-            // C:\Program Files\dotnet\sdk\2.1.300-preview1-008174\Sdks\Microsoft.NET.Sdk\build\Microsoft.NET.ConflictResolution.targets(59,5): error MSB4018: The "ResolvePackageFileConflicts" task failed unexpectedly. [C:\Users\%username%\AppData\Local\Temp\csscript.core\cache\1822444284\.build\script.cs\script.csproj]
-            // script.cs(11,8): error CS1029: #error: 'this is the error...' [C:\Users\%username%\AppData\Local\Temp\csscript.core\cache\1822444284\.build\script.cs\script.csproj]
-            // script.cs(10,10): warning CS1030: #warning: 'DEBUG is defined' [C:\Users\%username%\AppData\Local\Temp\csscript.core\cache\1822444284\.build\script.cs\script.csproj]
-            // MSBUILD : error MSB1001: Unknown switch.
-
-            if (compilerOutput.StartsWith("error CS") ||
-                compilerOutput.StartsWith("vbc : error BC"))
-                compilerOutput = "(0,0): " + compilerOutput;
-
-            bool isError = compilerOutput.Contains("): error ");
-            bool isWarning = compilerOutput.Contains("): warning ");
-            bool isBuildError = compilerOutput.Contains("MSBUILD : error", StringComparison.OrdinalIgnoreCase) ||
-                                compilerOutput.Contains("vbc : error", StringComparison.OrdinalIgnoreCase) ||
-                                compilerOutput.Contains("CSC : error", StringComparison.OrdinalIgnoreCase);
-
-            if (isBuildError)
-            {
-                var parts = compilerOutput.Replace("MSBUILD : error ", "", StringComparison.OrdinalIgnoreCase)
-                                          .Replace("CSC : error ", "", StringComparison.OrdinalIgnoreCase)
-                                          .Split(":".ToCharArray(), 2);
-                return new CompilerError
-                {
-                    ErrorText = parts.Last().Trim(),        // MSBUILD error: Unknown switch.
-                    ErrorNumber = parts.First()                         // MSB1001
-                };
-            }
-            else if (isWarning || isError)
-            {
-                var result = new CompilerError();
-
-                var rx = new Regex(@".*\(\d+\,\d+\)\:");
-                var match = rx.Match(compilerOutput, 0);
-                if (match.Success)
-                {
-                    try
-                    {
-                        var m = Regex.Match(match.Value, @"\(\d+\,\d+\)\:");
-
-                        var location_items = m.Value.Substring(1, m.Length - 3).Split(separator: ',').ToArray();
-                        var description_items = compilerOutput.Substring(match.Value.Length).Split(":".ToArray(), 2);
-
-                        result.ErrorText = description_items.Last();                            // #error: 'this is the error...'
-                        result.ErrorNumber = description_items.First().Split(' ').Last();       // CS1029
-                        result.IsWarning = isWarning;
-                        result.FileName = match.Value.Substring(0, m.Index);                    // cript.cs
-                        result.Line = int.Parse(location_items[0]);                             // 11
-                        result.Column = int.Parse(location_items[1]);                           // 8
-
-                        int desc_end = result.ErrorText.LastIndexOf("[");
-                        if (desc_end != -1)
-                            result.ErrorText = result.ErrorText.Substring(0, desc_end);
-
-                        return result;
-                    }
-                    catch (Exception e)
-                    {
-                        Trace.WriteLine(e);
-                    }
-                }
-            }
-            return null;
-        }
     }
 
     public class CompilerParameters
@@ -738,6 +581,6 @@ EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWith
         public bool BoildExe { get; set; }
 
         public string CoreAssemblyFileName { get; set; }
-        public TempFileCollection TempFiles { get; set; }
+        internal TempFileCollection TempFiles { get; set; }
     }
 }

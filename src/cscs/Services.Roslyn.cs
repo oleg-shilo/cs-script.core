@@ -315,7 +315,7 @@ namespace CSScripting.CodeDom
                 if (e.GetType().Name.EndsWith("SocketException"))
                 {
                     var exe = Assembly.GetEntryAssembly().Location();
-                    Utils.RunAsync("dotnet", $"\"{exe}\" -server");
+                    "dotnet".RunAsync($"\"{exe}\" -server");
                 }
                 // Console.WriteLine("Build server problem:" + e.Message);
                 throw;

@@ -1,3 +1,4 @@
+using CSScripting;
 using CSScripting.CodeDom;
 using CSScriptLib;
 using System;
@@ -244,10 +245,10 @@ namespace csscript
             if (!code.EndsWith(";"))
                 code += ";";
 
-            var script = CSExecutor.GetScriptTempDir()
-                                   .PathJoin("snippets")
-                                   .EnsureDir()
-                                   .PathJoin($"{code.GetHashCodeEx()}.{Process.GetCurrentProcess().Id}.cs");
+            var script = Runtime.GetScriptTempDir()
+                                .PathJoin("snippets")
+                                .EnsureDir()
+                                .PathJoin($"{code.GetHashCodeEx()}.{Process.GetCurrentProcess().Id}.cs");
 
             if (args.Contains("-code:show"))
             {
@@ -1014,7 +1015,7 @@ namespace csscript
 
         static void SaveDebuggingMetadata(string scriptFile)
         {
-            var dir = Path.Combine(GetScriptTempDir(), "DbgAttach");
+            var dir = Path.Combine(Runtime.GetScriptTempDir(), "DbgAttach");
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
@@ -1728,7 +1729,7 @@ namespace csscript
                         string file = err.FileName;
                         int line = err.Line;
                         if (options.resolveAutogenFilesRefs)
-                            CSSUtils.NormaliseFileReference(ref file, ref line);
+                            CoreExtensions.NormaliseFileReference(ref file, ref line);
                         Console.WriteLine("  {0}({1},{2}):{3} {4} {5}", file, line, err.Column, (err.IsWarning ? "warning" : "error"), err.ErrorNumber, err.ErrorText);
                     }
                     Console.WriteLine("> ----------------");
@@ -1800,7 +1801,7 @@ namespace csscript
         {
             lock (typeof(CSExecutor))
             {
-                return Path.Combine(GetScriptTempDir(), string.Format("{0}.{1}.tmp", Process.GetCurrentProcess().Id, Guid.NewGuid()));
+                return Path.Combine(Runtime.GetScriptTempDir(), string.Format("{0}.{1}.tmp", Process.GetCurrentProcess().Id, Guid.NewGuid()));
             }
         }
 
@@ -1812,16 +1813,7 @@ namespace csscript
         /// </summary>
         /// <returns>Temporary directory name.</returns>
         static public string GetScriptTempDir()
-        {
-            if (tempDir == null)
-            {
-                tempDir = Environment.GetEnvironmentVariable("CSS_CUSTOM_TEMPDIR") ??
-                          Path.GetTempPath().PathJoin("csscript.core");
-
-                tempDir.EnsureDir();
-            }
-            return tempDir;
-        }
+            => Runtime.GetScriptTempDir();
 
         static string tempDir = null;
 
@@ -1838,7 +1830,7 @@ namespace csscript
         /// <returns>Cache directory name.</returns>
         public static string GetCacheDirectory(string file)
         {
-            string commonCacheDir = Path.Combine(CSExecutor.GetScriptTempDir(), "cache");
+            string commonCacheDir = Path.Combine(Runtime.GetScriptTempDir(), "cache");
 
             string cacheDir;
             string directoryPath = Path.GetDirectoryName(Path.GetFullPath(file));

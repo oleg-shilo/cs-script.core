@@ -1,21 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 
-#if class_lib
-
-namespace CSScriptLib
-#else
-
-namespace csscript
-#endif
+namespace CSScripting
 {
     /// <summary>
     /// Various PATH extensions
     /// </summary>
     static class PathExtensions
     {
+        public static string ChangeExtension(this string path, string extension) => Path.ChangeExtension(path, extension);
+
         public static string GetExtension(this string path) => Path.GetExtension(path);
 
         public static string GetFileName(this string path) => Path.GetFileName(path);
@@ -41,6 +38,44 @@ namespace csscript
             return path;
         }
 
+        public static string DeleteDir(this string path)
+        {
+            if (Directory.Exists(path))
+            {
+                void del_dir(string d)
+                {
+                    try { Directory.Delete(d); }
+                    catch (Exception)
+                    {
+                        Thread.Sleep(1);
+                        Directory.Delete(d);
+                    }
+                }
+
+                var dirs = new Queue<string>();
+                dirs.Enqueue(path);
+
+                while (dirs.Any())
+                {
+                    var dir = dirs.Dequeue();
+
+                    foreach (var file in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
+                        File.Delete(file);
+
+                    Directory.GetDirectories(dir, "*", SearchOption.AllDirectories)
+                             .ForEach(dirs.Enqueue);
+                }
+
+                var emptyDirs = Directory.GetDirectories(path, "*", SearchOption.AllDirectories)
+                                         .Reverse();
+
+                emptyDirs.ForEach(del_dir);
+
+                del_dir(path);
+            }
+            return path;
+        }
+
         public static string GetDirName(this string path)
             => path == null ? null : Path.GetDirectoryName(path);
 
@@ -53,11 +88,16 @@ namespace csscript
             return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
 
+        public static string[] PathGetDirs(this string path, string mask)
+        {
+            return Directory.GetDirectories(path, mask);
+        }
+
 #if !class_lib
 
         public static bool IsDirSectionSeparator(this string text)
         {
-            return text != null && text.StartsWith(Settings.dirs_section_prefix) && text.StartsWith(Settings.dirs_section_suffix);
+            return text != null && text.StartsWith(csscript.Settings.dirs_section_prefix) && text.StartsWith(csscript.Settings.dirs_section_suffix);
         }
 
 #endif

@@ -42,11 +42,12 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using csscript;
 using CSScripting.CodeDom;
 using CSScriptLib;
 using static System.Environment;
 
-namespace csscript
+namespace CSScripting
 {
     internal static class Utils
     {
@@ -84,56 +85,6 @@ namespace csscript
             }
         }
 
-        public static Thread StartMonitor(StreamReader stream, Action<string> action = null)
-        {
-            var thread = new Thread(x =>
-            {
-                try
-                {
-                    string line = null;
-                    while (null != (line = stream.ReadLine()))
-                        action?.Invoke(line);
-                }
-                catch { }
-            });
-            thread.Start();
-            return thread;
-        }
-
-        public static Process RunAsync(string exe, string args, string dir = null)
-        {
-            var process = new Process();
-
-            process.StartInfo.FileName = exe;
-            process.StartInfo.Arguments = args;
-            process.StartInfo.WorkingDirectory = dir;
-
-            // hide terminal window
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.ErrorDialog = false;
-            process.StartInfo.CreateNoWindow = true;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.RedirectStandardError = true;
-            process.Start();
-
-            return process;
-        }
-
-        public static int Run(this string exe, string args, string dir = null, Action<string> onOutput = null, Action<string> onError = null)
-        {
-            var process = RunAsync(exe, args, dir);
-
-            var error = StartMonitor(process.StandardError, onError);
-            var output = StartMonitor(process.StandardOutput, onOutput);
-
-            process.WaitForExit();
-
-            // try { error.Abort(); } catch { }
-            // try { output.Abort(); } catch { }
-
-            return process.ExitCode;
-        }
-
         public static bool NotEmpty(this string text)
         {
             return !string.IsNullOrEmpty(text);
@@ -167,44 +118,6 @@ namespace csscript
             return path;
         }
 
-        public static string DeleteDir(this string path)
-        {
-            if (Directory.Exists(path))
-            {
-                void del_dir(string d)
-                {
-                    try { Directory.Delete(d); }
-                    catch (Exception)
-                    {
-                        Thread.Sleep(1);
-                        Directory.Delete(d);
-                    }
-                }
-
-                var dirs = new Queue<string>();
-                dirs.Enqueue(path);
-
-                while (dirs.Any())
-                {
-                    var dir = dirs.Dequeue();
-
-                    foreach (var file in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
-                        File.Delete(file);
-
-                    Directory.GetDirectories(dir, "*", SearchOption.AllDirectories)
-                             .ForEach(dirs.Enqueue);
-                }
-
-                var emptyDirs = Directory.GetDirectories(path, "*", SearchOption.AllDirectories)
-                                         .Reverse();
-
-                emptyDirs.ForEach(del_dir);
-
-                del_dir(path);
-            }
-            return path;
-        }
-
         public static string DeleteIfExists(this string path)
         {
             if (Directory.Exists(path))
@@ -214,14 +127,7 @@ namespace csscript
             return path;
         }
 
-        public static string[] PathGetDirs(this string path, string mask)
-        {
-            return Directory.GetDirectories(path, mask);
-        }
-
         public static bool FileExists(this string path) => path.IsNotEmpty() ? File.Exists(path) : false;
-
-        public static string ChangeExtension(this string path, string extension) => Path.ChangeExtension(path, extension);
 
         class Win32
         {
@@ -238,50 +144,6 @@ namespace csscript
 
         public static void FileDelete(string path) => FileDelete(path, false);
 
-        public static void CleanAbandonedCache()
-        {
-            var rootDir = CSExecutor.GetScriptTempDir().PathJoin("cache");
-
-            if (Directory.Exists(rootDir))
-            {
-                foreach (var cacheDir in Directory.GetDirectories(rootDir))
-                    try
-                    {
-                        // line 0: <clr version>
-                        // line 1: <dir>
-                        var infoFile = cacheDir.PathJoin("css_info.txt");
-                        var sourceDir = File.Exists(infoFile) ? File.ReadAllLines(infoFile)[1] : null;
-
-                        if (sourceDir.IsEmpty() || !Directory.Exists(sourceDir))
-                        {
-                            DeleteDir(cacheDir);
-                        }
-                        else
-                        {
-                            string sourceName(string path) =>
-                                path.GetFileNameWithoutExtension(); // remove `.dll` in `script.cs.dll`
-
-                            var sorceFiles = Directory.GetFiles(cacheDir, "*.dll")
-                                                      .Select(x => new
-                                                      {
-                                                          Source = sourceDir.PathJoin(sourceName(x)),
-                                                          PureName = x.GetFileName().Split('.').First(),
-                                                      })
-                                                      .ToArray();
-
-                            // jhkjhnk
-                            sorceFiles.Where(x => !File.Exists(x.Source))
-                                      .ForEach(file => Directory.GetFiles(cacheDir, $"{file.PureName}.*")
-                                                                .ForEach(x =>
-                                                                         {
-                                                                             FileDelete(x);
-                                                                         }));
-                        }
-                    }
-                    catch { }
-            }
-        }
-
         public static void CleanAbandonedProcessDirs(string rootDir)
         {
             if (Directory.Exists(rootDir))
@@ -289,64 +151,9 @@ namespace csscript
                     try
                     {
                         if (int.TryParse(File.ReadAllText(pid), out int id) && !Process.GetProcesses().Any(p => p.Id == id))
-                            DeleteDir(pid.GetDirName());
+                            pid.GetDirName().DeleteDir();
                     }
                     catch { }
-        }
-
-        public static void CleanSnippets()
-        {
-            var dir = CSExecutor.GetScriptTempDir().PathJoin("snippets");
-
-            if (!Directory.Exists(dir))
-                return;
-
-            var runningProcesses = Process.GetProcesses().Select(x => x.Id);
-
-            foreach (var script in Directory.GetFiles(dir, "*.*.cs"))
-            {
-                int hostProcessId = int.Parse(script.GetFileName().Split('.')[1]);
-                if (Process.GetCurrentProcess().Id == hostProcessId || !runningProcesses.Contains(hostProcessId))
-                    FileDelete(script);
-            }
-        }
-
-        public static void CleanUnusedTmpFiles(string dir, string pattern, bool verifyPid)
-        {
-            if (!Directory.Exists(dir))
-                return;
-
-            string[] oldTempFiles = Directory.GetFiles(dir, pattern);
-
-            foreach (string file in oldTempFiles)
-            {
-                try
-                {
-                    if (verifyPid)
-                    {
-                        string name = Path.GetFileName(file);
-
-                        int pos = name.IndexOf('.');
-
-                        if (pos > 0)
-                        {
-                            string pidValue = name.Substring(0, pos);
-
-                            int pid = 0;
-
-                            if (int.TryParse(pidValue, out pid))
-                            {
-                                //Didn't use GetProcessById as it throws if pid is not running
-                                if (Process.GetProcesses().Any(p => p.Id == pid))
-                                    continue; //still running
-                            }
-                        }
-                    }
-
-                    Utils.FileDelete(file);
-                }
-                catch { }
-            }
         }
 
         public static void StartWithoutConsole(this string executable, string arguments)
@@ -541,7 +348,7 @@ partial class dbg
 
         internal static string CreateDbgInjectionInterfaceCode(string scriptFileName)
         {
-            var file = CSExecutor.GetScriptTempDir().PathJoin("Cache", "dbg.cs");
+            var file = Runtime.GetScriptTempDir().PathJoin("Cache", "dbg.cs");
 
             try { File.WriteAllText(file, DbgInjectionCodeInterface); }
             catch { }
@@ -562,7 +369,7 @@ partial class dbg
             if (Runtime.IsWin)
                 fileLock.Wait(1000);
 
-            var cache_dir = Path.Combine(CSExecutor.GetScriptTempDir(), "Cache");
+            var cache_dir = Path.Combine(Runtime.GetScriptTempDir(), "Cache");
             var dbg_file = Path.Combine(cache_dir, "dbg.inject." + dbg_injection_version + ".cs");
             var dbg_interface_file = Path.Combine(cache_dir, "dbg.cs");
 
@@ -1706,40 +1513,6 @@ partial class dbg
 
             return autogenFile;
         }
-
-        static public void NormaliseFileReference(ref string file, ref int line)
-        {
-            try
-            {
-                if (file.EndsWith(".g.csx") || file.EndsWith(".g.cs") && file.Contains(Path.Combine("CSSCRIPT", "Cache")))
-                {
-                    //it is an auto-generated file so try to find the original source file (logical file)
-                    string dir = Path.GetDirectoryName(file);
-                    string infoFile = Path.Combine(dir, "css_info.txt");
-                    if (File.Exists(infoFile))
-                    {
-                        string[] lines = File.ReadAllLines(infoFile);
-                        if (lines.Length > 1 && Directory.Exists(lines[1]))
-                        {
-                            string logicalFile = Path.Combine(lines[1], Path.GetFileName(file).Replace(".g.csx", ".csx").Replace(".g.cs", ".cs"));
-                            if (File.Exists(logicalFile))
-                            {
-                                string code = File.ReadAllText(file);
-                                int pos = code.IndexOf("///CS-Script auto-class generation");
-                                if (pos != -1)
-                                {
-                                    int injectedLineNumber = code.Substring(0, pos).Split('\n').Count() - 1;
-                                    if (injectedLineNumber <= line)
-                                        line -= 1; //a single line is always injected
-                                }
-                                file = logicalFile;
-                            }
-                        }
-                    }
-                }
-            }
-            catch { }
-        }
     }
 
     #region MetaDataItems...
@@ -2054,7 +1827,7 @@ partial class dbg
 
     internal class Cache
     {
-        static string cacheRootDir = Path.Combine(CSExecutor.GetScriptTempDir(), "Cache");
+        static string cacheRootDir = Path.Combine(Runtime.GetScriptTempDir(), "Cache");
 
         static void deleteFile(string path)
         {

@@ -1,3 +1,4 @@
+using CSScripting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,14 +9,6 @@ using static System.Environment;
 
 namespace csscript
 {
-    internal class Directives
-    {
-        public const string compiler = "//css_compiler";
-        public const string compiler_csc = "csc";
-        public const string compiler_roslyn = "roslyn";
-        public const string compiler_dotnet = "dotnet";
-    }
-
     internal static class AppArgs
     {
         public static string nl = "nl";
@@ -1528,7 +1521,7 @@ nvironment.NewLine);
                     {
                         builder.AppendLine(compiler);
                     }
-                    builder.AppendLine($"                    {CSScripting.CodeDom.CSharpCompiler.csc_dll}");
+                    builder.AppendLine($"                    {Globals.csc_dll}");
                 }
                 else
                     builder.AppendLine(compiler);

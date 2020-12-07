@@ -6,7 +6,12 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using CSScripting;
 using System.Xml.Linq;
+using System.Diagnostics;
+using CSScripting.CodeDom;
+using System.Text;
+using System.Runtime.Serialization;
 
 #if class_lib
 
@@ -19,8 +24,92 @@ namespace csscript
     /// <summary>
     ///
     /// </summary>
-    static class CoreExtensions
+    static partial class CoreExtensions
     {
+        public static Process RunAsync(this string exe, string args, string dir = null)
+        {
+            var process = new Process();
+
+            process.StartInfo.FileName = exe;
+            process.StartInfo.Arguments = args;
+            process.StartInfo.WorkingDirectory = dir;
+
+            // hide terminal window
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.ErrorDialog = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.Start();
+
+            return process;
+        }
+
+        public static int Run(this string exe, string args, string dir = null, Action<string> onOutput = null, Action<string> onError = null)
+        {
+            var process = RunAsync(exe, args, dir);
+
+            var error = StartMonitor(process.StandardError, onError);
+            var output = StartMonitor(process.StandardOutput, onOutput);
+
+            process.WaitForExit();
+
+            // try { error.Abort(); } catch { }
+            // try { output.Abort(); } catch { }
+
+            return process.ExitCode;
+        }
+
+        static public void NormaliseFileReference(ref string file, ref int line)
+        {
+            try
+            {
+                if (file.EndsWith(".g.csx") || file.EndsWith(".g.cs") && file.Contains(Path.Combine("CSSCRIPT", "Cache")))
+                {
+                    //it is an auto-generated file so try to find the original source file (logical file)
+                    string dir = Path.GetDirectoryName(file);
+                    string infoFile = Path.Combine(dir, "css_info.txt");
+                    if (File.Exists(infoFile))
+                    {
+                        string[] lines = File.ReadAllLines(infoFile);
+                        if (lines.Length > 1 && Directory.Exists(lines[1]))
+                        {
+                            string logicalFile = Path.Combine(lines[1], Path.GetFileName(file).Replace(".g.csx", ".csx").Replace(".g.cs", ".cs"));
+                            if (File.Exists(logicalFile))
+                            {
+                                string code = File.ReadAllText(file);
+                                int pos = code.IndexOf("///CS-Script auto-class generation");
+                                if (pos != -1)
+                                {
+                                    int injectedLineNumber = code.Substring(0, pos).Split('\n').Count() - 1;
+                                    if (injectedLineNumber <= line)
+                                        line -= 1; //a single line is always injected
+                                }
+                                file = logicalFile;
+                            }
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        public static Thread StartMonitor(StreamReader stream, Action<string> action = null)
+        {
+            var thread = new Thread(x =>
+            {
+                try
+                {
+                    string line = null;
+                    while (null != (line = stream.ReadLine()))
+                        action?.Invoke(line);
+                }
+                catch { }
+            });
+            thread.Start();
+            return thread;
+        }
+
         /// <summary>
         /// Selects the first element that satisfies the specified path.
         /// </summary>
@@ -123,6 +212,7 @@ namespace csscript
             catch { /* non critical exception */ }
             return ex;
         }
+
         public static Exception ToNewException(this Exception ex, string message, bool encapsulate = true)
         {
             var topLevelMessage = message;
@@ -138,7 +228,6 @@ namespace csscript
             else
                 return new Exception(message, childException);
         }
-
 
         /// <summary>
         /// Files the delete.
@@ -276,5 +365,12 @@ namespace csscript
 
             return default(T2);
         }
+    }
+
+    public class TempFileCollection
+    {
+        public List<string> Items { get; set; } = new List<string>();
+
+        public void Clear() => Items.ForEach(File.Delete);
     }
 }

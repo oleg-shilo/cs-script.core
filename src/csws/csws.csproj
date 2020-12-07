@@ -67,7 +67,9 @@
     <Compile Include="..\cscs\Precompiler.cs" Link="Precompiler.cs" />
     <Compile Include="..\cscs\Program.cs" Link="Program.cs" />
     <Compile Include="..\cscs\Project.cs" Link="Project.cs" />
-    <Compile Include="..\cscs\Proxies.cs" Link="Proxies.cs" />
+    <Compile Include="..\cscs\CodeDom\Proxies.cs" Link="Proxies.cs" />
+    <Compile Include="..\cscs\CodeDom\CompilerResults.cs" Link="CompilerResults.cs" />
+    <Compile Include="..\cscs\CodeDom\CompilerError.cs" Link="CompilerError.cs" />
     <Compile Include="..\cscs\ScriptParser.cs" Link="ScriptParser.cs" />
     <Compile Include="..\cscs\ScriptParsingResult.cs" Link="ScriptParsingResult.cs" />
     <Compile Include="..\cscs\Services.Roslyn.cs" Link="Services.Roslyn.cs" />
@@ -78,6 +80,7 @@
     <Compile Include="..\cscs\Utils\CurrentDirGuard.cs" Link="Utils\CurrentDirGuard.cs" />
     <Compile Include="..\cscs\Utils\LinqExtensions.cs" Link="Utils\LinqExtensions.cs" />
     <Compile Include="..\cscs\Utils\PathExtensions.cs" Link="Utils\PathExtensions.cs" />
+    <Compile Include="..\cscs\Utils\Globals.cs" Link="Utils\Globals.cs" />
     <Compile Include="..\cscs\Utils\Profiler.cs" Link="Utils\Profiler.cs" />
     <Compile Include="..\cscs\Utils\ReflectionExtensions.cs" Link="Utils\ReflectionExtensions.cs" />
     <Compile Include="..\cscs\Utils\Runtime.cs" Link="Utils\Runtime.cs" />

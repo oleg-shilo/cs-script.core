@@ -6,11 +6,20 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using CSScripting;
 
 namespace CSScriptLib
 {
+    class ExecuteOptions
+    {
+        public string compilerEngine = Directives.compiler_roslyn;
+    }
+
     class CSExecutor
     {
+        internal static ExecuteOptions options = new ExecuteOptions();
+
         ///<summary>
         /// Contains the name of the temporary cache folder in the CSSCRIPT subfolder of Path.GetTempPath(). The cache folder is specific for every script file.
         /// </summary>
@@ -118,7 +127,7 @@ namespace CSScriptLib
         /// </summary>
         public string[] SearchDirs { get => searchDirs.ToArray(); }
 
-        public string DefaultRefAssemblies { get; set; }
+        public string DefaultRefAssemblies { get; set; } = "";
 
         List<string> searchDirs { get; set; } = new List<string>();
 
@@ -172,7 +181,63 @@ namespace CSScriptLib
     /// </summary>
     public partial class CSScript
     {
+        static EvaluatorConfig evaluatorConfig = new EvaluatorConfig();
+
+        /// <summary>
+        /// Gets the CSScript.<see cref="CSScriptLib.EvaluatorConfig"/>, which controls the way code evaluation is conducted at runtime.
+        /// </summary>
+        /// <value>The evaluator CSScript.<see cref="CSScriptLib.EvaluatorConfig"/>.</value>
+        public static EvaluatorConfig EvaluatorConfig
+        {
+            get { return evaluatorConfig; }
+        }
+
+        /// <summary>
+        /// Global instance of the generic <see cref="CSScriptLib.IEvaluator"/>. This object is to be used for
+        /// dynamic loading of the  C# code by "compiler as service" based on the
+        /// <see cref="P:CSScriptLib.CSScript.EvaluatorConfig.Engine"/> value.
+        /// <para>Generic <see cref="CSScriptLib.IEvaluator"/> interface provides a convenient way of accessing
+        /// compilers without 'committing' to a specific compiler technology (e.g. Mono, Roslyn, CodeDOM). This may be
+        /// required during troubleshooting or performance tuning.</para>
+        /// <para>Switching between compilers can be done via global
+        /// CSScript.<see cref="P:CSScriptLib.CSScript.EvaluatorConfig.Engine"/>.</para>
+        /// <remarks>
+        /// By default CSScript.<see cref="CSScriptLib.CSScript.Evaluator"/> always returns a new instance of
+        /// <see cref="CSScriptLib.IEvaluator"/>. If this behavior is undesired change the evaluator access
+        /// policy by setting <see cref="CSScriptLib.CSScript.EvaluatorConfig"/>.Access value.
+        /// </remarks>
+        /// </summary>
+        /// <value>The <see cref="CSScriptLib.IEvaluator"/> instance.</value>
+        /// <example>
+        ///<code>
+        /// if(testingWithMono)
+        ///     CSScript.EvaluatorConfig.Engine = EvaluatorEngine.Mono;
+        /// else
+        ///     CSScript.EvaluatorConfig.Engine = EvaluatorEngine.Roslyn;
+        ///
+        /// var sub = CSScript.Evaluator
+        ///                   .LoadDelegate&lt;Func&lt;int, int, int&gt;&gt;(
+        ///                               @"int Sub(int a, int b) {
+        ///                                     return a - b;
+        ///                                 }");
+        /// </code>
+        /// </example>
+        static public IEvaluator Evaluator
+        {
+            get
+            {
+                switch (CSScript.EvaluatorConfig.Engine)
+                {
+                    case EvaluatorEngine.Roslyn: return RoslynEvaluator;
+                    default: return null;
+                }
+            }
+        }
+
         static string tempDir = null;
+
+        static internal string DynamicWrapperClassName = "DynamicClass";
+        static internal string RootClassName = "css_root";
 
         /// <summary>
         /// Returns the name of the temporary folder in the CSSCRIPT subfolder of Path.GetTempPath().
@@ -197,90 +262,6 @@ namespace CSScriptLib
             }
             return tempDir;
         }
-
-        static Dictionary<UInt32, string> dynamicScriptsAssemblies = new Dictionary<UInt32, string>();
-
-        // /// <summary>
-        // /// Compiles script code into assembly with CSExecutor and loads it in current AppDomain.
-        // /// </summary>
-        // /// <param name="scriptText">The script code to be compiled.</param>
-        // /// <param name="tempFileExtension">The file extension of the temporary file to hold script code during compilation. This parameter may be
-        // /// needed if custom CS-Script compilers rely on file extension to identify the script syntax.</param>
-        // /// <param name="assemblyFile">The path of the compiled assembly to be created. If set to null a temporary file name will be used.</param>
-        // /// <param name="debugBuild">'true' if debug information should be included in assembly; otherwise, 'false'.</param>
-        // /// <param name="refAssemblies">The string array containing file names to the additional assemblies referenced by the script. </param>
-        // /// <returns>Compiled assembly.</returns>
-        // static public Assembly LoadCode(string scriptText, string tempFileExtension, string assemblyFile, bool debugBuild, params string[] refAssemblies)
-        // {
-        //     lock (typeof(CSScript))
-        //     {
-        //         UInt32 scriptTextCRC = 0;
-        //         if (CacheEnabled)
-        //         {
-        //             scriptTextCRC = Crc32.Compute(Encoding.UTF8.GetBytes(scriptText));
-        //             if (dynamicScriptsAssemblies.ContainsKey(scriptTextCRC))
-        //                 try
-        //                 {
-        //                     var location = dynamicScriptsAssemblies[scriptTextCRC];
-        //                     if (location.StartsWith("inmem:"))
-        //                     {
-        //                         string name = location.Substring("inmem:".Length);
-        //                         return AppDomain.CurrentDomain.GetAssemblies().
-        //                                SingleOrDefault(assembly => assembly.FullName == name);
-        //                     }
-        //                     else
-        //                         return Assembly.LoadFrom(location);
-        //                 }
-        //                 catch
-        //                 {
-        //                     Trace.WriteLine("Cannot use cache...");
-        //                 }
-        //         }
-
-        //         string tempFile = GetScriptTempFile("dynamic");
-        //         if (tempFileExtension != null && tempFileExtension != "")
-        //             tempFile = Path.ChangeExtension(tempFile, tempFileExtension);
-
-        //         try
-        //         {
-        //             var fileLock = new Mutex(false, tempFile.Replace(Path.DirectorySeparatorChar, '|').ToLower());
-        //             fileLock.WaitOne(1);
-        //             // do not release mutex. The file may be needed to be locked until the
-        //             // host process exits (e.g. debugging). Thus the mutex will be released by OS when the process is terminated
-
-        //             File.WriteAllText(tempFile, scriptText);
-
-        //             Assembly asm = Load(tempFile, assemblyFile, debugBuild, refAssemblies);
-
-        //             string location = asm.Location();
-
-        //             if (CacheEnabled)
-        //             {
-        //                 if (String.IsNullOrEmpty(location))
-        //                 {
-        //                     if (Environment.GetEnvironmentVariable("CSS_DISABLE_INMEM_ASM_CACHING") != "true")
-        //                         location = "inmem:" + asm.FullName;
-        //                 }
-
-        //                 if (!string.IsNullOrEmpty(location))
-        //                 {
-        //                     if (dynamicScriptsAssemblies.ContainsKey(scriptTextCRC))
-        //                         dynamicScriptsAssemblies[scriptTextCRC] = location;
-        //                     else
-        //                         dynamicScriptsAssemblies.Add(scriptTextCRC, location);
-        //                 }
-        //             }
-        //             return asm;
-        //         }
-        //         finally
-        //         {
-        //             if (!debugBuild)
-        //                 tempFile.FileDelete(rethrow: false);
-        //             else
-        //                 NoteTempFile(tempFile);
-        //         }
-        //     }
-        // }
 
         /// <summary>
         /// Returns the name of the temporary file in the CSSCRIPT subfolder of Path.GetTempPath().
@@ -332,6 +313,27 @@ namespace CSScriptLib
         }
 
         /// <summary>
+        /// Global instance of <see cref="CSScriptLib.CodeDomEvaluator"/>. This object is to be used for
+        /// dynamic loading of the  C# code by using CodeDom "compiler as service".
+        /// <para>If you need to use multiple instances of th evaluator then you will need to call
+        /// <see cref="CSScriptLib.IEvaluator"/>.Clone().
+        /// </para>
+        /// </summary>
+        /// <value> The <see cref="CSScriptLib.CodeDomEvaluator"/> instance.</value>
+        static public CodeDomEvaluator CodeDomEvaluator
+        {
+            get
+            {
+                if (EvaluatorConfig.Access == EvaluatorAccess.AlwaysCreate)
+                    return (CodeDomEvaluator)codeDomEvaluator.Value.Clone();
+                else
+                    return codeDomEvaluator.Value;
+            }
+        }
+
+        static Lazy<CodeDomEvaluator> codeDomEvaluator = new Lazy<CodeDomEvaluator>();
+
+        /// <summary>
         /// Controls if ScriptCache should be used when script file loading is requested (CSScript.Load(...)). If set to true and the script file was previously compiled and already loaded
         /// the script engine will use that compiled script from the cache instead of compiling it again.
         /// Note the script cache is always maintained by the script engine. The CacheEnabled property only indicates if the cached script should be used or not when CSScript.Load(...) method is called.
@@ -350,6 +352,24 @@ namespace CSScriptLib
             tempFiles.Add(file);
         }
 
+        static bool purging = false;
+
+        public static void StartPurgingOldTempFiles()
+        {
+            if (!purging)
+            {
+                purging = true;
+                Task.Run(() =>
+                    {
+                        Runtime.CleanUnusedTmpFiles(CSScript.GetScriptTempDir(), "*????????-????-????-????-????????????.???", false);
+                        // don't do cscs related cleaning, save time.
+                        // Runtime.CleanSnippets();
+                        // Runtime.CleanAbandonedCache();
+                        purging = false;
+                    });
+            }
+        }
+
         static void OnApplicationExit(object sender, EventArgs e)
         {
             Cleanup();
@@ -362,8 +382,6 @@ namespace CSScriptLib
                 {
                     file.FileDelete(rethrow: false);
                 }
-
-            // CleanupDynamicSources(); zos
         }
 
         static Lazy<RoslynEvaluator> roslynEvaluator = new Lazy<RoslynEvaluator>();

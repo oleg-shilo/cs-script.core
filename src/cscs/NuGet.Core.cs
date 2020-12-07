@@ -1,3 +1,4 @@
+using CSScripting;
 using CSScripting.CodeDom;
 using System;
 using System.Collections.Generic;
@@ -85,7 +86,7 @@ namespace csscript
             }
 
             // C:\Users\user\AppData\Local\Temp\csscript.core\.nuget\333
-            var nuget_dir = CSExecutor.GetScriptTempDir()
+            var nuget_dir = Runtime.GetScriptTempDir()
                                       .PathJoin(".nuget", Process.GetCurrentProcess().Id)
                                       .EnsureDir();
 
@@ -95,13 +96,13 @@ namespace csscript
 
                 if (!File.Exists(proj_template))
                 {
-                    Utils.Run("dotnet", "new console", nuget_dir);
+                    "dotnet".Run("new console", nuget_dir);
                     foreach (var name in packages)
                     {
                         var ver = "";
                         if (version != null)
                             ver = "-v " + version;
-                        Utils.Run("dotnet", $"add package {name} {ver}", nuget_dir, x => Console.WriteLine(x));
+                        "dotnet".Run($"add package {name} {ver}", nuget_dir, x => Console.WriteLine(x));
                     }
 
                     // intercept and report incompatible packages (maybe)

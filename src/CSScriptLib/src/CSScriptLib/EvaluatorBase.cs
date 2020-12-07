@@ -31,9 +31,8 @@
 #endregion License...
 
 using csscript;
+using CSScripting;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.Emit;
 
 //using Microsoft.CodeAnalysis;
 //using Microsoft.CodeAnalysis.CSharp.Scripting
@@ -43,133 +42,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
-using System.Text;
 
-// <summary>
-//<package id="Microsoft.Net.Compilers" version="1.2.0-beta-20151211-01" targetFramework="net45" developmentDependency="true" />
-// Roslyn limitations:
-// Script cannot have namespaces
-// File-less (in-memory assemblies) cannot be referenced
-// The compiled assembly is a file-less assembly so it cannot be referenced in other scripts in a normal way but only via Roslyn
-// All script types are nested classes !????
-// Compiling time is heavily affected by number of ref assemblies (Mono is not affected)
-// Everything (e.g. class code) is compiled as a nested class with the parent class name
-// "Submission#N" and the number-sign makes it extremely difficult to reference from other scripts
-// </summary>
 namespace CSScriptLib
 {
     /// <summary>
-    /// The information about the location of the compiler output - assembly and pdb file.
-    /// </summary>
-    public class CompileInfo
-    {
-        string assemblyFile;
-
-        /// <summary>
-        /// The assembly file path. If not specified it will be composed as "&lt;RootClass&gt;.dll".
-        /// </summary>
-        public string AssemblyFile
-        {
-            get
-            {
-                if (assemblyFile == null)
-                    return $"{RootClass}.dll".GetFullPath();
-                else
-                    return assemblyFile.GetFullPath();
-            }
-            set => assemblyFile = value;
-        }
-
-        /// <summary>
-        /// The PDB file path.
-        /// <para>Even if the this value is specified the file will not be generated unless
-        /// <see cref="CSScript.EvaluatorConfig"/>.DebugBuild is set to <c>true</c>.
-        /// </para>
-        /// </summary>
-        public string PdbFile { set; get; }
-
-        /// <summary>
-        /// Gets or sets the root class name.
-        /// <para>This setting is required as Roslyn cannot produce compiled scripts with the user script class defined as
-        /// a top level class. Thus all user defined classes are in fact nested classes with the root class
-        /// named by Roslyn as "Submission#0". This leads to the complications when user wants to reference script class in
-        /// another script. Specifically because C# treats "Submission#0" as an illegal class name. </para>
-        /// <para>C# helps the situation by allowing user specified root name <see cref="CSScriptLib.CompileInfo.RootClass"/>,
-        /// which is by default is "css_root".
-        /// </para>
-        /// </summary>
-        /// <value>
-        /// The root class name.
-        /// </value>
-        public string RootClass { set; get; } = CSScript.RootClassName;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to prefer loading compiled script from the assembly file when
-        /// it is available.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [prefer loading from file]; otherwise, <c>false</c>.
-        /// </value>
-        public bool PreferLoadingFromFile { set; get; } = true;
-    }
-
-    /// <summary>
-    /// The exception that is thrown when a the script compiler error occurs.
-    /// </summary>
-    [Serializable]
-    public class CompilerException : ApplicationException
-    {
-        /// <summary>
-        /// Initialises a new instance of the <see cref="CompilerException"/> class.
-        /// </summary>
-        public CompilerException() { }
-
-        /// <summary>
-        /// Initialises a new instance of the <see cref="CompilerException"/> class.
-        /// </summary>
-        /// <param name="info">The object that holds the serialized object data.</param>
-        /// <param name="context">The contextual information about the source or destination.</param>
-        public CompilerException(SerializationInfo info, StreamingContext context) : base(info, context) { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CompilerException"/> class.
-        /// </summary>
-        /// <param name="message">The message.</param>
-        public CompilerException(string message)
-            : base(message)
-        {
-        }
-    }
-
-    /// <summary>
     /// A wrapper class that encapsulates the functionality of the Roslyn  evaluator (<see cref="Microsoft.CodeAnalysis.CSharp.Scripting"/>).
     /// </summary>
-    public class RoslynEvaluator : IEvaluator
+    public class EvaluatorBase<T> : IEvaluator where T : IEvaluator, new()
     {
-        static Assembly mscorelib = 333.GetType().Assembly;
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to compile script with debug symbols.
-        /// <para>Note, setting <c>DebugBuild</c> will only affect the current instance of Evaluator.
-        /// If you want to emit debug symbols for all instances of Evaluator then use
-        /// <see cref="CSScriptLib.CSScript.EvaluatorConfig"/>.DebugBuild.
-        /// </para>
-        /// </summary>
-        /// <value><c>true</c> if 'debug build'; otherwise, <c>false</c>.</value>
-        public bool? DebugBuild { get; set; }
-
-        bool IsDebug => DebugBuild ?? CSScript.EvaluatorConfig.DebugBuild;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="RoslynEvaluator" /> class.
-        /// </summary>
-        public RoslynEvaluator()
-        {
-            if (CSScript.EvaluatorConfig.RefernceDomainAsemblies)
-                ReferenceDomainAssemblies();
-        }
-
         /// <summary>
         /// Clones itself as <see cref="CSScriptLib.IEvaluator"/>.
         /// <para>
@@ -186,7 +66,7 @@ namespace CSScriptLib
         /// <returns>The freshly initialized instance of the <see cref="CSScriptLib.IEvaluator"/>.</returns>
         public IEvaluator Clone(bool copyRefAssemblies = true)
         {
-            var clone = new RoslynEvaluator();
+            var clone = new T();
             if (copyRefAssemblies)
             {
                 clone.Reset(false);
@@ -194,6 +74,29 @@ namespace CSScriptLib
                     clone.ReferenceAssembly(a);
             }
             return clone;
+        }
+
+        static Assembly mscorelib = 333.GetType().Assembly;
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to compile script with debug symbols.
+        /// <para>Note, setting <c>DebugBuild</c> will only affect the current instance of Evaluator.
+        /// If you want to emit debug symbols for all instances of Evaluator then use
+        /// <see cref="CSScriptLib.CSScript.EvaluatorConfig"/>.DebugBuild.
+        /// </para>
+        /// </summary>
+        /// <value><c>true</c> if 'debug build'; otherwise, <c>false</c>.</value>
+        public bool? DebugBuild { get; set; }
+
+        protected bool IsDebug => DebugBuild ?? CSScript.EvaluatorConfig.DebugBuild;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RoslynEvaluator" /> class.
+        /// </summary>
+        public EvaluatorBase()
+        {
+            if (CSScript.EvaluatorConfig.RefernceDomainAsemblies)
+                ReferenceDomainAssemblies();
         }
 
         ScriptOptions compilerSettings = ScriptOptions.Default;
@@ -206,21 +109,6 @@ namespace CSScriptLib
         {
             get => compilerSettings;
             set => compilerSettings = value;
-        }
-
-        /// <summary>
-        /// Loads the assemblies implementing Roslyn compilers.
-        /// <para>Roslyn compilers are extremely heavy and loading the compiler assemblies for with the first
-        /// evaluation call can take a significant time to complete (in some cases up to 4 seconds) while the consequent
-        /// calls are very fast.
-        /// </para>
-        /// <para>
-        /// You may want to call this method to pre-load the compiler assembly your script evaluation performance.
-        /// </para>
-        /// </summary>
-        public static void LoadCompilers()
-        {
-            CSharpScript.EvaluateAsync("1 + 2"); //this will loaded all required assemblies
         }
 
         /// <summary>
@@ -293,7 +181,10 @@ namespace CSScriptLib
 
             if (info?.PreferLoadingFromFile == true && info?.AssemblyFile.IsNotEmpty() == true)
             {
-                return Assembly.LoadFile(info.AssemblyFile);
+                // return Assembly.LoadFile(info.AssemblyFile);
+                // this way the loaded script assembly can be referenced from
+                // other scripts without custom asssembly probing
+                return Assembly.LoadFrom(info.AssemblyFile);
             }
             else
             {
@@ -302,6 +193,25 @@ namespace CSScriptLib
                 else
                     return AppDomain.CurrentDomain.Load(asm);
             }
+        }
+
+        /// <summary>
+        /// Loads and returns set of referenced assemblies.
+        /// <para>
+        /// Notre: the set of assemblies is cleared on Reset.
+        /// </para>
+        /// </summary>
+        /// <returns></returns>
+        public virtual Assembly[] GetReferencedAssemblies()
+        {
+            // Note all ref assemblies are already loaded as the Evaluator interface is "align" to behave as Mono evaluator,
+            // which only referenced already loaded assemblies but not file locations
+            var assemblies = CompilerSettings.MetadataReferences
+                                             .OfType<PortableExecutableReference>()
+                                             .Select(r => Assembly.LoadFile(r.FilePath))
+                                             .ToArray();
+
+            return assemblies;
         }
 
         /// <summary>
@@ -391,114 +301,9 @@ namespace CSScriptLib
             Compile(scriptText, null, null);
         }
 
-        (byte[] asm, byte[] pdb) Compile(string scriptText, string scriptFile, CompileInfo info)
+        protected virtual (byte[] asm, byte[] pdb) Compile(string scriptText, string scriptFile, CompileInfo info)
         {
-            // http://www.michalkomorowski.com/2016/10/roslyn-how-to-create-custom-debuggable_27.html
-
-            string tempScriptFile = null;
-            try
-            {
-                if (scriptText == null && scriptFile != null)
-                    scriptText = File.ReadAllText(scriptFile);
-
-                if (!DisableReferencingFromCode)
-                {
-                    var localDir = Path.GetDirectoryName(this.GetType().Assembly.Location);
-                    ReferenceAssembliesFromCode(scriptText, localDir);
-                }
-
-                if (this.IsDebug)
-                {
-                    if (scriptFile == null)
-                    {
-                        tempScriptFile = CSScript.GetScriptTempFile();
-                        File.WriteAllText(tempScriptFile, scriptText);
-                    }
-
-                    scriptText = $"#line 1 \"{scriptFile ?? tempScriptFile}\"{Environment.NewLine}" + scriptText;
-                }
-
-                var compilation = CSharpScript.Create(scriptText, CompilerSettings)
-                                              .GetCompilation();
-
-                // compilation.Options
-                if (this.IsDebug)
-                    compilation = compilation.WithOptions(compilation.Options.WithOptimizationLevel(OptimizationLevel.Debug));
-
-                compilation = compilation.WithOptions(compilation.Options.WithScriptClassName(info?.RootClass ?? CSScript.RootClassName)
-                                                                         .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
-
-                using (var pdb = new MemoryStream())
-                using (var asm = new MemoryStream())
-                {
-                    var emitOptions = new EmitOptions(false, DebugInformationFormat.PortablePdb);
-
-                    EmitResult result;
-                    if (IsDebug)
-                        result = compilation.Emit(asm, pdb, options: emitOptions);
-                    else
-                        result = compilation.Emit(asm);
-
-                    if (!result.Success)
-                    {
-                        IEnumerable<Diagnostic> failures = result.Diagnostics.Where(d => d.IsWarningAsError ||
-                                                                                         d.Severity == DiagnosticSeverity.Error);
-
-                        var message = new StringBuilder();
-                        foreach (Diagnostic diagnostic in failures)
-                        {
-                            string error_location = "";
-                            if (diagnostic.Location.IsInSource)
-                            {
-                                var error_pos = diagnostic.Location.GetLineSpan().StartLinePosition;
-
-                                int error_line = error_pos.Line + 1;
-                                int error_column = error_pos.Character + 1;
-
-                                // the actual source contains an injected '#line' directive f compiled with debug symbols
-                                if (IsDebug)
-                                    error_line--;
-
-                                error_location = $"{diagnostic.Location.SourceTree.FilePath}({error_line},{ error_column}): ";
-                            }
-                            message.AppendLine($"{error_location}error {diagnostic.Id}: {diagnostic.GetMessage()}");
-                        }
-                        var errors = message.ToString();
-                        throw new CompilerException(errors);
-                    }
-                    else
-                    {
-                        asm.Seek(0, SeekOrigin.Begin);
-                        byte[] buffer = asm.GetBuffer();
-
-                        if (info?.AssemblyFile != null)
-                            File.WriteAllBytes(info.AssemblyFile, buffer);
-
-                        if (IsDebug)
-                        {
-                            pdb.Seek(0, SeekOrigin.Begin);
-                            byte[] pdbBuffer = pdb.GetBuffer();
-
-                            if (info != null && info.PdbFile.IsEmpty() && info.AssemblyFile.IsNotEmpty())
-                                info.PdbFile = Path.ChangeExtension(info.AssemblyFile, ".pdb");
-
-                            if (info?.PdbFile != null)
-                                File.WriteAllBytes(info.PdbFile, pdbBuffer);
-
-                            return (buffer, pdbBuffer);
-                        }
-                        else
-                            return (buffer, null);
-                    }
-                }
-            }
-            finally
-            {
-                if (this.IsDebug)
-                    CSScript.NoteTempFile(tempScriptFile);
-                else
-                    tempScriptFile.FileDelete(false);
-            }
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -594,25 +399,6 @@ namespace CSScriptLib
             }
 
             return invoker;
-        }
-
-        /// <summary>
-        /// Returns set of referenced assemblies.
-        /// <para>
-        /// Notre: the set of assemblies is cleared on Reset.
-        /// </para>
-        /// </summary>
-        /// <returns></returns>
-        public Assembly[] GetReferencedAssemblies()
-        {
-            //Note all ref assemblies are already loaded as the Evaluator interface is "align" to behave as Mono evaluator,
-            //which only referenced already loaded assemblies but not file locations
-            var assemblies = CompilerSettings.MetadataReferences
-                                             .OfType<PortableExecutableReference>()
-                                             .Select(r => Assembly.LoadFile(r.FilePath))
-                                             .ToArray();
-
-            return assemblies;
         }
 
         /// <summary>
@@ -915,6 +701,8 @@ namespace CSScriptLib
             return this;
         }
 
+        protected virtual string EngineName => "CS-Script evaluator";
+
         /// <summary>
         /// References the given assembly.
         /// <para>It is safe to call this method multiple times
@@ -924,20 +712,20 @@ namespace CSScriptLib
         /// </summary>
         /// <param name="assembly">The assembly instance.</param>
         /// <returns>The instance of the <see cref="CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
-        public IEvaluator ReferenceAssembly(Assembly assembly)
+        public virtual IEvaluator ReferenceAssembly(Assembly assembly)
         {
             if (assembly != null)//this check is needed when trying to load partial name assemblies that result in null
             {
                 //Microsoft.Net.Compilers.1.2.0 - beta
                 if (assembly.Location.IsEmpty())
                     throw new Exception(
-                        "Current version of Microsoft.CodeAnalysis.Scripting.dll doesn't support referencing assemblies " +
-                        "which are not loaded from the file location.");
+                        $"Current version of {EngineName} doesn't support referencing assemblies " +
+                         "which are not loaded from the file location.");
 
                 if (!CompilerSettings.MetadataReferences.OfType<PortableExecutableReference>()
                     .Any(r => r.FilePath.SamePathAs(assembly.Location)))
-                    //Future assembly aliases support:
-                    //MetadataReference.CreateFromFile("asm.dll", new MetadataReferenceProperties().WithAliases(new[] { "lib_a", "external_lib_a" } })
+                    // Future assembly aliases support:
+                    // MetadataReference.CreateFromFile("asm.dll", new MetadataReferenceProperties().WithAliases(new[] { "lib_a", "external_lib_a" } })
                     CompilerSettings = CompilerSettings.AddReferences(assembly);
             }
             return this;

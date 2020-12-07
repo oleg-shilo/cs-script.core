@@ -126,7 +126,7 @@ namespace compile_server
                             File.Move(pendingFile, responseFile, overwrite: true);
                             File.Delete(request);
                         }
-                        catch (Exception e)
+                        catch
                         {
                             doNotWait = true;
                             // Console.WriteLine(e);

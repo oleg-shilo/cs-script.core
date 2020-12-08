@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using csscript;
 using CSScripting;
@@ -48,7 +49,10 @@ namespace EvaluatorTests
         {
             CSScript.EvaluatorConfig.DebugBuild = true;
 
-            var code2 = @"using System;
+            var info = new CompileInfo { RootClass = "script_a", AssemblyFile = "script_a_asm" };
+            try
+            {
+                var code2 = @"using System;
                       using System.Collections.Generic;
                       using System.Linq;
 
@@ -65,21 +69,24 @@ namespace EvaluatorTests
                           }
                       }";
 
-            var info = new CompileInfo { RootClass = "script_a", AssemblyFile = "script_a_asm" };
+                CSScript.RoslynEvaluator.CompileCode(code2, info);
 
-            CSScript.RoslynEvaluator.CompileCode(code2, info);
-
-            dynamic script = CSScript.Evaluator
-                                     .ReferenceAssembly(info.AssemblyFile)
-                                     .CompileMethod(@"using static script_a;
+                dynamic script = CSScript.Evaluator
+                                         .ReferenceAssembly(info.AssemblyFile)
+                                         .CompileMethod(@"using static script_a;
                                                   Utils Test()
                                                   {
                                                       return new Utils();
                                                   }")
-                                     .CreateObject("*");
-            object utils = script.Test();
+                                         .CreateObject("*");
+                object utils = script.Test();
 
-            Assert.Equal("script_a+Utils", utils.GetType().ToString());
+                Assert.Equal("script_a+Utils", utils.GetType().ToString());
+            }
+            finally
+            {
+                info.AssemblyFile.FileDelete(rethrow: false);
+            }
         }
 
         [Fact]
@@ -129,22 +136,28 @@ namespace EvaluatorTests
             var root_class_name = $"script_{System.Guid.NewGuid()}".Replace("-", "");
 
             var info = new CompileInfo { RootClass = root_class_name, PreferLoadingFromFile = true };
-
-            var printer_asm = CSScript.Evaluator
-                                      .CompileCode(@"using System;
+            try
+            {
+                var printer_asm = CSScript.Evaluator
+                                          .CompileCode(@"using System;
                                                  public class Printer
                                                  {
                                                      public void Print() => Console.Write(""Printing..."");
                                                  }", info);
 
-            dynamic script = CSScript.Evaluator
-                                     .ReferenceAssembly(printer_asm)
-                                     .LoadMethod($"using static {root_class_name};" + @"
+                dynamic script = CSScript.Evaluator
+                                         .ReferenceAssembly(printer_asm)
+                                         .LoadMethod($"using static {root_class_name};" + @"
                                                void Test()
                                                {
                                                    new Printer().Print();
                                                }");
-            script.Test();
+                script.Test();
+            }
+            finally
+            {
+                info.AssemblyFile.FileDelete(rethrow: false);
+            }
         }
     }
 }

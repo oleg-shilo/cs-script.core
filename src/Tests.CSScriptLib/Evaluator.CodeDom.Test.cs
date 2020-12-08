@@ -42,7 +42,7 @@ namespace EvaluatorTests
         [Fact]
         public void call_CompileMethod()
         {
-            dynamic script = CSScript.RoslynEvaluator
+            dynamic script = CSScript.CodeDomEvaluator
                                      .CompileMethod(@"public object func() => new[] {0,5}; ")
                                      .CreateObject("*.DynamicClass");
 
@@ -56,46 +56,53 @@ namespace EvaluatorTests
         public void referencing_script_types_from_another_script()
         {
             CSScript.EvaluatorConfig.DebugBuild = true;
+            var info = new CompileInfo { AssemblyFile = "utils_asm" };
 
-            var code2 = @"using System;
-                      using System.Collections.Generic;
-                      using System.Linq;
+            try
+            {
+                var utils_code = @"using System;
+                               using System.Collections.Generic;
+                               using System.Linq;
 
-                      public class Utils
-                      {
-                          static void Main(string[] args)
-                          {
-                              var x = new List<int> {1, 2, 3, 4, 5};
-                              var y = Enumerable.Range(0, 5);
+                               public class Utils
+                               {
+                                   public class Printer { }
 
-                              x.ForEach(Console.WriteLine);
-                              var z = y.First();
-                              Console.WriteLine(z);
-                          }
-                      }";
+                                   static void Main(string[] args)
+                                   {
+                                       var x = new List<int> {1, 2, 3, 4, 5};
+                                       var y = Enumerable.Range(0, 5);
 
-            var info = new CompileInfo { RootClass = "script_a", AssemblyFile = "script_a_asm" };
+                                       x.ForEach(Console.WriteLine);
+                                       var z = y.First();
+                                       Console.WriteLine(z);
+                                   }
+                               }";
 
-            CSScript.RoslynEvaluator.CompileCode(code2, info);
+                var asm = CSScript.CodeDomEvaluator.CompileCode(utils_code, info);
 
-            dynamic script = CSScript.Evaluator
-                                     .ReferenceAssembly(info.AssemblyFile)
-                                     .CompileMethod(@"using static script_a;
-                                                  Utils Test()
-                                                  {
-                                                      return new Utils();
-                                                  }")
-                                     .CreateObject("*");
+                dynamic script = CSScript.CodeDomEvaluator
+                                         .ReferenceAssembly(info.AssemblyFile)
+                                         .CompileMethod(@"public Utils NewUtils() => new Utils();
+                                                      public Utils.Printer NewPrinter() => new Utils.Printer();")
+                                         .CreateObject("*");
 
-            object utils = script.Test();
+                object utils = script.NewUtils();
+                object printer = script.NewPrinter();
 
-            Assert.Equal("script_a+Utils", utils.GetType().ToString());
+                Assert.Equal("Utils", utils.GetType().ToString());
+                Assert.Equal("Utils+Printer", printer.GetType().ToString());
+            }
+            finally
+            {
+                info.AssemblyFile.FileDelete(rethrow: false); // assembly is locked so only showing the intention
+            }
         }
 
         [Fact]
         public void use_interfaces_between_scripts()
         {
-            IPrinter printer = CSScript.Evaluator
+            IPrinter printer = CSScript.CodeDomEvaluator
                                        .ReferenceAssemblyOf<IPrinter>()
                                        .LoadCode<IPrinter>(@"using System;
                                                          public class Printer : IPrinter
@@ -116,7 +123,7 @@ namespace EvaluatorTests
         [Fact(Skip = "VB is not supported yet")]
         public void VB_Generic_Test()
         {
-            Assembly asm = CSScript.Evaluator
+            Assembly asm = CSScript.CodeDomEvaluator
                                    .CompileCode(@"' //css_ref System
                                               Imports System
                                               Class Script
@@ -129,32 +136,6 @@ namespace EvaluatorTests
 
             dynamic script = asm.CreateObject("*");
             var result = script.Sum(7, 3);
-        }
-
-        [Fact]
-        public void Issue_185_Referencing()
-        {
-            CSScript.EvaluatorConfig.DebugBuild = true;
-
-            var root_class_name = $"script_{System.Guid.NewGuid()}".Replace("-", "");
-
-            var info = new CompileInfo { RootClass = root_class_name, PreferLoadingFromFile = true };
-
-            var printer_asm = CSScript.Evaluator
-                                      .CompileCode(@"using System;
-                                                 public class Printer
-                                                 {
-                                                     public void Print() => Console.Write(""Printing..."");
-                                                 }", info);
-
-            dynamic script = CSScript.Evaluator
-                                     .ReferenceAssembly(printer_asm)
-                                     .LoadMethod($"using static {root_class_name};" + @"
-                                               void Test()
-                                               {
-                                                   new Printer().Print();
-                                               }");
-            script.Test();
         }
     }
 }

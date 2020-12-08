@@ -43,6 +43,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Scripting;
 
 namespace CSScriptLib
 {
@@ -51,6 +52,14 @@ namespace CSScriptLib
         public static bool CompileOnServer = true;
 
         protected override string EngineName => "CodeDom evaluator (csc.exe)";
+
+        protected override void Validate(CompileInfo info)
+        {
+            if (info != null && info.RootClass != Globals.RootClassName)
+                throw new CSScriptException("CompileInfo.RootClass property should only be used with Roslyn evaluator as " +
+                    "it addresses the limitation associated with Roslyn. Specifically wrapping ALL scripts in the illegally " +
+                    "named parent class. You are using CodeDomEvaluator so you should not set CompileInfo.RootClass to any custom value");
+        }
 
         override protected (byte[] asm, byte[] pdb) Compile(string scriptText, string scriptFile, CompileInfo info)
         {
@@ -65,8 +74,9 @@ namespace CSScriptLib
                 }
 
                 var project = Project.GenerateProjectFor(tempScriptFile);
+                var refs = project.Refs.Concat(this.GetReferencedAssembliesFiles()).Distinct().ToArray();
 
-                (byte[], byte[]) result = CompileAssemblyFromFileBatch_with_Csc(project.Files, project.Refs, this.IsDebug);
+                (byte[], byte[]) result = CompileAssemblyFromFileBatch_with_Csc(project.Files, refs, info?.AssemblyFile, this.IsDebug);
 
                 return result;
             }
@@ -85,6 +95,7 @@ namespace CSScriptLib
 
         (byte[] asm, byte[] pdb) CompileAssemblyFromFileBatch_with_Csc(string[] fileNames,
                                                                        string[] ReferencedAssemblies,
+                                                                       string outAssembly,
                                                                        bool IncludeDebugInformation)
         {
             string projectName = fileNames.First().GetFileName();
@@ -102,7 +113,6 @@ namespace CSScriptLib
 
                 var ref_assemblies = ReferencedAssemblies.Where(x => !x.IsSharedAssembly())
                                                          .Where(Path.IsPathRooted)
-                                                         .Where(asm => asm.GetDirName() != engine_dir)
                                                          .ToList();
 
                 var refs = new StringBuilder();
@@ -133,7 +143,7 @@ namespace CSScriptLib
                 // Microsoft.DiaSymReader.Native.amd64.dll is a native dll
                 gac_asms.AddRange(Directory.GetFiles(gac, "Microsoft.*.dll").Where(x => !x.Contains("Native")));
 
-                foreach (string file in gac_asms.Concat(ref_assemblies))
+                foreach (string file in gac_asms.Concat(ref_assemblies).Distinct())
                     refs_args.Add($"/r:\"{file}\"");
 
                 foreach (string file in sources)
@@ -163,14 +173,24 @@ namespace CSScriptLib
 
                 if (result.NativeCompilerReturnValue == 0 && File.Exists(assembly))
                 {
-                    result.PathToAssembly = assembly;
+                    if (outAssembly != null)
+                        File.Copy(assembly, outAssembly, true);
 
                     if (!IncludeDebugInformation)
                     {
+                        if (outAssembly != null)
+                            File.Copy(assembly, outAssembly, true);
+
                         return (File.ReadAllBytes(assembly), null);
                     }
                     else
                     {
+                        if (outAssembly != null)
+                        {
+                            File.Copy(assembly, outAssembly, true);
+                            File.Copy(assembly.ChangeExtension(".pdb"), outAssembly.ChangeExtension(".pdb"), true);
+                        }
+
                         return (File.ReadAllBytes(assembly),
                                 File.ReadAllBytes(assembly.ChangeExtension(".pdb")));
                     }

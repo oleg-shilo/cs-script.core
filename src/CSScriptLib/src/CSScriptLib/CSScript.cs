@@ -236,9 +236,6 @@ namespace CSScriptLib
 
         static string tempDir = null;
 
-        static internal string DynamicWrapperClassName = "DynamicClass";
-        static internal string RootClassName = "css_root";
-
         /// <summary>
         /// Returns the name of the temporary folder in the CSSCRIPT subfolder of Path.GetTempPath().
         /// <para>Under certain circumstances it may be desirable to the use the alternative location for the CS-Script temporary files.
@@ -413,9 +410,9 @@ namespace CSScriptLib
                             }
 
                             if (inheritFrom != null)
-                                code.AppendLine($"   public class {DynamicWrapperClassName} : " + inheritFrom);
+                                code.AppendLine($"   public class {Globals.DynamicWrapperClassName} : " + inheritFrom);
                             else
-                                code.AppendLine($"   public class {DynamicWrapperClassName}");
+                                code.AppendLine($"   public class {Globals.DynamicWrapperClassName}");
 
                             code.AppendLine("   {");
                             string[] tokens = line.Split("\t ".ToCharArray(), 3, StringSplitOptions.RemoveEmptyEntries);

@@ -104,7 +104,7 @@ namespace CSScriptLib
         /// <value>
         /// The root class name.
         /// </value>
-        public string RootClass { set; get; } = CSScript.RootClassName;
+        public string RootClass { set; get; } = Globals.RootClassName;
 
         /// <summary>
         /// Gets or sets a value indicating whether to prefer loading compiled script from the assembly file when
@@ -259,7 +259,7 @@ namespace CSScriptLib
                 if (this.IsDebug)
                     compilation = compilation.WithOptions(compilation.Options.WithOptimizationLevel(OptimizationLevel.Debug));
 
-                compilation = compilation.WithOptions(compilation.Options.WithScriptClassName(info?.RootClass ?? CSScript.RootClassName)
+                compilation = compilation.WithOptions(compilation.Options.WithScriptClassName(info?.RootClass ?? Globals.RootClassName)
                                                                          .WithOutputKind(OutputKind.DynamicallyLinkedLibrary));
 
                 using (var pdb = new MemoryStream())

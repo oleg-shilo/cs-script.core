@@ -1,5 +1,6 @@
 using Microsoft.CodeAnalysis;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -96,9 +97,8 @@ namespace CSScripting
                 //instantiate the user first type found (but not auto-generated types)
                 //Ignore Roslyn internal root type: "Submission#0"; real script class will be Submission#0+Script
 
-                var firstUserTypes = asm.GetTypes()
-                                        .FirstOrDefault(x => x.FullName.StartsWith(Globals.RootClassName) &&
-                                                             x.FullName != Globals.RootClassName);
+                var firstUserTypes = asm.OrderedUserTypes()
+                                        .FirstOrDefault();
 
                 if (firstUserTypes != null)
                     return Activator.CreateInstance(firstUserTypes, args);
@@ -109,7 +109,7 @@ namespace CSScripting
             {
                 var name = typeName.Replace("*.", "");
 
-                Type[] types = asm.GetTypes()
+                Type[] types = asm.OrderedUserTypes()
                                   .Where(t => (t.FullName == name
                                                || t.FullName == ($"{Globals.RootClassName}+{name}")
                                                || t.Name == name))
@@ -122,16 +122,19 @@ namespace CSScripting
             }
         }
 
-        internal static Type FirstUserTypeAssignableFrom<T>(this Assembly asm)
-        {
-            // exclude Roslyn internal types
-            return asm
-                .ExportedTypes
-                .Where(t => t.FullName.StartsWith($"{Globals.RootClassName}+")  // Submission#0+Script
-                            && !t.FullName.Contains("<<Initialize>>")) // Submission#0+<<Initialize>>d__0
+        static bool IsRoslynInternalType(this Type type)
+            => type.FullName.Contains("<<Initialize>>"); // Submission#0+<<Initialize>>d__0
 
-                .FirstOrDefault(x => typeof(T).IsAssignableFrom(x));
-        }
+        static bool IsScriptRootClass(this Type type)
+            => type.FullName.Contains($"{Globals.RootClassName}+"); // Submission#0+Script
+
+        internal static IEnumerable<Type> OrderedUserTypes(this Assembly asm)
+           => asm.ExportedTypes
+                  .Where(t => !t.IsRoslynInternalType())
+                  .OrderBy(t => !t.IsScriptRootClass());  // ScriptRootClass will be on top
+
+        internal static Type FirstUserTypeAssignableFrom<T>(this Assembly asm)
+            => asm.OrderedUserTypes().FirstOrDefault(x => typeof(T).IsAssignableFrom(x));
 
         /// <summary>
         /// Determines whether the assembly is dynamic.

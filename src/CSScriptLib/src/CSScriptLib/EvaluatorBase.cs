@@ -173,8 +173,13 @@ namespace CSScriptLib
             return CompileCode(scriptText, null, info);
         }
 
+        protected virtual void Validate(CompileInfo info)
+        { }
+
         Assembly CompileCode(string scriptText, string scriptFile, CompileInfo info)
         {
+            Validate(info);
+
             // scriptFile is needed to allow injection of the debug information
 
             (byte[] asm, byte[] pdb) = Compile(scriptText, scriptFile, info);
@@ -209,6 +214,18 @@ namespace CSScriptLib
             var assemblies = CompilerSettings.MetadataReferences
                                              .OfType<PortableExecutableReference>()
                                              .Select(r => Assembly.LoadFile(r.FilePath))
+                                             .ToArray();
+
+            return assemblies;
+        }
+
+        public virtual string[] GetReferencedAssembliesFiles()
+        {
+            // Note all ref assemblies are already loaded as the Evaluator interface is "align" to behave as Mono evaluator,
+            // which only referenced already loaded assemblies but not file locations
+            var assemblies = CompilerSettings.MetadataReferences
+                                             .OfType<PortableExecutableReference>()
+                                             .Select(r => r.FilePath)
                                              .ToArray();
 
             return assemblies;
@@ -616,7 +633,7 @@ namespace CSScriptLib
         public object LoadMethod(string code)
         {
             string scriptText = CSScript.WrapMethodToAutoClass(code, false, false);
-            return LoadCodeByName(scriptText, $"*.{CSScript.DynamicWrapperClassName}");
+            return LoadCodeByName(scriptText, $"*.{Globals.DynamicWrapperClassName}");
         }
 
         /// <summary>
@@ -721,6 +738,9 @@ namespace CSScriptLib
                     throw new Exception(
                         $"Current version of {EngineName} doesn't support referencing assemblies " +
                          "which are not loaded from the file location.");
+
+                var refs = CompilerSettings.MetadataReferences.OfType<PortableExecutableReference>()
+                                            .Select(r => r.FilePath.GetFileName()).OrderBy(x => x).ToArray();
 
                 if (!CompilerSettings.MetadataReferences.OfType<PortableExecutableReference>()
                     .Any(r => r.FilePath.SamePathAs(assembly.Location)))

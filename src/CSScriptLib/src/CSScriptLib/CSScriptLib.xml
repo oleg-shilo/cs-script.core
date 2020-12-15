@@ -2178,6 +2178,37 @@
             <param name="namespaceStr">'namespace' name</param>
             <returns>collection of assembly file names where namespace is implemented</returns>
         </member>
+        <member name="T:CSScripting.Resources">
+            <summary>
+              A strongly-typed resource class, for looking up localized strings, etc.
+            </summary>
+        </member>
+        <member name="P:CSScripting.Resources.ResourceManager">
+            <summary>
+              Returns the cached ResourceManager instance used by this class.
+            </summary>
+        </member>
+        <member name="P:CSScripting.Resources.Culture">
+            <summary>
+              Overrides the current thread's CurrentUICulture property for all
+              resource lookups using this strongly typed resource class.
+            </summary>
+        </member>
+        <member name="P:CSScripting.Resources.build">
+            <summary>
+              Looks up a localized resource of type System.Byte[].
+            </summary>
+        </member>
+        <member name="P:CSScripting.Resources.build_deps">
+            <summary>
+              Looks up a localized resource of type System.Byte[].
+            </summary>
+        </member>
+        <member name="P:CSScripting.Resources.build_runtimeconfig">
+            <summary>
+              Looks up a localized resource of type System.Byte[].
+            </summary>
+        </member>
         <member name="T:CSScripting.LinqExtensions">
             <summary>
             Various LINQ extensions

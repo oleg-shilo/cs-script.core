@@ -138,29 +138,48 @@ namespace CSScriptLib
 
                 common_args.Add("-define:TRACE;NETCORE;CS_SCRIPT");
 
-                var gac_asms = Directory.GetFiles(gac, "System.*.dll").ToList();
-                gac_asms.AddRange(Directory.GetFiles(gac, "netstandard.dll"));
-                // Microsoft.DiaSymReader.Native.amd64.dll is a native dll
-                gac_asms.AddRange(Directory.GetFiles(gac, "Microsoft.*.dll").Where(x => !x.Contains("Native")));
+                if (Runtime.IsCore)
+                {
+                    var gac_asms = Directory.GetFiles(gac, "System.*.dll").ToList();
+                    gac_asms.AddRange(Directory.GetFiles(gac, "netstandard.dll"));
+                    // Microsoft.DiaSymReader.Native.amd64.dll is a native dll
+                    gac_asms.AddRange(Directory.GetFiles(gac, "Microsoft.*.dll").Where(x => !x.Contains("Native")));
 
-                foreach (string file in gac_asms.Concat(ref_assemblies).Distinct())
-                    refs_args.Add($"/r:\"{file}\"");
+                    foreach (string file in gac_asms.Concat(ref_assemblies).Distinct())
+                        refs_args.Add($"/r:\"{file}\"");
+                }
+                else
+                {
+                    // foreach (string file in ref_assemblies)
+                    // refs_args.Add($"/r:\"{file}\"");
+                    refs_args.Add($"/r:\"System.Design.dll\"");
+                    refs_args.Add($"/r:\"mscorlib.dll\"");
+                }
 
                 foreach (string file in sources)
                     source_args.Add($"\"{file}\"");
 
                 string cmd;
 
-                if (CompileOnServer && File.Exists(Globals.build_server))
+                if (Runtime.IsCore)
                 {
-                    dotnet.RunAsync($"\"{Globals.build_server}\" -start");
+                    if (CompileOnServer && Globals.BuildServerIsDeployed)
+                    {
+                        dotnet.RunAsync($"\"{Globals.build_server}\" -start");
 
-                    cmd = $@"""{Globals.build_server}"" csc {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
+                        cmd = $@"""{Globals.build_server}"" csc {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
+                    }
+                    else
+                        cmd = $@"""{Globals.csc}"" {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
+
+                    result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
                 }
                 else
-                    cmd = $@"""{Globals.csc_dll}"" {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
+                {
+                    cmd = $@" {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
 
-                result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
+                    result.NativeCompilerReturnValue = Globals.csc.Run(cmd, build_dir, x => result.Output.Add(x));
+                }
 
                 result.ProcessErrors();
 

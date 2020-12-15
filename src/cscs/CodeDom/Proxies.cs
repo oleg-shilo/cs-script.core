@@ -1,12 +1,9 @@
-using csscript;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using static System.StringComparison;
 using static System.Environment;
@@ -15,7 +12,9 @@ using static csscript.CoreExtensions;
 #if class_lib
 using CSScriptLib;
 #else
+
 using csscript;
+
 #endif
 
 namespace CSScripting.CodeDom
@@ -247,7 +246,7 @@ namespace CSScripting.CodeDom
                 cmd = $@"""{CscBuildServer.build_server}"" csc {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
             }
             else
-                cmd = $@"""{Globals.csc_dll}"" {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
+                cmd = $@"""{Globals.csc}"" {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
 
             Profiler.get("compiler").Start();
             result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));

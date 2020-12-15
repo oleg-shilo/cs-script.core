@@ -127,8 +127,6 @@ namespace CSScripting
             return path;
         }
 
-        public static bool FileExists(this string path) => path.IsNotEmpty() ? File.Exists(path) : false;
-
         class Win32
         {
             [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]

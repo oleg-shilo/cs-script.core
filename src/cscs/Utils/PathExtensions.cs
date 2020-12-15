@@ -76,6 +76,8 @@ namespace CSScripting
             return path;
         }
 
+        public static bool FileExists(this string path) => path.IsNotEmpty() ? File.Exists(path) : false;
+
         public static string GetDirName(this string path)
             => path == null ? null : Path.GetDirectoryName(path);
 

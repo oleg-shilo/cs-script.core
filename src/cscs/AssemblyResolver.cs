@@ -62,9 +62,15 @@ namespace csscript
 
                 AssemblyName asmName = AssemblyName.GetAssemblyName(asmFile);
                 if (asmName != null && asmName.FullName == assemblyName)
+                {
                     return Assembly.LoadFile(asmFile);
-                else if (assemblyName.IndexOf(",") == -1 && asmName.FullName.StartsWith(assemblyName)) //short name requested
+                }
+                else if (assemblyName.IndexOf(",") == -1 && asmName.FullName.StartsWith(assemblyName + ","))
+                {
+                    // short name requested
+                    // reqst:"test" - asm: "test, 1.0.0.0"
                     return Assembly.LoadFile(asmFile);
+                }
             }
             catch
             {

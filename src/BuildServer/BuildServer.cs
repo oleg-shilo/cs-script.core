@@ -82,7 +82,7 @@ namespace compile_server
             get
             {
                 var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                       "cs-script", "compiler", Assembly.GetExecutingAssembly().GetName().Version.ToString(), "queue");
+                                       "cs-script", "bin", "compiler", Assembly.GetExecutingAssembly().GetName().Version.ToString(), "queue");
 
                 Directory.CreateDirectory(dir);
 

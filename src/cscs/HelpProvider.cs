@@ -1521,7 +1521,7 @@ nvironment.NewLine);
                     {
                         builder.AppendLine(compiler);
                     }
-                    builder.AppendLine($"                    {Globals.csc_dll}");
+                    builder.AppendLine($"                    {Globals.csc}");
                 }
                 else
                     builder.AppendLine(compiler);

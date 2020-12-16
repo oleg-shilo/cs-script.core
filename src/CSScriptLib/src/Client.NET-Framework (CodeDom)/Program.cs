@@ -2,6 +2,11 @@
 using CSScriptLib;
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.IO.Compression;
+using System.Net;
+using static System.Environment;
 
 namespace ConsoleApp1
 {
@@ -9,6 +14,8 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
+            NetCompiler.EnableLatestSyntax();
+
             CSScript.EvaluatorConfig.DebugBuild = true;
 
             var sw = Stopwatch.StartNew();
@@ -22,24 +29,64 @@ namespace ConsoleApp1
             sw.Restart();
             Test_CodeDom();
             Console.WriteLine("  next run: " + sw.ElapsedMilliseconds);
-
-            Console.WriteLine("\nRoslyn");
-            Console.WriteLine("  Cannot run as no Roslyn (Microsoft.CodeAnalysis.CSharp.Scripting) package is imported.");
-            Console.WriteLine("  This sample is to demonstrate a minimal (no Roslyn) dependency hosting solution.\n");
         }
 
         static void Test_CodeDom()
         {
-            Globals.csc = @"C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\Roslyn\csc.exe";
             CodeDomEvaluator.CompileOnServer = true;
 
             dynamic script = CSScript.CodeDomEvaluator
-                                     .LoadMethod(@"public (int, int) func()
+                                     .LoadMethod(@"public object func()
                                                    {
-                                                       return (0,5);
+                                                       // return new [] {0, 5}; // C#5 syntax  (.NET Framework)
+                                                       return (0,5);      // C#7+ syntax (Microsoft.Net.Compilers package)
                                                    }");
 
-            (int, int) result = script.func();
+            var result = script.func();
+        }
+
+        class NetCompiler
+        {
+            public static string DownloadCompiler()
+            {
+                var packageFile = Path.GetFullPath("roslyn.zip");
+                var contentDir = Path.GetFullPath("compilers");
+                var packageUrl = "https://www.nuget.org/api/v2/package/Microsoft.Net.Compilers/3.8.0";
+                var compilerFile = Path.Combine(contentDir, "tools", "csc.exe");
+
+                if (File.Exists(compilerFile))
+                    return compilerFile;
+
+                try
+                {
+                    Console.WriteLine("Downloading latest C# compiler...");
+
+                    new WebClient()
+                        .DownloadFile(packageUrl, packageFile);
+
+                    ZipFile.ExtractToDirectory(packageFile, contentDir);
+
+                    return compilerFile;
+                }
+                catch
+                {
+                    Console.WriteLine($"Cannot download '{packageUrl}' ...");
+                    return null;
+                }
+            }
+
+            public static void EnableLatestSyntax()
+            {
+                var latest_csc = DownloadCompiler();
+                if (latest_csc.HasText())
+                {
+                    Globals.csc = latest_csc;
+                }
+                else
+                {
+                    Console.WriteLine("Using default C#5 compiler");
+                }
+            }
         }
     }
 }

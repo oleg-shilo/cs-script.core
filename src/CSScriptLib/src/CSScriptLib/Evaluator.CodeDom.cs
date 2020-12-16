@@ -132,7 +132,10 @@ namespace CSScriptLib
                 // common_args.Add("/t:exe"); // need always build exe so "top-class" feature is supported even when building dlls
 
                 if (IncludeDebugInformation)
-                    common_args.Add("/debug:portable");  // on .net full it is "/debug+"
+                    if (Runtime.IsCore)
+                        common_args.Add("/debug:portable");  // on .net full it is "/debug+"
+                    else
+                        common_args.Add("/debug:full");  // on .net full it is "/debug+"
 
                 common_args.Add("-define:TRACE;NETCORE;CS_SCRIPT");
 
@@ -165,16 +168,16 @@ namespace CSScriptLib
                     {
                         dotnet.RunAsync($"\"{Globals.build_server}\" -start");
 
-                        cmd = $@"""{Globals.build_server}"" csc {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
+                        cmd = $@"""{Globals.build_server}"" csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
                     }
                     else
-                        cmd = $@"""{Globals.csc}"" {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
+                        cmd = $@"""{Globals.csc}"" {common_args.JoinBy(" ")} /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
 
                     result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
                 }
                 else
                 {
-                    cmd = $@" {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
+                    cmd = $@" {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
 
                     result.NativeCompilerReturnValue = Globals.csc.Run(cmd, build_dir, x => result.Output.Add(x));
                 }

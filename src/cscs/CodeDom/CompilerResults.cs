@@ -1,6 +1,9 @@
 using csscript;
 using CSScriptLib;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using static System.Environment;
 using System.Reflection;
 
 namespace CSScripting.CodeDom
@@ -52,6 +55,13 @@ namespace CSScripting.CodeDom
                     }
                 }
             }
+
+            if (Errors.IsEmpty() && !Output.IsEmpty())
+                Errors.Add(new CompilerError
+                {
+                    ErrorText = NewLine + Output.Where(x => x.IsNotEmpty()).JoinBy(NewLine),
+                    ErrorNumber = "CS0000"
+                });
         }
     }
 }

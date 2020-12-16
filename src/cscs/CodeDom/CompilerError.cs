@@ -32,6 +32,7 @@ namespace CSScripting.CodeDom
             bool isWarning = compilerOutput.Contains("): warning ");
             bool isBuildError = compilerOutput.Contains("MSBUILD : error", StringComparison.OrdinalIgnoreCase) ||
                                 compilerOutput.Contains("vbc : error", StringComparison.OrdinalIgnoreCase) ||
+                                compilerOutput.StartsWith("fatal error ", StringComparison.OrdinalIgnoreCase) ||
                                 compilerOutput.Contains("CSC : error", StringComparison.OrdinalIgnoreCase);
 
             if (isBuildError)

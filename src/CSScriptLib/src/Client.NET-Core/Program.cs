@@ -34,7 +34,6 @@ namespace ConsoleApp1
 
         static void Test_CodeDom()
         {
-            Globals.csc = @"C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\Roslyn\csc.exe";
             CodeDomEvaluator.CompileOnServer = true;
 
             dynamic script = CSScript.CodeDomEvaluator

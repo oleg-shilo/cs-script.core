@@ -1,3 +1,4 @@
+using CSScriptLib;
 using System;
 using System.IO;
 using System.Linq;
@@ -48,27 +49,36 @@ namespace CSScripting
             {
                 if (csc_file == null)
                 {
-                    // linux ~dotnet/.../3.0.100-preview5-011568/Roslyn/... (cannot find in preview)
-                    // win: program_files/dotnet/sdk/<version>/Roslyn/csc.exe
-                    var dotnet_root = "".GetType().Assembly.Location;
-
-                    // find first "dotnet" parent dir by trimming till the last "dotnet" token
-                    dotnet_root = dotnet_root.Split(Path.DirectorySeparatorChar)
-                                                .Reverse()
-                                                .SkipWhile(x => x != "dotnet")
-                                                .Reverse()
-                                                .JoinBy(Path.DirectorySeparatorChar.ToString());
-
-                    if (dotnet_root.PathJoin("sdk").DirExists()) // need to check as otherwise it will throw
+#if class_lib
+                    if (!Runtime.IsCore)
                     {
-                        var dirs = dotnet_root.PathJoin("sdk")
-                                                .PathGetDirs("*")
-                                                .Where(dir => char.IsDigit(dir.GetFileName()[0]))
-                                                .OrderBy(x => System.Version.Parse(x.GetFileName().Split('-').First()))
-                                                .SelectMany(dir => dir.PathGetDirs("Roslyn"))
-                                                .ToArray();
-                        csc_file = dirs.Select(dir => dir.PathJoin("bincore", "csc.dll"))
-                                            .LastOrDefault(File.Exists);
+                        csc_file = Path.Combine(Path.GetDirectoryName("".GetType().Assembly.Location), "csc.exe");
+                    }
+                    else
+#endif
+                    {
+                        // linux ~dotnet/.../3.0.100-preview5-011568/Roslyn/... (cannot find in preview)
+                        // win: program_files/dotnet/sdk/<version>/Roslyn/csc.exe
+                        var dotnet_root = "".GetType().Assembly.Location;
+
+                        // find first "dotnet" parent dir by trimming till the last "dotnet" token
+                        dotnet_root = dotnet_root.Split(Path.DirectorySeparatorChar)
+                                                    .Reverse()
+                                                    .SkipWhile(x => x != "dotnet")
+                                                    .Reverse()
+                                                    .JoinBy(Path.DirectorySeparatorChar.ToString());
+
+                        if (dotnet_root.PathJoin("sdk").DirExists()) // need to check as otherwise it will throw
+                        {
+                            var dirs = dotnet_root.PathJoin("sdk")
+                                                    .PathGetDirs("*")
+                                                    .Where(dir => char.IsDigit(dir.GetFileName()[0]))
+                                                    .OrderBy(x => System.Version.Parse(x.GetFileName().Split('-').First()))
+                                                    .SelectMany(dir => dir.PathGetDirs("Roslyn"))
+                                                    .ToArray();
+                            csc_file = dirs.Select(dir => dir.PathJoin("bincore", "csc.dll"))
+                                                .LastOrDefault(File.Exists);
+                        }
                     }
                 }
                 return csc_file;

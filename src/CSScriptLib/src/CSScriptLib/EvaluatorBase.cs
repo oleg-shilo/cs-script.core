@@ -99,18 +99,6 @@ namespace CSScriptLib
                 ReferenceDomainAssemblies();
         }
 
-        ScriptOptions compilerSettings = ScriptOptions.Default;
-
-        /// <summary>
-        /// Gets or sets the compiler settings.
-        /// </summary>
-        /// <value>The compiler settings.</value>
-        public ScriptOptions CompilerSettings
-        {
-            get => compilerSettings;
-            set => compilerSettings = value;
-        }
-
         /// <summary>
         /// Evaluates (compiles) C# code (script). The C# code is a typical C# code containing a single or multiple class definition(s).
         /// </summary>
@@ -200,36 +188,11 @@ namespace CSScriptLib
             }
         }
 
-        /// <summary>
-        /// Loads and returns set of referenced assemblies.
-        /// <para>
-        /// Notre: the set of assemblies is cleared on Reset.
-        /// </para>
-        /// </summary>
-        /// <returns></returns>
         public virtual Assembly[] GetReferencedAssemblies()
-        {
-            // Note all ref assemblies are already loaded as the Evaluator interface is "align" to behave as Mono evaluator,
-            // which only referenced already loaded assemblies but not file locations
-            var assemblies = CompilerSettings.MetadataReferences
-                                             .OfType<PortableExecutableReference>()
-                                             .Select(r => Assembly.LoadFile(r.FilePath))
-                                             .ToArray();
-
-            return assemblies;
-        }
+            => throw new NotImplementedException();
 
         public virtual string[] GetReferencedAssembliesFiles()
-        {
-            // Note all ref assemblies are already loaded as the Evaluator interface is "align" to behave as Mono evaluator,
-            // which only referenced already loaded assemblies but not file locations
-            var assemblies = CompilerSettings.MetadataReferences
-                                             .OfType<PortableExecutableReference>()
-                                             .Select(r => r.FilePath)
-                                             .ToArray();
-
-            return assemblies;
-        }
+            => throw new NotImplementedException();
 
         /// <summary>
         /// Compiles C# file (script) into assembly file. The C# contains typical C# code containing a single or multiple class definition(s).
@@ -730,26 +693,7 @@ namespace CSScriptLib
         /// <param name="assembly">The assembly instance.</param>
         /// <returns>The instance of the <see cref="CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
         public virtual IEvaluator ReferenceAssembly(Assembly assembly)
-        {
-            if (assembly != null)//this check is needed when trying to load partial name assemblies that result in null
-            {
-                //Microsoft.Net.Compilers.1.2.0 - beta
-                if (assembly.Location.IsEmpty())
-                    throw new Exception(
-                        $"Current version of {EngineName} doesn't support referencing assemblies " +
-                         "which are not loaded from the file location.");
-
-                var refs = CompilerSettings.MetadataReferences.OfType<PortableExecutableReference>()
-                                            .Select(r => r.FilePath.GetFileName()).OrderBy(x => x).ToArray();
-
-                if (!CompilerSettings.MetadataReferences.OfType<PortableExecutableReference>()
-                    .Any(r => r.FilePath.SamePathAs(assembly.Location)))
-                    // Future assembly aliases support:
-                    // MetadataReference.CreateFromFile("asm.dll", new MetadataReferenceProperties().WithAliases(new[] { "lib_a", "external_lib_a" } })
-                    CompilerSettings = CompilerSettings.AddReferences(assembly);
-            }
-            return this;
-        }
+        => throw new NotImplementedException();
 
         /// <summary>
         /// References the name of the assembly by its partial name.
@@ -888,10 +832,8 @@ namespace CSScriptLib
         /// will be referenced (see <see cref="ReferenceDomainAssemblies(DomainAssemblies)"/> method).
         /// </param>
         /// <returns>The freshly initialized instance of the <see cref="CSScriptLib.IEvaluator"/>.</returns>
-        public IEvaluator Reset(bool referenceDomainAssemblies = true)
+        public virtual IEvaluator Reset(bool referenceDomainAssemblies = true)
         {
-            CompilerSettings = ScriptOptions.Default;
-
             if (referenceDomainAssemblies)
                 ReferenceDomainAssemblies();
 

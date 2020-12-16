@@ -317,7 +317,7 @@ namespace csscript
             return "\\u" + ((int)c).ToString("x4");
         }
 
-        internal static string Expand(this string text) => Environment.ExpandEnvironmentVariables(text);
+        public static string Expand(this string text) => Environment.ExpandEnvironmentVariables(text);
 
         internal static string UnescapeExpandTrim(this string text) =>
             CSharpParser.UnescapeDirectiveDelimiters(Environment.ExpandEnvironmentVariables(text)).Trim();

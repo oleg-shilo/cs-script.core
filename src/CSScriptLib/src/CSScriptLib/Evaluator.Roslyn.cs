@@ -210,6 +210,37 @@ namespace CSScriptLib
 
     public class RoslynEvaluator : EvaluatorBase<RoslynEvaluator>, IEvaluator
     {
+        ScriptOptions compilerSettings = ScriptOptions.Default;
+
+        /// <summary>
+        /// Loads and returns set of referenced assemblies.
+        /// <para>
+        /// Notre: the set of assemblies is cleared on Reset.
+        /// </para>
+        /// </summary>
+        /// <returns></returns>
+        public override Assembly[] GetReferencedAssemblies()
+        {
+            // Note all ref assemblies are already loaded as the Evaluator interface is "align" to behave as Mono evaluator,
+            // which only referenced already loaded assemblies but not file locations
+            var assemblies = CompilerSettings.MetadataReferences
+                                             .OfType<PortableExecutableReference>()
+                                             .Select(r => Assembly.LoadFile(r.FilePath))
+                                             .ToArray();
+
+            return assemblies;
+        }
+
+        /// <summary>
+        /// Gets or sets the compiler settings.
+        /// </summary>
+        /// <value>The compiler settings.</value>
+        public ScriptOptions CompilerSettings
+        {
+            get => compilerSettings;
+            set => compilerSettings = value;
+        }
+
         /// <summary>
         /// Loads the assemblies implementing Roslyn compilers.
         /// <para>Roslyn compilers are extremely heavy and loading the compiler assemblies for with the first
@@ -336,24 +367,61 @@ namespace CSScriptLib
         }
 
         /// <summary>
-        /// Returns set of referenced assemblies.
-        /// <para>
-        /// Notre: the set of assemblies is cleared on Reset.
+        /// References the given assembly.
+        /// <para>It is safe to call this method multiple times
+        /// for the same assembly. If the assembly already referenced it will not
+        /// be referenced again.
         /// </para>
         /// </summary>
-        /// <returns></returns>
-        public Assembly[] GetReferencedAssemblies()
+        /// <param name="assembly">The assembly instance.</param>
+        /// <returns>
+        /// The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.
+        /// </returns>
+        /// <exception cref="System.Exception">Current version of {EngineName} doesn't support referencing assemblies " +
+        ///                          "which are not loaded from the file location.</exception>
+        public override IEvaluator ReferenceAssembly(Assembly assembly)
         {
-            //Note all ref assemblies are already loaded as the Evaluator interface is "align" to behave as Mono evaluator,
-            //which only referenced already loaded assemblies but not file locations
-            var assemblies = CompilerSettings.MetadataReferences
-                                             .OfType<PortableExecutableReference>()
-                                             .Select(r => Assembly.LoadFile(r.FilePath))
-                                             .ToArray();
+            if (assembly != null)//this check is needed when trying to load partial name assemblies that result in null
+            {
+                //Microsoft.Net.Compilers.1.2.0 - beta
+                if (assembly.Location.IsEmpty())
+                    throw new Exception(
+                        $"Current version of Roslyn-based evaluator does not support referencing assemblies " +
+                         "which are not loaded from the file location.");
 
-            return assemblies;
+                var refs = CompilerSettings.MetadataReferences.OfType<PortableExecutableReference>()
+                                            .Select(r => r.FilePath.GetFileName()).OrderBy(x => x).ToArray();
+
+                if (!CompilerSettings.MetadataReferences.OfType<PortableExecutableReference>()
+                    .Any(r => r.FilePath.SamePathAs(assembly.Location)))
+                    // Future assembly aliases support:
+                    // MetadataReference.CreateFromFile("asm.dll", new MetadataReferenceProperties().WithAliases(new[] { "lib_a", "external_lib_a" } })
+                    CompilerSettings = CompilerSettings.AddReferences(assembly);
+            }
+            return this;
         }
 
-        protected override string EngineName => "Microsoft.CodeAnalysis.Scripting.dll";
+        /// <summary>
+        /// Resets Evaluator.
+        /// <para>
+        /// Resetting means clearing all referenced assemblies, recreating evaluation infrastructure (e.g. compiler setting)
+        /// and reconnection to or recreation of the underlying compiling services.
+        /// </para><para>Optionally the default current AppDomain assemblies can be referenced automatically with
+        /// <paramref name="referenceDomainAssemblies" />.</para>
+        /// </summary>
+        /// <param name="referenceDomainAssemblies">if set to <c>true</c> the default assemblies of the current AppDomain
+        /// will be referenced (see <see cref="M:CSScriptLib.EvaluatorBase`1.ReferenceDomainAssemblies(CSScriptLib.DomainAssemblies)" /> method).</param>
+        /// <returns>
+        /// The freshly initialized instance of the <see cref="T:CSScriptLib.IEvaluator" />.
+        /// </returns>
+        public override IEvaluator Reset(bool referenceDomainAssemblies = true)
+        {
+            CompilerSettings = ScriptOptions.Default;
+
+            if (referenceDomainAssemblies)
+                ReferenceDomainAssemblies();
+
+            return this;
+        }
     }
 }

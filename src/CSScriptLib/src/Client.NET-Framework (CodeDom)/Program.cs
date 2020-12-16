@@ -24,12 +24,8 @@ namespace ConsoleApp1
             Console.WriteLine("  next run: " + sw.ElapsedMilliseconds);
 
             Console.WriteLine("\nRoslyn");
-            sw.Restart();
-            Test_Roslyn();
-            Console.WriteLine("  first run: " + sw.ElapsedMilliseconds);
-            sw.Restart();
-            Test_Roslyn();
-            Console.WriteLine("  next run: " + sw.ElapsedMilliseconds);
+            Console.WriteLine("  Cannot run as no Roslyn (Microsoft.CodeAnalysis.CSharp.Scripting) package is imported.");
+            Console.WriteLine("  This sample is to demonstrate a minimal (no Roslyn) dependency hosting solution.\n");
         }
 
         static void Test_CodeDom()
@@ -38,17 +34,6 @@ namespace ConsoleApp1
             CodeDomEvaluator.CompileOnServer = true;
 
             dynamic script = CSScript.CodeDomEvaluator
-                                     .LoadMethod(@"public (int, int) func()
-                                                   {
-                                                       return (0,5);
-                                                   }");
-
-            (int, int) result = script.func();
-        }
-
-        static void Test_Roslyn()
-        {
-            dynamic script = CSScript.RoslynEvaluator
                                      .LoadMethod(@"public (int, int) func()
                                                    {
                                                        return (0,5);

@@ -115,7 +115,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="md &quot;$(ProjectDir)output&quot;  &#xD;&#xA;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(ProjectDir)output\$(TargetFileName)&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(ProjectName).xml&quot; &quot;$(ProjectDir)output\$(ProjectName).xml&quot;&#xD;&#xA;copy &quot;$(ProjectDir)..\..\src\CSScriptLib.Client\Test.cs&quot; &quot;$(ProjectDir)output\Test.cs&quot;&#xD;&#xA;copy &quot;$(ProjectDir)..\..\src\CSScriptLib.Client\Test.cs&quot; &quot;$(ProjectDir)bin\$(ConfigurationName)\Test.cs&quot;&#xD;&#xA;&#xD;&#xA;" />
+    <Exec Command="md &quot;$(ProjectDir)output&quot;  &#xD;&#xA;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(ProjectDir)output\$(TargetFileName)&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(ProjectName).xml&quot; &quot;$(ProjectDir)output\$(ProjectName).xml&quot;&#xD;&#xA;rem copy &quot;$(ProjectDir)..\..\src\CSScriptLib.Client\Test.cs&quot; &quot;$(ProjectDir)output\Test.cs&quot;&#xD;&#xA;rem copy &quot;$(ProjectDir)..\..\src\CSScriptLib.Client\Test.cs&quot; &quot;$(ProjectDir)bin\$(ConfigurationName)\Test.cs&quot;&#xD;&#xA;&#xD;&#xA;" />
   </Target>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">

@@ -51,8 +51,6 @@ namespace CSScriptLib
     {
         public static bool CompileOnServer = true;
 
-        protected override string EngineName => "CodeDom evaluator (csc.exe)";
-
         protected override void Validate(CompileInfo info)
         {
             if (info != null && info.RootClass != Globals.RootClassName)
@@ -229,5 +227,54 @@ namespace CSScriptLib
                 build_dir.DeleteDir();
             }
         }
+
+        List<string> referencedAssemblies = new List<string>();
+
+        /// <summary>
+        /// References the given assembly.
+        /// <para>It is safe to call this method multiple times
+        /// for the same assembly. If the assembly already referenced it will not
+        /// be referenced again.
+        /// </para>
+        /// </summary>
+        /// <param name="assembly">The assembly instance.</param>
+        /// <returns>
+        /// The instance of the <see cref="T:CSScriptLib.IEvaluator" /> to allow  fluent interface.
+        /// </returns>
+        /// <exception cref="System.Exception">Current version of {EngineName} doesn't support referencing assemblies " +
+        ///                          "which are not loaded from the file location.</exception>
+        public override IEvaluator ReferenceAssembly(Assembly assembly)
+        {
+            if (assembly != null)//this check is needed when trying to load partial name assemblies that result in null
+            {
+                if (assembly.Location.IsEmpty())
+                    throw new Exception(
+                        $"Current version of CodeDom evaluator (csc.exe) doesn't support referencing assemblies " +
+                         "which are not loaded from the file location.");
+
+                var asmFile = assembly.Location;
+
+                if (referencedAssemblies.FirstOrDefault(x => asmFile.SamePathAs(x)) == null)
+                    referencedAssemblies.Add(asmFile);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Gets the referenced assemblies files.
+        /// </summary>
+        /// <returns></returns>
+        public override string[] GetReferencedAssembliesFiles()
+            => referencedAssemblies.ToArray();
+
+        /// <summary>
+        /// Loads and returns set of referenced assemblies.
+        /// <para>
+        /// Notre: the set of assemblies is cleared on Reset.
+        /// </para>
+        /// </summary>
+        /// <returns></returns>
+        public override Assembly[] GetReferencedAssemblies()
+            => referencedAssemblies.Select(Assembly.LoadFile).ToArray();
     }
 }

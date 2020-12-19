@@ -1,6 +1,7 @@
+using System;
 using csscript;
 using CSScriptLib;
-using System;
+using static CSScriptLib.CSharpParser;
 using Xunit;
 
 namespace Misc

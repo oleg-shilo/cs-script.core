@@ -1,7 +1,8 @@
-﻿using CSScripting;
-using CSScriptLib;
-using System;
+﻿using System;
 using System.Diagnostics;
+using System.IO;
+using CSScripting;
+using CSScriptLib;
 
 namespace ConsoleApp1
 {
@@ -9,6 +10,7 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
+            NetCompiler.EnableLatestSyntax();
             CSScript.EvaluatorConfig.DebugBuild = true;
 
             var sw = Stopwatch.StartNew();
@@ -34,9 +36,6 @@ namespace ConsoleApp1
 
         static void Test_CodeDom()
         {
-            Globals.csc = @"C:\Program Files (x86)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\Roslyn\csc.exe";
-            CodeDomEvaluator.CompileOnServer = true;
-
             dynamic script = CSScript.CodeDomEvaluator
                                      .LoadMethod(@"public (int, int) func()
                                                    {

@@ -1,7 +1,7 @@
-﻿using CSScripting;
-using CSScriptLib;
-using System;
+﻿using System;
 using System.Diagnostics;
+using CSScripting;
+using CSScriptLib;
 
 namespace ConsoleApp1
 {
@@ -23,6 +23,8 @@ namespace ConsoleApp1
             Test_CodeDom();
             Console.WriteLine("  next run: " + sw.ElapsedMilliseconds);
 
+            return;
+
             Console.WriteLine("\nRoslyn");
             sw.Restart();
             Test_Roslyn();
@@ -41,7 +43,6 @@ namespace ConsoleApp1
                                                    {
                                                        return (0,5);
                                                    }");
-
             (int, int) result = script.func();
         }
 

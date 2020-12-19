@@ -1,15 +1,15 @@
-using CSScripting;
-using CSScripting.CodeDom;
-using CSScriptLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using static System.Environment;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using static System.Environment;
+using CSScripting;
+using CSScripting.CodeDom;
+using CSScriptLib;
 
 namespace csscript
 {
@@ -190,7 +190,7 @@ namespace csscript
 
             List<string> newArgs;
 
-            // need to get raw unparsed CLI ine so cannot use args
+            // need to get raw unparsed CLI line so cannot use args
             var code = Environment.CommandLine;
 
             if (Environment.CommandLine.EndsWith($"-{AppArgs.speed}")) // speed test

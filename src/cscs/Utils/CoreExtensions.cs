@@ -1,17 +1,17 @@
-using csscript;
-using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
-using CSScripting;
-using System.Xml.Linq;
-using System.Diagnostics;
-using CSScripting.CodeDom;
-using System.Text;
 using System.Runtime.Serialization;
+using System.Text;
+using System.Threading;
+using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
+using csscript;
+using CSScripting;
+using CSScripting.CodeDom;
 
 #if class_lib
 
@@ -24,9 +24,9 @@ namespace csscript
     /// <summary>
     ///
     /// </summary>
-    static partial class CoreExtensions
+    public static partial class CoreExtensions
     {
-        public static Process RunAsync(this string exe, string args, string dir = null)
+        internal static Process RunAsync(this string exe, string args, string dir = null)
         {
             var process = new Process();
 
@@ -45,7 +45,7 @@ namespace csscript
             return process;
         }
 
-        public static int Run(this string exe, string args, string dir = null, Action<string> onOutput = null, Action<string> onError = null)
+        internal static int Run(this string exe, string args, string dir = null, Action<string> onOutput = null, Action<string> onError = null)
         {
             var process = RunAsync(exe, args, dir);
 
@@ -60,7 +60,7 @@ namespace csscript
             return process.ExitCode;
         }
 
-        static public void NormaliseFileReference(ref string file, ref int line)
+        static internal void NormaliseFileReference(ref string file, ref int line)
         {
             try
             {
@@ -94,7 +94,7 @@ namespace csscript
             catch { }
         }
 
-        public static Thread StartMonitor(StreamReader stream, Action<string> action = null)
+        internal static Thread StartMonitor(StreamReader stream, Action<string> action = null)
         {
             var thread = new Thread(x =>
             {
@@ -116,7 +116,7 @@ namespace csscript
         /// <param name="element">The element.</param>
         /// <param name="path">The path.</param>
         /// <returns></returns>
-        public static XElement SelectFirst(this XContainer element, string path)
+        internal static XElement SelectFirst(this XContainer element, string path)
         {
             string[] parts = path.Split('/');
 
@@ -139,7 +139,7 @@ namespace csscript
         /// </summary>
         /// <param name="list">The list.</param>
         /// <returns></returns>
-        public static string[] RemovePathDuplicates(this string[] list)
+        internal static string[] RemovePathDuplicates(this string[] list)
         {
             return list.Where(x => x.IsNotEmpty())
                        .Select(x =>
@@ -163,14 +163,14 @@ namespace csscript
         /// <returns>
         ///   <c>true</c> if [is shared assembly] [the specified path]; otherwise, <c>false</c>.
         /// </returns>
-        public static bool IsSharedAssembly(this string path) => path.StartsWith(sdk_root, StringComparison.OrdinalIgnoreCase);
+        internal static bool IsSharedAssembly(this string path) => path.StartsWith(sdk_root, StringComparison.OrdinalIgnoreCase);
 
         /// <summary>
         /// Converts to bool.
         /// </summary>
         /// <param name="text">The text.</param>
         /// <returns></returns>
-        public static bool ToBool(this string text) => text.ToLower() == "true";
+        internal static bool ToBool(this string text) => text.ToLower() == "true";
 
         /// <summary>
         /// Removes the assembly extension.
@@ -213,7 +213,7 @@ namespace csscript
             return ex;
         }
 
-        public static Exception ToNewException(this Exception ex, string message, bool encapsulate = true)
+        internal static Exception ToNewException(this Exception ex, string message, bool encapsulate = true)
         {
             var topLevelMessage = message;
             Exception childException = ex;
@@ -234,7 +234,7 @@ namespace csscript
         /// </summary>
         /// <param name="filePath">The file path.</param>
         /// <param name="rethrow">if set to <c>true</c> [rethrow].</param>
-        public static void FileDelete(this string filePath, bool rethrow)
+        internal static void FileDelete(this string filePath, bool rethrow)
         {
             //There are the reports about
             //anti viruses preventing file deletion
@@ -260,7 +260,7 @@ namespace csscript
 
 #if !class_lib
 
-        public static List<string> AddPathIfNotThere(this List<string> items, string item, string section)
+        internal static List<string> AddPathIfNotThere(this List<string> items, string item, string section)
         {
             if (item != null && item != "")
             {
@@ -312,12 +312,12 @@ namespace csscript
 
 #endif
 
-        public static string Escape(this char c)
+        internal static string Escape(this char c)
         {
             return "\\u" + ((int)c).ToString("x4");
         }
 
-        public static string Expand(this string text) => Environment.ExpandEnvironmentVariables(text);
+        internal static string Expand(this string text) => Environment.ExpandEnvironmentVariables(text);
 
         internal static string UnescapeExpandTrim(this string text) =>
             CSharpParser.UnescapeDirectiveDelimiters(Environment.ExpandEnvironmentVariables(text)).Trim();
@@ -346,16 +346,6 @@ namespace csscript
             var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
             return Environment.ExpandEnvironmentVariables(text).Trim();
         }
-
-        // [Obsolete]
-        // internal static T2 MapValue<T1, T2>(this T1 value, params (T1, T2)[] patterenMap) where T1 : class
-        // {
-        //     foreach (var (pattern, result) in patterenMap)
-        //         if (value.Equals(pattern))
-        //             return result;
-
-        //     return default(T2);
-        // }
 
         internal static T2 MapValue<T1, T2>(this T1 value, params (T1, Func<object, T2>)[] patterenMap) where T1 : class
         {

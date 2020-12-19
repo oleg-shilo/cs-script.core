@@ -1,9 +1,9 @@
-using csscript;
-using CSScripting;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using csscript;
+using CSScripting;
 
 namespace CSScriptLib
 {
@@ -286,7 +286,7 @@ namespace CSScriptLib
 #if !class_lib
                     , ExecuteOptions.options.reportDetailedErrorInfo
 #endif
-                    );
+                                      );
             }
         }
 
@@ -305,7 +305,7 @@ namespace CSScriptLib
             {
                 if (file.Imported)
                 {
-                    if (file.fileNameImported != file.fileName) //script file was copied
+                    if (file.fileNameImported.HasText() && file.fileNameImported != file.fileName) //script file was copied
                         retval.Add(file.fileNameImported);
                     else
                         retval.Add(file.fileName);

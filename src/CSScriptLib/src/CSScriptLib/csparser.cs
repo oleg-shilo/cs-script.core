@@ -29,6 +29,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using CSScripting;
 
 namespace CSScriptLib
 {
@@ -234,7 +235,7 @@ namespace CSScriptLib
                 statementToParse = statementToParse.Replace("\t", "").Trim();
 
                 string[] parts = CSharpParser.SplitByDelimiter(statementToParse, DirectiveDelimiters);
-                this.file = parts[0];
+                this.file = parts[0].TrimSingle('"');
 
                 InternalInit(parts, 1);
             }

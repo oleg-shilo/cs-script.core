@@ -85,6 +85,7 @@
     <Compile Include="..\cscs\Utils\ReflectionExtensions.cs" Link="Utils\ReflectionExtensions.cs" />
     <Compile Include="..\cscs\Utils\Runtime.cs" Link="Utils\Runtime.cs" />
     <Compile Include="..\cscs\Utils\SerializationExtensions.cs" Link="Utils\SerializationExtensions.cs" />
+    <Compile Include="..\cscs\Utils\SimpleAsmProbing.cs" Link="SimpleAsmProbing.cs" />
     <Compile Include="..\cscs\Utils\SocketExtensions.cs" Link="Utils\SocketExtensions.cs" />
     <Compile Include="..\cscs\Utils\StringExtensions.cs" Link="Utils\StringExtensions.cs" />
     <Compile Include="..\cscs\Utils\SystemWideLock.cs" Link="Utils\SystemWideLock.cs" />
@@ -118,5 +119,4 @@
       <CustomToolNamespace>CSScripting</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
-
 </Project>

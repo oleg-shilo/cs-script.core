@@ -1,8 +1,9 @@
-using CSScriptLib;
 using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using csscript;
+using CSScriptLib;
 
 namespace CSScripting
 {
@@ -12,6 +13,19 @@ namespace CSScripting
         static internal string RootClassName = "css_root";
         // Roslyn still does not support anything else but `Submission#0` (17 Jul 2019)
         // [update] Roslyn now does support alternative class names (1 Jan 2020)
+
+        static internal void StartBuildServer()
+        {
+            if (Globals.BuildServerIsDeployed)
+                // CSScriptLib.CoreExtensions.RunAsync(
+                "dotnet".RunAsync($"\"{Globals.build_server}\" -start");
+        }
+
+        static internal void StopBuildServer()
+        {
+            if (Globals.BuildServerIsDeployed)
+                "dotnet".RunAsync($"\"{Globals.build_server}\" -stop");
+        }
 
         static internal string build_server
             => Environment.SpecialFolder.LocalApplicationData.GetPath().PathJoin("cs-script",
@@ -24,13 +38,17 @@ namespace CSScripting
         {
             get
             {
+#if DEBUG
                 if (!build_server.FileExists())
-                {
-                    Directory.CreateDirectory(build_server.GetDirName());
-                    File.WriteAllBytes(build_server, Resources.build);
-                    File.WriteAllBytes(build_server.ChangeExtension(".deps.json"), Resources.build_deps);
-                    File.WriteAllBytes(build_server.ChangeExtension(".runtimeconfig.json"), Resources.build_runtimeconfig);
-                }
+#endif
+                    try
+                    {
+                        Directory.CreateDirectory(build_server.GetDirName());
+                        File.WriteAllBytes(build_server, Resources.build);
+                        File.WriteAllBytes(build_server.ChangeExtension(".deps.json"), Resources.build_deps);
+                        File.WriteAllBytes(build_server.ChangeExtension(".runtimeconfig.json"), Resources.build_runtimeconfig);
+                    }
+                    catch { }
 
                 return build_server.FileExists();
             }
@@ -63,21 +81,21 @@ namespace CSScripting
 
                         // find first "dotnet" parent dir by trimming till the last "dotnet" token
                         dotnet_root = dotnet_root.Split(Path.DirectorySeparatorChar)
-                                                    .Reverse()
-                                                    .SkipWhile(x => x != "dotnet")
-                                                    .Reverse()
-                                                    .JoinBy(Path.DirectorySeparatorChar.ToString());
+                                                 .Reverse()
+                                                     .SkipWhile(x => x != "dotnet")
+                                                     .Reverse()
+                                                     .JoinBy(Path.DirectorySeparatorChar.ToString());
 
                         if (dotnet_root.PathJoin("sdk").DirExists()) // need to check as otherwise it will throw
                         {
                             var dirs = dotnet_root.PathJoin("sdk")
-                                                    .PathGetDirs("*")
-                                                    .Where(dir => char.IsDigit(dir.GetFileName()[0]))
-                                                    .OrderBy(x => System.Version.Parse(x.GetFileName().Split('-').First()))
-                                                    .SelectMany(dir => dir.PathGetDirs("Roslyn"))
-                                                    .ToArray();
+                                                  .PathGetDirs("*")
+                                                      .Where(dir => char.IsDigit(dir.GetFileName()[0]))
+                                                      .OrderBy(x => System.Version.Parse(x.GetFileName().Split('-').First()))
+                                                      .SelectMany(dir => dir.PathGetDirs("Roslyn"))
+                                                      .ToArray();
                             csc_file = dirs.Select(dir => dir.PathJoin("bincore", "csc.dll"))
-                                                .LastOrDefault(File.Exists);
+                                                   .LastOrDefault(File.Exists);
                         }
                     }
                 }

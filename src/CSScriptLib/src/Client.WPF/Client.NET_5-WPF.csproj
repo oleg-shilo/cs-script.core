@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <RootNamespace>Client.NET_5_WPF</RootNamespace>
   </PropertyGroup>
@@ -10,5 +10,4 @@
   <ItemGroup>
     <ProjectReference Include="..\CSScriptLib\CSScriptLib.csproj" />
   </ItemGroup>
-
 </Project>

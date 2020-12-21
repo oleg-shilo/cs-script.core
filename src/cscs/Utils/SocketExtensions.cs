@@ -1,6 +1,18 @@
 using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
+
+static class Tcp
+{
+    public static string SendTo(this string data, IPAddress address, int port)
+    {
+        using var clientSocket = new TcpClient();
+        clientSocket.Connect(address, port);
+        clientSocket.WriteAllBytes(data.GetBytes());
+        return clientSocket.ReadAllBytes().GetString();
+    }
+}
 
 static class SocketExtensions
 {

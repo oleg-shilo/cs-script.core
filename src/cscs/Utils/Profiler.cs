@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace csscript
+namespace CSScripting
 {
     class Profiler
     {

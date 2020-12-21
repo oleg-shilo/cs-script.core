@@ -1,14 +1,14 @@
-using CSScripting.CodeDom;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using static System.Environment;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml;
 using CSScripting;
-using static System.Environment;
+using CSScripting.CodeDom;
 
 namespace csscript
 {
@@ -133,6 +133,7 @@ namespace csscript
         public string ConsoleEncoding
         {
             get { return consoleEncoding; }
+
             set
             {
                 //consider: https://social.msdn.microsoft.com/Forums/vstudio/en-US/e448b241-e250-4dcb-8ecd-361e00920dde/consoleoutputencoding-breaks-batch-files?forum=netfxbcl
@@ -212,6 +213,7 @@ namespace csscript
 
                 return defaultRefAssemblies;
             }
+
             set { defaultRefAssemblies = value; }
         }
 
@@ -243,8 +245,8 @@ namespace csscript
         }
 
         string searchDirs = "%CSSCRIPT_DIR%".PathJoin("lib") + ";" +
-                            Runtime.CustomCommandsDir + ";" +
-                            "%CSSCRIPT_INC%;";
+                   Runtime.CustomCommandsDir + ";" +
+                           "%CSSCRIPT_INC%;";
 
         /// <summary>
         /// Add search directory to the search (probing) path Settings.SearchDirs.

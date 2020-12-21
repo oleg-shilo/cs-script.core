@@ -1,19 +1,19 @@
 using System;
 using System.Collections.Generic;
+using static System.Environment;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using static System.StringComparison;
 using System.Text;
 using System.Xml.Linq;
-using static System.StringComparison;
-using static System.Environment;
-using static csscript.CoreExtensions;
 
 #if class_lib
 using CSScriptLib;
 #else
 
 using csscript;
+using static csscript.CoreExtensions;
 
 #endif
 
@@ -95,7 +95,8 @@ namespace CSScripting.CodeDom
             switch (CSExecutor.options.compilerEngine)
             {
                 case Directives.compiler_roslyn:
-                    return RoslynService.CompileAssemblyFromFileBatch_with_roslyn(options, fileNames);
+                    throw new Exception("Roslyn compiler is not supported");
+                // return RoslynService.CompileAssemblyFromFileBatch_with_roslyn(options, fileNames);
 
                 case Directives.compiler_dotnet:
                     return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
@@ -122,7 +123,7 @@ namespace CSScripting.CodeDom
         static public string BuildOnServer(string[] args)
         {
             string jobQueue = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                      "cs-script", "compiler", "1.0.0.0", "queue");
+                                   "cs-script", "compiler", "1.0.0.0", "queue");
 
             Directory.CreateDirectory(jobQueue);
             var requestName = $"{Guid.NewGuid()}.rqst";
@@ -150,7 +151,7 @@ namespace CSScripting.CodeDom
             var cache_dir = CSExecutor.ScriptCacheDir; // C:\Users\user\AppData\Local\Temp\csscript.core\cache\1822444284
             var build_dir = cache_dir.PathJoin(".build", projectName);
 
-            build_dir.DeleteDir()
+            build_dir.DeleteDir(handeExceptions: true)
                      .EnsureDir();
 
             var sources = new List<string>();
@@ -239,17 +240,41 @@ namespace CSScripting.CodeDom
             bool compile_on_server = true;
             string cmd;
 
-            if (compile_on_server)
-            {
-                CscBuildServer.Start();
-
-                cmd = $@"""{CscBuildServer.build_server}"" csc {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
-            }
-            else
-                cmd = $@"""{Globals.csc}"" {common_args.JoinBy(" ")} {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")} /out:""{assembly}""";
-
             Profiler.get("compiler").Start();
-            result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
+            //if (Runtime.IsCore) // currently it is always on .NET5 (.NET Core)
+            {
+                if (compile_on_server && Globals.BuildServerIsDeployed)
+                {
+                    bool usingCli = false;
+                    if (usingCli)
+                    {
+                        // using CLI app to send/receive sockets data
+                        cmd = $@"""{Globals.build_server}"" csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
+                        result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
+                    }
+                    else
+                    {
+                        // using sockets directly
+                        var request = $@"csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}"
+                                      .SplitCommandLine();
+
+                        // ensure server running
+                        // it will gracefully exit if another instance is running
+                        dotnet.RunAsync($@"""{Globals.build_server}"" -listen");
+
+                        var response = BuildServer.SendBuildRequest(request);
+
+                        result.NativeCompilerReturnValue = 0;
+                        result.Output.AddRange(response.GetLines());
+                    }
+                }
+                else
+                {
+                    cmd = $@"""{Globals.csc}"" {common_args.JoinBy(" ")} /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
+                    result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
+                }
+            }
+
             Profiler.get("compiler").Stop();
 
             if (CSExecutor.options.verbose)
@@ -272,8 +297,8 @@ namespace CSScripting.CodeDom
                 if (options.GenerateExecutable)
                 {
                     var runtimeconfig = "{'runtimeOptions': {'framework': {'name': 'Microsoft.NETCore.App', 'version': '{version}'}}}"
-                                         .Replace("'", "\"")
-                                         .Replace("{version}", Environment.Version.ToString());
+                            .Replace("'", "\"")
+                                     .Replace("{version}", Environment.Version.ToString());
 
                     File.WriteAllText(result.PathToAssembly.ChangeExtension(".runtimeconfig.json"), runtimeconfig);
                     File.Copy(assembly, result.PathToAssembly.ChangeExtension(".exe"), true);
@@ -297,7 +322,7 @@ namespace CSScripting.CodeDom
                 }
             }
 
-            build_dir.DeleteDir();
+            build_dir.DeleteDir(handeExceptions: true);
 
             return result;
         }
@@ -451,7 +476,7 @@ Global
         {03A7169D-D1DD-498A-86CD-7C9587D3DBDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {03A7169D-D1DD-498A-86CD-7C9587D3DBDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {03A7169D-D1DD-498A-86CD-7C9587D3DBDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{03A7169D-D1DD-498A-86CD-7C9587D3DBDD}.Release|Any CPU.Build.0 = Release|Any CPU
+        {03A7169D-D1DD-498A-86CD-7C9587D3DBDD}.Release|Any CPU.Build.0 = Release|Any CPU
     EndGlobalSection
     GlobalSection(ExtensibilityGlobals) = postSolution
         SolutionGuid = {629108FC-1E4E-4A2B-8D8E-159E40FF5950}

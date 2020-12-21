@@ -1583,7 +1583,7 @@ namespace csscript
             if (!Directory.Exists(outDir))
                 Directory.CreateDirectory(outDir);
 
-            //compilerParams.ReferencedAssemblies.Add(this.GetType().Assembly.Location);
+            compilerParams.CompilerOptions.TunnelConditionalSymbolsToEnvironmentVariables();
 
             CompilerResults results;
             if (generateExe)

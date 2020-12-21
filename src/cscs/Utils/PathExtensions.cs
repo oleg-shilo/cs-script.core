@@ -38,40 +38,47 @@ namespace CSScripting
             return path;
         }
 
-        public static string DeleteDir(this string path)
+        public static string DeleteDir(this string path, bool handeExceptions = false)
         {
             if (Directory.Exists(path))
             {
-                void del_dir(string d)
+                try
                 {
-                    try { Directory.Delete(d); }
-                    catch (Exception)
+                    void del_dir(string d)
                     {
-                        Thread.Sleep(1);
-                        Directory.Delete(d);
+                        try { Directory.Delete(d); }
+                        catch (Exception)
+                        {
+                            Thread.Sleep(1);
+                            Directory.Delete(d);
+                        }
                     }
+
+                    var dirs = new Queue<string>();
+                    dirs.Enqueue(path);
+
+                    while (dirs.Any())
+                    {
+                        var dir = dirs.Dequeue();
+
+                        foreach (var file in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
+                            File.Delete(file);
+
+                        Directory.GetDirectories(dir, "*", SearchOption.AllDirectories)
+                                 .ForEach(dirs.Enqueue);
+                    }
+
+                    var emptyDirs = Directory.GetDirectories(path, "*", SearchOption.AllDirectories)
+                                             .Reverse();
+
+                    emptyDirs.ForEach(del_dir);
+
+                    del_dir(path);
                 }
-
-                var dirs = new Queue<string>();
-                dirs.Enqueue(path);
-
-                while (dirs.Any())
+                catch
                 {
-                    var dir = dirs.Dequeue();
-
-                    foreach (var file in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
-                        File.Delete(file);
-
-                    Directory.GetDirectories(dir, "*", SearchOption.AllDirectories)
-                             .ForEach(dirs.Enqueue);
+                    if (!handeExceptions) throw;
                 }
-
-                var emptyDirs = Directory.GetDirectories(path, "*", SearchOption.AllDirectories)
-                                         .Reverse();
-
-                emptyDirs.ForEach(del_dir);
-
-                del_dir(path);
             }
             return path;
         }

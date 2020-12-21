@@ -5,6 +5,8 @@
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>build</AssemblyName>
     <RootNamespace>Compiler</RootNamespace>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,8 +15,13 @@
     <None Remove="queue\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\cscs\BuildServer.cs" Link="BuildServer.cs" />
+    <Compile Include="..\cscs\Utils\SimpleAsmProbing.cs" Link="SimpleAsmProbing.cs" />
+    <Compile Include="..\cscs\Utils\SocketExtensions.cs" Link="SocketExtensions.cs" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="md &quot;$(ProjectDir)..\out\bin&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).dll&quot; &quot;$(ProjectDir)..\out\bin\$(TargetName).dll&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).deps.json&quot; &quot;$(ProjectDir)..\out\bin\$(TargetName).deps.json&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).runtimeconfig.json&quot; &quot;$(ProjectDir)..\out\bin\$(TargetName).runtimeconfig.json&quot;" />
   </Target>
-
 </Project>

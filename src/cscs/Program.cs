@@ -11,12 +11,12 @@ using CSScripting.CodeDom;
 
    csc_builder
      + port on socket IPC
+     + migrate IPC on sockets instead of file system
+     + exit all instances on mutex
+     + implement config for port number
      - csc location on Linux
      - test on Linux
-     - migrate IPC on sockets instead of file system
      - add configurable exit on idle
-     - cleanup job queue folder
-     - implement config for port number
 
    cscs
      - remove old Roslyn-based build server
@@ -26,9 +26,10 @@ using CSScripting.CodeDom;
      - Migrate app settings to json
      - remove old not used settings
      - clean help content from unused stuff
+     - implement config for port number
      + report using of csc_builder for WPF project
      + add configurable use of csc_builder
-     + bind csc_builder to -server:exit and -server:start
+     + bind csc_builder to -server:exit and -server:start and read config
      + check if nuget works
      + check csc engine respects build dll and build exe
 
@@ -36,6 +37,7 @@ using CSScripting.CodeDom;
      - VB support
      - tunneling compiler options
      - XML documentation
+     - implement config for port number
      - implement Engine.CodeDom
      - ensure Engine.CodeDom supports multi-scripting
 */

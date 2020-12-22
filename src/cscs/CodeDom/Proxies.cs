@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using static System.StringComparison;
 using System.Text;
+using System.Threading;
 using System.Xml.Linq;
 
 #if class_lib
@@ -249,7 +250,7 @@ namespace CSScripting.CodeDom
                     if (usingCli)
                     {
                         // using CLI app to send/receive sockets data
-                        cmd = $@"""{Globals.build_server}"" csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
+                        cmd = $@"""{Globals.build_server}"" -port:{BuildServer.serverPort} csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
                         result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
                     }
                     else
@@ -260,9 +261,9 @@ namespace CSScripting.CodeDom
 
                         // ensure server running
                         // it will gracefully exit if another instance is running
-                        dotnet.RunAsync($@"""{Globals.build_server}"" -listen");
-
-                        var response = BuildServer.SendBuildRequest(request);
+                        dotnet.RunAsync($@"""{Globals.build_server}"" -listen -port:{BuildServer.serverPort}");
+                        Thread.Sleep(30);
+                        var response = BuildServer.SendBuildRequest(request, BuildServer.serverPort);
 
                         result.NativeCompilerReturnValue = 0;
                         result.Output.AddRange(response.GetLines());

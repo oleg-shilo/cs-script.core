@@ -38,17 +38,17 @@ namespace CSScripting
         {
             get
             {
-#if DEBUG
+#if !DEBUG
                 if (!build_server.FileExists())
 #endif
-                    try
-                    {
-                        Directory.CreateDirectory(build_server.GetDirName());
-                        File.WriteAllBytes(build_server, Resources.build);
-                        File.WriteAllBytes(build_server.ChangeExtension(".deps.json"), Resources.build_deps);
-                        File.WriteAllBytes(build_server.ChangeExtension(".runtimeconfig.json"), Resources.build_runtimeconfig);
-                    }
-                    catch { }
+                try
+                {
+                    Directory.CreateDirectory(build_server.GetDirName());
+                    File.WriteAllBytes(build_server, Resources.build);
+                    File.WriteAllBytes(build_server.ChangeExtension(".deps.json"), Resources.build_deps);
+                    File.WriteAllBytes(build_server.ChangeExtension(".runtimeconfig.json"), Resources.build_runtimeconfig);
+                }
+                catch { }
 
                 return build_server.FileExists();
             }

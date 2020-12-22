@@ -6,6 +6,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 // using compile_server;
 
@@ -13,28 +16,6 @@ using System.Reflection;
 
 namespace CSScripting.CodeDom
 {
-    // public static class CscBuildServer
-    // {
-    //     public static string build_server = Assembly.GetExecutingAssembly().Location.GetDirName().PathJoin("build.dll");
-
-    //     public static void Start()
-    //     {
-    //         // A simple Process.Start does not work as the child process will be linked to the parent Console
-    //         // killed and this will mess up on whole process life time management of the child (build.dll) and
-    //         // the grand-child process.
-    //         //      Process.Start("dotnet", $"\"{build_server}\" -start");
-    //         // Thus just start server with `-start` and if it is already started then it will gracefully exit
-    //         try { "dotnet".StartWithoutConsole($"{build_server} -start"); }
-    //         catch { /**/}
-    //     }
-
-    //     public static void Stop()
-    //     {
-    //         try { "dotnet".StartWithoutConsole($"{build_server} -stop"); }
-    //         catch { /**/}
-    //     }
-    // }
-
     public static partial class BuildServer
     {
         static string csc_asm_file;
@@ -77,22 +58,22 @@ namespace CSScripting.CodeDom
 
         public static int serverPort = 17001;
 
-        static public string Request(string request)
+        static public string Request(string request, int? port)
         {
             using var clientSocket = new TcpClient();
-            clientSocket.Connect(IPAddress.Loopback, serverPort);
+            clientSocket.Connect(IPAddress.Loopback, port ?? serverPort);
             clientSocket.WriteAllBytes(request.GetBytes());
             return clientSocket.ReadAllBytes().GetString();
         }
 
-        static public string SendBuildRequest(string[] args)
+        static public string SendBuildRequest(string[] args, int? port)
         {
             try
             {
                 // first arg is the compiler identifier: csc|vbc
 
                 string request = string.Join('\n', args.Skip(1));
-                string response = BuildServer.Request(request);
+                string response = BuildServer.Request(request, port);
 
                 return response;
             }
@@ -102,11 +83,11 @@ namespace CSScripting.CodeDom
             }
         }
 
-        static public bool IsServerAlive()
+        static public bool IsServerAlive(int? port)
         {
             try
             {
-                BuildServer.Request("-ping");
+                BuildServer.Request("-ping", port);
                 return true;
             }
             catch
@@ -115,20 +96,20 @@ namespace CSScripting.CodeDom
             }
         }
 
-        public static void EnsureServerRunning()
+        public static void EnsureServerRunning(int? port)
         {
-            if (!IsServerAlive())
-                StartRemoteInstance();
+            if (!IsServerAlive(port))
+                StartRemoteInstance(port);
         }
 
-        public static void StartRemoteInstance()
+        public static void StartRemoteInstance(int? port)
         {
             try
             {
                 System.Diagnostics.Process proc = new();
 
                 proc.StartInfo.FileName = "dotnet";
-                proc.StartInfo.Arguments = $"{Assembly.GetExecutingAssembly().Location} -listen";
+                proc.StartInfo.Arguments = $"{Assembly.GetExecutingAssembly().Location} -listen -port:{port}";
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.RedirectStandardOutput = true;
                 proc.StartInfo.RedirectStandardError = true;
@@ -138,29 +119,131 @@ namespace CSScripting.CodeDom
             catch { }
         }
 
-        public static string StopRemoteInstance()
+        public static string StopRemoteInstance(int? port)
         {
             try
             {
-                return "-stop".SendTo(IPAddress.Loopback, serverPort);
+                return "-stop".SendTo(IPAddress.Loopback, port ?? serverPort);
             }
             catch { return "<no respone>"; }
         }
 
-        public static string PingRemoteInstance()
+        public static string PingRemoteInstance(int? port)
         {
             try
             {
-                return "-ping".SendTo(IPAddress.Loopback, serverPort);
+                return "-ping".SendTo(IPAddress.Loopback, port ?? serverPort);
             }
             catch { return "<no respone>"; }
         }
 
-        public static void ListenToRequests()
+        public static string PingRemoteInstances()
         {
             try
             {
-                var serverSocket = new TcpListener(IPAddress.Loopback, serverPort);
+                var buf = new StringBuilder();
+
+                if (Directory.Exists(build_server_active_instances))
+                    foreach (string activeServer in Directory.GetFiles(build_server_active_instances, "*.pid"))
+                    {
+                        var proc = GetProcess(int.Parse(Path.GetFileNameWithoutExtension(activeServer)));
+                        if (proc != null)
+                            buf.AppendLine($"pid:{proc.Id}, port:{File.ReadAllText(activeServer).ParseAsPort()}");
+                    }
+
+                return buf.ToString();
+                //"-ping".SendTo(IPAddress.Loopback, port ?? serverPort);
+            }
+            catch { return "<no respone>"; }
+        }
+
+        public static void SimulateCloseSocketSignal()
+            => closeSocketRequested = true;
+
+        public static void SimulateCloseAppSignal()
+        {
+            var mutex = new Mutex(true, "cs-script.build_server.shutdown");
+        }
+
+        static bool closeSocketRequested = false;
+
+        static internal string build_server_active_instances
+            => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                            "cs-script",
+                            "bin",
+                            "compiler",
+                            "active");
+
+        public static Process GetProcess(int id)
+        {
+            try
+            {
+                return Process.GetProcesses().FirstOrDefault(x => x.Id == id);
+            }
+            catch
+            {
+            }
+            return null;
+        }
+
+        public static void ReportRunning(int? port)
+        {
+            Directory.CreateDirectory(build_server_active_instances);
+            var pidFile = Path.Combine(build_server_active_instances, $"{Process.GetCurrentProcess().Id}.pid");
+            File.WriteAllText(pidFile, (port ?? serverPort).ToString());
+        }
+
+        public static void PurgeRunningHistory()
+        {
+            try
+            {
+                if (Directory.Exists(build_server_active_instances))
+                    foreach (string activeServer in Directory.GetFiles(build_server_active_instances, "*.pid"))
+                    {
+                        var proc = GetProcess(int.Parse(Path.GetFileNameWithoutExtension(activeServer)));
+                        if (proc == null)
+                            File.Delete(activeServer);
+                    }
+            }
+            catch { }
+        }
+
+        public static int? ParseAsPort(this string data)
+        {
+            if (string.IsNullOrEmpty(data))
+                return null;
+            else
+                return int.Parse(data);
+        }
+
+        public static void ReportExit()
+        {
+            var pidFile = Path.Combine(build_server_active_instances, $"{Process.GetCurrentProcess().Id}.pid");
+
+            if (File.Exists(pidFile))
+                File.Delete(pidFile);
+        }
+
+        // public static void KillAllInstances()
+        // {
+        //     if (Directory.Exists(build_server_active_instances))
+        //         foreach (string activeServer in Directory.GetFiles(build_server_active_instances, "*.pid"))
+        //         {
+        //             var proc = GetProcess(int.Parse(Path.GetFileNameWithoutExtension(activeServer)));
+        //             try
+        //             {
+        //                 proc?.Kill();
+        //                 File.Delete(activeServer);
+        //             }
+        //             catch { }
+        //         }
+        // }
+
+        public static void ListenToRequests(int? port)
+        {
+            var serverSocket = new TcpListener(IPAddress.Loopback, port ?? serverPort);
+            try
+            {
                 serverSocket.Start();
 
                 while (true)
@@ -192,6 +275,8 @@ namespace CSScripting.CodeDom
                             WriteLine(e.Message);
                         }
                     }
+
+                    Task.Run(PurgeRunningHistory);
                 }
 
                 serverSocket.Stop();

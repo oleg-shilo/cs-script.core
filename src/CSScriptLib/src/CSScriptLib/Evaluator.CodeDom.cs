@@ -30,12 +30,6 @@
 
 #endregion License...
 
-using csscript;
-using CSScripting.CodeDom;
-using CSScripting;
-
-//using Microsoft.CodeAnalysis;
-//using Microsoft.CodeAnalysis.CSharp.Scripting
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,6 +37,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using csscript;
+using CSScripting;
+using CSScripting.CodeDom;
 using Scripting;
 
 namespace CSScriptLib
@@ -104,7 +101,7 @@ namespace CSScriptLib
 
             try
             {
-                build_dir.DeleteDir()
+                build_dir.DeleteDir(handeExceptions: true)
                          .EnsureDir();
 
                 var sources = new List<string>(fileNames); // sources may need to hold more than fileNames
@@ -166,9 +163,9 @@ namespace CSScriptLib
                 {
                     if (CompileOnServer && Globals.BuildServerIsDeployed)
                     {
-                        dotnet.RunAsync($"\"{Globals.build_server}\" -start");
+                        dotnet.RunAsync($"\"{Globals.build_server}\" -start -port:{17001}");
 
-                        cmd = $@"""{Globals.build_server}"" csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
+                        cmd = $@"""{Globals.build_server}"" -port:{17001} csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
                     }
                     else
                         cmd = $@"""{Globals.csc}"" {common_args.JoinBy(" ")} /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
@@ -227,7 +224,7 @@ namespace CSScriptLib
             }
             finally
             {
-                build_dir.DeleteDir();
+                build_dir.DeleteDir(handeExceptions: true);
             }
         }
 

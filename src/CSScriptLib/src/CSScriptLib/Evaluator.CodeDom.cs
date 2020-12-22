@@ -37,6 +37,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using csscript;
 using CSScripting;
 using CSScripting.CodeDom;
@@ -180,17 +181,15 @@ namespace CSScriptLib
 
                             // ensure server running
                             // it will gracefully exit if another instance is running
-                            dotnet.RunAsync($@"""{Globals.build_server}"" -listen");
+                            dotnet.RunAsync($@"""{Globals.build_server}"" -listen -port:{17001}");
+                            Thread.Sleep(30);
 
-                            var response = BuildServer.SendBuildRequest(request);
+                            // var response = BuildServer.SendBuildRequest(request, BuildServer.serverPort);
+                            var response = BuildServer.SendBuildRequest(request, 17001);
 
                             result.NativeCompilerReturnValue = 0;
                             result.Output.AddRange(response.GetLines());
                         }
-                        /////////////////////
-                        // dotnet.RunAsync($"\"{Globals.build_server}\" -start -port:{17001}");
-
-                        // cmd = $@"""{Globals.build_server}"" -port:{17001} csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
                     }
                     else
                     {

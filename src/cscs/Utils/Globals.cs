@@ -38,7 +38,7 @@ namespace CSScripting
         {
             get
             {
-#if DEBUG
+#if !DEBUG
                 if (!build_server.FileExists())
 #endif
                     try

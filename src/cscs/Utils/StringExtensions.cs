@@ -49,6 +49,9 @@ namespace CSScripting
                 return text;
         }
 
+        public static string[] GetLines(this string str) =>// too simplistic though adequate
+            str.Replace("\r\n", "\n").Split('\n');
+
         public static bool Contains(this string text, string pattern, bool ignoreCase)
             => text.IndexOf(pattern, ignoreCase ? StringComparison.OrdinalIgnoreCase : default(StringComparison)) != -1;
 

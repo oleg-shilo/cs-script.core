@@ -79,10 +79,12 @@ namespace CSScripting.CodeDom
 
         static public string Request(string request)
         {
-            using var clientSocket = new TcpClient();
-            clientSocket.Connect(IPAddress.Loopback, serverPort);
-            clientSocket.WriteAllBytes(request.GetBytes());
-            return clientSocket.ReadAllBytes().GetString();
+            using (var clientSocket = new TcpClient())
+            { 
+                clientSocket.Connect(IPAddress.Loopback, serverPort);
+                clientSocket.WriteAllBytes(request.GetBytes());
+                return clientSocket.ReadAllBytes().GetString();
+            }
         }
 
         static public string SendBuildRequest(string[] args)

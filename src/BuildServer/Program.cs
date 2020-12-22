@@ -53,4 +53,32 @@ namespace compile_server
             }
         }
     }
+
+    static class App
+    {
+        static Mutex mutex = null;
+        static string mutexName = $"cs-script.core.build.{Assembly.GetExecutingAssembly().GetName().Version}";
+
+        // Mutex will be fully disposed on process exit anyway
+        static public void OnExit() => mutex.ReleaseMutex();
+
+        //static public void SignalItselfAsRunning()
+        //{
+        //    IsRunning(); // will claim mutex if it's not done yet
+        //    File.WriteAllText(Path.Combine(BuildServer.DefaultJobQueuePath, "server.pid"), System.Diagnostics.Process.GetCurrentProcess().Id.ToString());
+        //}
+
+        static public bool IsRunning()
+        {
+            mutex = new Mutex(true, mutexName, out bool createdNew);
+            return !createdNew;
+        }
+
+        static public void Log(string message)
+        {
+            Console.WriteLine(message);
+            // File.WriteAllText(Path.Combine(BuildServer.DefaultJobQueuePath, "server.log"),
+            //     $"{System.Diagnostics.Process.GetCurrentProcess().Id}:{DateTime.Now.ToString("-s")}:{message}{Environment.NewLine}");
+        }
+    }
 }

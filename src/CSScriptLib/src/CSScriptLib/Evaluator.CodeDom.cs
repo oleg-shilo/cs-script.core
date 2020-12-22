@@ -163,14 +163,41 @@ namespace CSScriptLib
                 {
                     if (CompileOnServer && Globals.BuildServerIsDeployed)
                     {
-                        dotnet.RunAsync($"\"{Globals.build_server}\" -start -port:{17001}");
+                        var usingCli = false;
+                        /////////////////////
+                        if (usingCli)
+                        {
+                            // using CLI app to send/receive sockets data
+                            dotnet.RunAsync($"\"{Globals.build_server}\" -start -port:{17001}");
+                            cmd = $@"""{Globals.build_server}"" -port:{17001} csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
+                            result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
+                        }
+                        else
+                        {
+                            // using sockets directly
+                            var request = $@"csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}"
+                                          .SplitCommandLine();
 
-                        cmd = $@"""{Globals.build_server}"" -port:{17001} csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
+                            // ensure server running
+                            // it will gracefully exit if another instance is running
+                            dotnet.RunAsync($@"""{Globals.build_server}"" -listen");
+
+                            var response = BuildServer.SendBuildRequest(request);
+
+                            result.NativeCompilerReturnValue = 0;
+                            result.Output.AddRange(response.GetLines());
+                        }
+                        /////////////////////
+                        // dotnet.RunAsync($"\"{Globals.build_server}\" -start -port:{17001}");
+
+                        // cmd = $@"""{Globals.build_server}"" -port:{17001} csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
                     }
                     else
+                    {
                         cmd = $@"""{Globals.csc}"" {common_args.JoinBy(" ")} /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
 
-                    result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
+                        result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
+                    }
                 }
                 else
                 {

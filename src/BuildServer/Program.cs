@@ -103,4 +103,14 @@ namespace compile_server
             });
         }
     }
+
+    static partial class App
+    {
+        static public void Log(string message)
+        {
+            Console.WriteLine(message);
+            // File.WriteAllText(Path.Combine(BuildServer.DefaultJobQueuePath, "server.log"),
+            //     $"{System.Diagnostics.Process.GetCurrentProcess().Id}:{DateTime.Now.ToString("-s")}:{message}{Environment.NewLine}");
+        }
+    }
 }

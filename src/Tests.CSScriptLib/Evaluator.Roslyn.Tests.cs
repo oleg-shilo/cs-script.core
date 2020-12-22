@@ -49,7 +49,7 @@ namespace EvaluatorTests
         {
             CSScript.EvaluatorConfig.DebugBuild = true;
 
-            var info = new CompileInfo { RootClass = "script_a", AssemblyFile = "script_a_asm" };
+            var info = new CompileInfo { RootClass = "script_a", AssemblyFile = "script_a_asm2" };
             try
             {
                 var code2 = @"using System;
@@ -71,7 +71,7 @@ namespace EvaluatorTests
 
                 CSScript.RoslynEvaluator.CompileCode(code2, info);
 
-                dynamic script = CSScript.Evaluator
+                dynamic script = CSScript.RoslynEvaluator
                                          .ReferenceAssembly(info.AssemblyFile)
                                          .CompileMethod(@"using static script_a;
                                                   Utils Test()
@@ -92,7 +92,7 @@ namespace EvaluatorTests
         [Fact]
         public void use_interfaces_between_scripts()
         {
-            IPrinter printer = CSScript.Evaluator
+            IPrinter printer = CSScript.RoslynEvaluator
                                        .ReferenceAssemblyOf<IPrinter>()
                                        .LoadCode<IPrinter>(@"using System;
                                                          public class Printer : IPrinter
@@ -101,7 +101,7 @@ namespace EvaluatorTests
                                                                 => Console.Write(""Printing..."");
                                                          }");
 
-            dynamic script = CSScript.Evaluator
+            dynamic script = CSScript.RoslynEvaluator
                                      .ReferenceAssemblyOf<IPrinter>()
                                      .LoadMethod(@"void Test(IPrinter printer)
                                                {
@@ -113,7 +113,7 @@ namespace EvaluatorTests
         [Fact(Skip = "VB is not supported yet")]
         public void VB_Generic_Test()
         {
-            Assembly asm = CSScript.Evaluator
+            Assembly asm = CSScript.RoslynEvaluator
                            .CompileCode(@"' //css_ref System
                                       Imports System
                                       Class Script
@@ -138,14 +138,14 @@ namespace EvaluatorTests
             var info = new CompileInfo { RootClass = root_class_name, PreferLoadingFromFile = true };
             try
             {
-                var printer_asm = CSScript.Evaluator
+                var printer_asm = CSScript.RoslynEvaluator
                                           .CompileCode(@"using System;
                                                  public class Printer
                                                  {
                                                      public void Print() => Console.Write(""Printing..."");
                                                  }", info);
 
-                dynamic script = CSScript.Evaluator
+                dynamic script = CSScript.RoslynEvaluator
                                          .ReferenceAssembly(printer_asm)
                                          .LoadMethod($"using static {root_class_name};" + @"
                                                void Test()

@@ -1,11 +1,11 @@
-using CSScripting;
 using System;
 using System.Collections.Generic;
+using static System.Environment;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using static System.Environment;
+using CSScripting;
 
 namespace csscript
 {
@@ -201,9 +201,9 @@ namespace csscript
             switch1Help[proj] = new ArgInfo("-proj",
                                             "Shows script 'project info' - script and all its dependencies.");
             switch1Help[vs] = new ArgInfo("-vs",
-                                            "Generates Visual Studio project file and opens it in Visual Studio.",
-                                            "The path to the Visual Studio executable needs to be defined in the " +
-                                            "environment variable `CSSCRIPT_VSEXE`.");
+                                          "Generates Visual Studio project file and opens it in Visual Studio.",
+                                              "The path to the Visual Studio executable needs to be defined in the " +
+                                              "environment variable `CSSCRIPT_VSEXE`.");
 
             switch1Help[cache] = new ArgInfo("-cache[:<ls|trim|clear>]",
                                              "Performs script cache operations.",
@@ -230,6 +230,7 @@ namespace csscript
                                                     " ",
                                                     AppInfo.appName + " -code \"Console.WriteLine(Environment.UserDomainName);#n" +
                                                     "Console.WriteLine(#''%USERNAME%#'');\"",
+                                                    AppInfo.appName + " -code \"using System.Linq;#nSystem.Diagnostics.Process.GetProcessesByName(''notepad'').ToList().ForEach(x => x.Kill());\"",
                                                     AppInfo.appName + " -code \"SetEnvironmentVariable(`ntp`,`notepad.exe`, EnvironmentVariableTarget.Machine)\"",
                                                     " ",
                                                     "The -code argument must be the last argument in the command. The only argument that is allowed " +
@@ -340,8 +341,8 @@ namespace csscript
             switch2Help[profile] = new ArgInfo("-profile",
                                                "Prints script loading performance information during the script execution.");
             switch2Help[speed] = new ArgInfo("-speed",
-                                               "Prints script initialization/compilation time information of the .NET compiler. ",
-                                               "It is a convenient way of testing performance of the .NET distribution.");
+                                             "Prints script initialization/compilation time information of the .NET compiler. ",
+                                                 "It is a convenient way of testing performance of the .NET distribution.");
             switch2Help[stop] = new ArgInfo("-stop",
                                             "Stops all running instances of Roslyn sever (VBCSCompiler.exe).",
                                                 "(applicable for .NET/Windows only)");
@@ -1109,8 +1110,8 @@ var help =
 
 if (""?,-?,-help,--help"".Split(',').Contains(args.FirstOrDefault()))
 {{
-	WriteLine(help);
- 	return;
+    WriteLine(help);
+    return;
 }}
 
 WriteLine($""Executing {context} for: [{{string.Join(args, "","")}}]"");

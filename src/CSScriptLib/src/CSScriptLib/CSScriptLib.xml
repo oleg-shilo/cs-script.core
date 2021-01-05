@@ -1718,13 +1718,16 @@
              </code>
              </example>
         </member>
-        <member name="T:CSScriptLib.CoreExtension">
+        <member name="T:CSScriptLib.CoreExtensions">
             <summary>
             CSScriptLib is compiled as nets standard so some .NETCore API is not available.
             So filling the gaps...
             </summary>
+             <summary>
+            
+             </summary>
         </member>
-        <member name="M:CSScriptLib.CoreExtension.EscapeDirectiveDelimiters(System.String)">
+        <member name="M:CSScriptLib.CoreExtensions.EscapeDirectiveDelimiters(System.String)">
             <summary>
             Escapes the CS-Script directive (e.g. //css_*) delimiters.
             <para>All //css_* directives should escape any internal CS-Script delimiters by doubling the delimiter character.
@@ -1737,6 +1740,67 @@
             </summary>
             <param name="text">The text to be processed.</param>
             <returns></returns>
+        </member>
+        <member name="M:CSScriptLib.CoreExtensions.SelectFirst(System.Xml.Linq.XContainer,System.String)">
+            <summary>
+            Selects the first element that satisfies the specified path.
+            </summary>
+            <param name="element">The element.</param>
+            <param name="path">The path.</param>
+            <returns></returns>
+        </member>
+        <member name="M:CSScriptLib.CoreExtensions.RemovePathDuplicates(System.String[])">
+            <summary>
+            Removes the duplicated file system path items from the collection.The duplicates are identified
+            based on the path being case sensitive depending on the hosting OS file system.
+            </summary>
+            <param name="list">The list.</param>
+            <returns></returns>
+        </member>
+        <member name="M:CSScriptLib.CoreExtensions.IsSharedAssembly(System.String)">
+            <summary>
+            Determines whether [is shared assembly].
+            </summary>
+            <param name="path">The path.</param>
+            <returns>
+              <c>true</c> if [is shared assembly] [the specified path]; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:CSScriptLib.CoreExtensions.ToBool(System.String)">
+            <summary>
+            Converts to bool.
+            </summary>
+            <param name="text">The text.</param>
+            <returns></returns>
+        </member>
+        <member name="M:CSScriptLib.CoreExtensions.RemoveAssemblyExtension(System.String)">
+            <summary>
+            Removes the assembly extension.
+            </summary>
+            <param name="asmName">Name of the asm.</param>
+            <returns></returns>
+        </member>
+        <member name="M:CSScriptLib.CoreExtensions.SamePathAs(System.String,System.String)">
+            <summary>
+            Compares two path strings. Handles path being case-sensitive based on the OS file system.
+            </summary>
+            <param name="path1">The path1.</param>
+            <param name="path2">The path2.</param>
+            <returns></returns>
+        </member>
+        <member name="M:CSScriptLib.CoreExtensions.CaptureExceptionDispatchInfo(System.Exception)">
+            <summary>
+            Captures the exception dispatch information.
+            </summary>
+            <param name="ex">The ex.</param>
+            <returns></returns>
+        </member>
+        <member name="M:CSScriptLib.CoreExtensions.FileDelete(System.String,System.Boolean)">
+            <summary>
+            Files the delete.
+            </summary>
+            <param name="filePath">The file path.</param>
+            <param name="rethrow">if set to <c>true</c> [rethrow].</param>
         </member>
         <member name="T:CSScriptLib.ParsingParams">
             <summary>
@@ -2050,72 +2114,6 @@
             <summary>
             The time of parsing.
             </summary>
-        </member>
-        <member name="T:CSScriptLib.CoreExtensions">
-             <summary>
-            
-             </summary>
-        </member>
-        <member name="M:CSScriptLib.CoreExtensions.SelectFirst(System.Xml.Linq.XContainer,System.String)">
-            <summary>
-            Selects the first element that satisfies the specified path.
-            </summary>
-            <param name="element">The element.</param>
-            <param name="path">The path.</param>
-            <returns></returns>
-        </member>
-        <member name="M:CSScriptLib.CoreExtensions.RemovePathDuplicates(System.String[])">
-            <summary>
-            Removes the duplicated file system path items from the collection.The duplicates are identified
-            based on the path being case sensitive depending on the hosting OS file system.
-            </summary>
-            <param name="list">The list.</param>
-            <returns></returns>
-        </member>
-        <member name="M:CSScriptLib.CoreExtensions.IsSharedAssembly(System.String)">
-            <summary>
-            Determines whether [is shared assembly].
-            </summary>
-            <param name="path">The path.</param>
-            <returns>
-              <c>true</c> if [is shared assembly] [the specified path]; otherwise, <c>false</c>.
-            </returns>
-        </member>
-        <member name="M:CSScriptLib.CoreExtensions.ToBool(System.String)">
-            <summary>
-            Converts to bool.
-            </summary>
-            <param name="text">The text.</param>
-            <returns></returns>
-        </member>
-        <member name="M:CSScriptLib.CoreExtensions.RemoveAssemblyExtension(System.String)">
-            <summary>
-            Removes the assembly extension.
-            </summary>
-            <param name="asmName">Name of the asm.</param>
-            <returns></returns>
-        </member>
-        <member name="M:CSScriptLib.CoreExtensions.SamePathAs(System.String,System.String)">
-            <summary>
-            Compares two path strings. Handles path being case-sensitive based on the OS file system.
-            </summary>
-            <param name="path1">The path1.</param>
-            <param name="path2">The path2.</param>
-            <returns></returns>
-        </member>
-        <member name="M:CSScriptLib.CoreExtensions.CaptureExceptionDispatchInfo(System.Exception)">
-            <summary>
-            Captures the exception dispatch information.
-            </summary>
-            <param name="ex">The ex.</param>
-            <returns></returns>
-        </member>
-        <member name="M:CSScriptLib.CoreExtensions.FileDelete(System.String,System.Boolean)">
-            <summary>
-            Files the delete.
-            </summary>
-            <param name="filePath">The file path.</param>
-            <param name="rethrow">if set to <c>true</c> [rethrow].</param>
         </member>
         <member name="T:CSScriptLib.Runtime">
             <summary>

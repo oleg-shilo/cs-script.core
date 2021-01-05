@@ -8,7 +8,7 @@ using Xunit;
 
 namespace EvaluatorTests
 {
-    public class CodeDom
+    public class Generic_CodeDom
     {
         [Fact]
         public void call_LoadMethod()
@@ -118,6 +118,40 @@ namespace EvaluatorTests
                                                    printer.Print();
                                                }");
             script.Test(printer);
+
+            // does not throw :)
+        }
+
+        [Fact]
+        public void import_script_from_another_scripts()
+        {
+            var script_math = "math.cs".GetFullPath();
+            var script_calc = "calc.cs".GetFullPath();
+
+            File.WriteAllText(script_math,
+                            @"using System;
+
+                              public class math
+                              {
+                                  public static int add(int a, int b) => a+b;
+                              }");
+
+            File.WriteAllText(script_calc,
+                            $@"//css_inc {script_math}
+                               using System;
+
+                               public class Calc
+                               {{
+                                    public int Add(int a, int b)
+                                        => math.add(a, b);
+                               }}");
+
+            dynamic calc = CSScript.CodeDomEvaluator
+                                   .LoadFile(script_calc);
+
+            var result = calc.Add(1, 4);
+
+            Assert.Equal(5, result);
         }
 
         [Fact(Skip = "VB is not supported yet")]

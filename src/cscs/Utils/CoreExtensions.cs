@@ -236,25 +236,28 @@ namespace csscript
         /// <param name="rethrow">if set to <c>true</c> [rethrow].</param>
         internal static void FileDelete(this string filePath, bool rethrow)
         {
-            //There are the reports about
-            //anti viruses preventing file deletion
-            //See 18 Feb message in this thread https://groups.google.com/forum/#!topic/cs-script/5Tn32RXBmRE
-
-            for (int i = 0; i < 3; i++)
+            if (filePath.IsNotEmpty())
             {
-                try
-                {
-                    if (File.Exists(filePath))
-                        File.Delete(filePath);
-                    break;
-                }
-                catch
-                {
-                    if (rethrow && i == 2)
-                        throw;
-                }
+                //There are the reports about
+                //anti viruses preventing file deletion
+                //See 18 Feb message in this thread https://groups.google.com/forum/#!topic/cs-script/5Tn32RXBmRE
 
-                Thread.Sleep(300);
+                for (int i = 0; i < 3; i++)
+                {
+                    try
+                    {
+                        if (File.Exists(filePath))
+                            File.Delete(filePath);
+                        break;
+                    }
+                    catch
+                    {
+                        if (rethrow && i == 2)
+                            throw;
+                    }
+
+                    Thread.Sleep(300);
+                }
             }
         }
 

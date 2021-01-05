@@ -14,7 +14,7 @@ public interface IPrinter
 
 namespace EvaluatorTests
 {
-    public class Roslyn
+    public class Generic_Roslyn
     {
         [Fact]
         public void call_LoadMethod()
@@ -162,7 +162,10 @@ namespace EvaluatorTests
     }
 }
 
-public interface ICalc
+namespace Testing
 {
-    int Sum(int a, int b);
+    public interface ICalc
+    {
+        int Sum(int a, int b);
+    }
 }

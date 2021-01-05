@@ -60,7 +60,8 @@ namespace CSScriptLib
         override protected (byte[] asm, byte[] pdb) Compile(string scriptText, string scriptFile, CompileInfo info)
         {
             // Debug.Assert(false);
-            var tempScriptFile = "";
+            string tempScriptFile = null;
+            string injection_file = null;
             try
             {
                 if (scriptFile == null)
@@ -69,10 +70,17 @@ namespace CSScriptLib
                     File.WriteAllText(tempScriptFile, scriptText);
                 }
 
-                var project = Project.GenerateProjectFor(tempScriptFile);
+                var project = Project.GenerateProjectFor(tempScriptFile ?? scriptFile);
                 var refs = project.Refs.Concat(this.GetReferencedAssembliesFiles()).Distinct().ToArray();
+                var sources = project.Files;
 
-                (byte[], byte[]) result = CompileAssemblyFromFileBatch_with_Csc(project.Files, refs, info?.AssemblyFile, this.IsDebug);
+                if (info?.AssemblyFile != null)
+                {
+                    injection_file = CoreExtensions.GetScriptedCodeAttributeInjectionCode(info.AssemblyFile);
+                    sources = sources.Concat(new[] { injection_file }).ToArray();
+                }
+
+                (byte[], byte[]) result = CompileAssemblyFromFileBatch_with_Csc(sources, refs, info?.AssemblyFile, this.IsDebug);
 
                 return result;
             }
@@ -83,7 +91,9 @@ namespace CSScriptLib
                 else
                     tempScriptFile.FileDelete(rethrow: false);
 
-                CSScript.StartPurgingOldTempFiles();
+                injection_file.FileDelete(rethrow: false);
+
+                CSScript.StartPurgingOldTempFiles(ignoreCurrentProcessScripts: true);
             }
         }
 

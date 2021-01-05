@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 
 namespace CSScriptLib
@@ -410,6 +411,8 @@ namespace CSScriptLib
         /// </example>
         /// <param name="code">The C# code.</param>
         /// <returns>Instance of <c>T</c> delegate.</returns>
+        [ObsoleteAttribute("This method is not implemented for .NET Core oriented CS-Script versions (.NET 5 and above). " +
+            "Consider using interfaces with LoadCode/LoadMethod or use CreateDelegate instead.", error: true)]
         T LoadDelegate<T>(string code) where T : class;
 
         /// <summary>

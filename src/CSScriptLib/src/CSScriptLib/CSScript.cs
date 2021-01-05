@@ -341,24 +341,27 @@ namespace CSScriptLib
 
         internal static void NoteTempFile(string file)
         {
-            if (tempFiles == null)
+            if (file.IsNotEmpty())
             {
-                tempFiles = new List<string>();
-                AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnApplicationExit);
+                if (tempFiles == null)
+                {
+                    tempFiles = new List<string>();
+                    AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnApplicationExit);
+                }
+                tempFiles.Add(file);
             }
-            tempFiles.Add(file);
         }
 
         static bool purging = false;
 
-        public static void StartPurgingOldTempFiles()
+        public static void StartPurgingOldTempFiles(bool ignoreCurrentProcessScripts)
         {
             if (!purging)
             {
                 purging = true;
                 Task.Run(() =>
                     {
-                        Runtime.CleanUnusedTmpFiles(CSScript.GetScriptTempDir(), "*????????-????-????-????-????????????.???", false);
+                        Runtime.CleanUnusedTmpFiles(CSScript.GetScriptTempDir(), "*????????-????-????-????-????????????.???", ignoreCurrentProcessScripts);
                         // don't do cscs related cleaning, save time.
                         // Runtime.CleanSnippets();
                         // Runtime.CleanAbandonedCache();

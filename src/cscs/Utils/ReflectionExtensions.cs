@@ -46,7 +46,15 @@ namespace CSScripting
             {
                 string location = Environment.GetEnvironmentVariable("location:" + asm.GetHashCode());
                 if (location == null)
-                    return "";
+                {
+                    // Note assembly can contain only single AssemblyDescriptionAttribute
+                    return asm.GetCustomAttributes(typeof(AssemblyDescriptionAttribute), true)?
+                              .Cast<AssemblyDescriptionAttribute>()
+                              .FirstOrDefault()?
+                              .Description
+                              ??
+                              "";
+                }
                 else
                     return location ?? "";
             }

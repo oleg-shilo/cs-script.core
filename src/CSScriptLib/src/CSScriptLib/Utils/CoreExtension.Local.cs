@@ -1,6 +1,7 @@
+using CSScripting;
 using System;
+using System.IO;
 using System.Text;
-using Scripting;
 
 namespace Scripting
 {
@@ -18,7 +19,7 @@ namespace CSScriptLib
     /// CSScriptLib is compiled as nets standard so some .NETCore API is not available.
     /// So filling the gaps...
     /// </summary>
-    public static class CoreExtension
+    public static partial class CoreExtensions
     {
         /// <summary>
         /// Escapes the CS-Script directive (e.g. //css_*) delimiters.
@@ -37,6 +38,60 @@ namespace CSScriptLib
             foreach (char c in CSharpParser.DirectiveDelimiters)
                 text = text.Replace(c.ToString(), new string(c, 2)); //very unoptimized but it is intended only for troubleshooting.
             return text;
+        }
+
+        internal static string GetScriptedCodeAttributeInjectionCode(string scriptFileName)
+        {
+            // using SystemWideLock fileLock = new SystemWideLock(scriptFileName, "attr");
+
+            //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
+            //throw a nice informative exception.
+            // if (Runtime.IsWin)
+            //     fileLock.Wait(1000);
+
+            string code = $"[assembly: System.Reflection.AssemblyDescriptionAttribute(@\"{scriptFileName}\")]";
+
+            if (scriptFileName.GetExtension().SameAs(".vb"))
+                code = $"<Assembly: System.Reflection.AssemblyDescriptionAttribute(\"{scriptFileName.Replace(@"\", @"\\")}\")>";
+
+            string currentCode = "";
+
+            string file = Path.Combine(CSExecutor.GetCacheDirectory(scriptFileName), scriptFileName.GetFileNameWithoutExtension() + $".attr.g{scriptFileName.GetExtension()}");
+
+            Exception lastError = null;
+
+            for (int i = 0; i < 3; i++)
+            {
+                try
+                {
+                    if (File.Exists(file))
+                        using (var sr = new StreamReader(file))
+                            currentCode = sr.ReadToEnd();
+
+                    if (currentCode != code)
+                    {
+                        string dir = Path.GetDirectoryName(file);
+
+                        if (!Directory.Exists(dir))
+                            Directory.CreateDirectory(dir);
+
+                        using (var sw = new StreamWriter(file)) //there were reports about the files being locked. Possibly by csc.exe so allow retry
+
+                            sw.Write(code);
+                    }
+                    break;
+                }
+                catch (Exception e)
+                {
+                    lastError = e;
+                }
+                // Thread.Sleep(200);
+            }
+
+            if (!File.Exists(file))
+                throw new ApplicationException("Failed to create AttributeInjection file", lastError);
+
+            return file;
         }
 
         internal static bool Contains(this string text, string value, StringComparison comparisonType)

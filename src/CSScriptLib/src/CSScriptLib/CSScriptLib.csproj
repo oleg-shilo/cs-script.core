@@ -13,9 +13,9 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.4.2.0-preview</Version>
+    <Version>1.4.3.0-NET5-RC3</Version>
     <Authors>Oleg Shilo</Authors>
-    <Description>CS-Script engine Class Library for .NET Core</Description>
+    <Description>CS-Script engine Class Library for .NET 5</Description>
     <Copyright>(C) 2018-2020 Oleg Shilo</Copyright>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/oleg-shilo/cs-script</PackageProjectUrl>
@@ -23,10 +23,20 @@
     <RepositoryUrl>https://github.com/oleg-shilo/cs-script.core.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>C#, scripting, script, dynamic, .NET. .NET Core</PackageTags>
-    <PackageReleaseNotes>Migrated to .NET5 RC2</PackageReleaseNotes>
+    <PackageReleaseNotes>- Build for .NET 5.0.101 (public release)
+- CSScriptLib
+  - Implemented deployment of build server
+  - Implemented hot-loading for csc engine in standalone mode. First cut
+  - Completed CSScript.Evaluator.CodeDom interface.
+  - Implemented transparent hosting of CSScriptLib in .NET-Framework and .NET-Core
+  - Removed dependency on Roslyn for pure CodeDom evaluator use-case
+  - added sample with downloading the latest C# compiler
+  - added passing compiler options
+  - Implemented probing for default C#5 compiler when hosted on .NET Framework.
+  - Extending u-testing to cover new Evaluator features (CSScriptLib.dll)</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>1.4.2.0</AssemblyVersion>
-    <FileVersion>1.4.2.0</FileVersion>
+    <AssemblyVersion>1.4.3.0</AssemblyVersion>
+    <FileVersion>1.4.3.0</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>css_logo.png</PackageIcon>
 
@@ -40,13 +50,11 @@
     <DocumentationFile>CSScriptLib.xml</DocumentationFile>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DefineConstants>TRACE;class_lib</DefineConstants>
-    <CodeAnalysisRuleSet>CSScriptLib.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>CSScriptLib.xml</DocumentationFile>
     <DefineConstants>TRACE;class_lib</DefineConstants>
-    <CodeAnalysisRuleSet>CSScriptLib.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>

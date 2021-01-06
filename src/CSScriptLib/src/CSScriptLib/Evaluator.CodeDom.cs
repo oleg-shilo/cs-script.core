@@ -80,7 +80,7 @@ namespace CSScriptLib
                     sources = sources.Concat(new[] { injection_file }).ToArray();
                 }
 
-                (byte[], byte[]) result = CompileAssemblyFromFileBatch_with_Csc(sources, refs, info?.AssemblyFile, this.IsDebug);
+                (byte[], byte[]) result = CompileAssemblyFromFileBatch_with_Csc(sources, refs, info?.AssemblyFile, this.IsDebug, info);
 
                 return result;
             }
@@ -102,7 +102,8 @@ namespace CSScriptLib
         (byte[] asm, byte[] pdb) CompileAssemblyFromFileBatch_with_Csc(string[] fileNames,
                                                                        string[] ReferencedAssemblies,
                                                                        string outAssembly,
-                                                                       bool IncludeDebugInformation)
+                                                                       bool IncludeDebugInformation,
+                                                                       CompileInfo info)
         {
             string projectName = fileNames.First().GetFileName();
 
@@ -136,6 +137,9 @@ namespace CSScriptLib
                 common_args.Add("/utf8output");
                 common_args.Add("/nostdlib+");
                 common_args.Add("-t:library");
+
+                if (info.CompilerOptions.HasText())
+                    common_args.Add(info.CompilerOptions);
 
                 // common_args.Add("/t:exe"); // need always build exe so "top-class" feature is supported even when building dlls
 

@@ -66,6 +66,17 @@ namespace CSScriptLib
     /// </summary>
     public class CompileInfo
     {
+        /// <summary>
+        /// Gets or sets the compiler options for csc.exe.
+        /// <para>This property is only applcable for CodeDOM based script execution as Roslyn engine does not accept
+        /// string options for compilation.
+        /// </para>
+        /// </summary>
+        /// <value>
+        /// The compiler options.
+        /// </value>
+        public string CompilerOptions { get; set; }
+
         string assemblyFile;
 
         /// <summary>

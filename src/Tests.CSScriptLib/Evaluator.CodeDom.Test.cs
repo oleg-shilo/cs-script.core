@@ -11,6 +11,31 @@ namespace EvaluatorTests
     public class Generic_CodeDom
     {
         [Fact]
+        public void using_CompilerOptions()
+        {
+            var info = new CompileInfo { CompilerOptions = "-define:test" };
+
+            Assembly asm = CSScript.CodeDomEvaluator.CompileCode(
+                    @"using System;
+                      public class Script
+                      {
+                          public int Sum(int a, int b)
+                          {
+                              #if test
+                                  return -(a+b);
+                              #else
+                                  return a+b;
+                              #endif
+                          }
+                      }",
+                      info);
+
+            dynamic script = asm.CreateObject("*");
+            var result = script.Sum(7, 3);
+            Assert.Equal(-10, result);
+        }
+
+        [Fact]
         public void call_LoadMethod()
         {
             CSScript.EvaluatorConfig.DebugBuild = true;

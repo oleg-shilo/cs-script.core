@@ -42,6 +42,10 @@ echo >> -code.header    using static System.Environment;
 
 echo off
 
+.\css ..\..\CSScriptLib\src\CSScriptLib\output\aggregate.cs
+copy ..\..\CSScriptLib\src\CSScriptLib\output\*.*nupkg ..\
+
+
 7z.exe a -r "..\cs-script.core.7z" "*.*"
 .\css -code var version = Assembly.LoadFrom(#''cscs.dll#'').GetName().Version.ToString();#nFile.Copy(#''..\\cs-script.core.7z#'', $#''..\\cs-script.core.v{version}.7z#'', true);
 .\css -code var version = Assembly.LoadFrom(#''cscs.dll#'').GetName().Version.ToString();#nFile.Copy(#''..\\cs-script.core.7z#'', $#''..\\cs-script.core.v{version}.7z#'', true);
@@ -50,15 +54,9 @@ del ..\cs-script.core.7z
 echo Published: %cd%
 cd ..\..\.
 
-rem nuget fails with the endless loop :) so need to do it manually
-rem nuget pack CS-Script.Core.Samples.nuspec
-
-build-nuget
-
 echo .
 echo .
 echo .
-echo !!!! DON'T forgert to build HELP (build-nuget.cmd) manually!!!!
 echo      (need to target netstandard2; neither netstandard21 nor netstandard3 are supported by shfbproj yet)
 echo !!!! DON'T forgert to build HELP (CS-Script.Core.Doc.ln) manually!!!!
 echo .

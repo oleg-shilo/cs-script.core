@@ -59,6 +59,7 @@
 
   <ItemGroup>
     <Compile Remove="CSScriptLib.Eval.CodeDom.cs" />
+    <Compile Remove="output\aggregate.cs" />
     <Compile Remove="output\Test.cs" />
     <Compile Remove="sample.cs" />
     <Compile Remove="samples.cs" />

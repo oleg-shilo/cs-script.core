@@ -1,22 +1,46 @@
 echo off
 
-set msbuild="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe"
+set vs_edition=Community
+if exist "C:\Program Files (x86)\Microsoft Visual Studio\2019\%vs_edition%" (
+    echo Visual Studio 2019 (Community)
+) else (
+    set vs_edition=Professional
+    echo Visual Studio 2019 (PRO)
+)
+
+set msbuild="C:\Program Files (x86)\Microsoft Visual Studio\2019\%vs_edition%\MSBuild\Current\Bin\MSBuild.exe"
 %msbuild% ".\css\css (win launcher).csproj" -p:Configuration=Release -t:rebuild
 copy .\css\bin\Release\css.exe ".\out\.NET Core\css.exe"
 
-cd cscs
-
 set target=net5.0
+md "out\.NET Core"
 
-md "..\out\.NET Core"
-rem "..\out\.NET Core\css.exe" -server:stop
+cd BuildServer
+echo ----------------
+echo Building build.dll from %cd%
+echo ----------------
+dotnet publish -c Release 
 
+cd ..\cscs
+echo ----------------
+echo Building cscs.dll from %cd%
+echo ----------------
 dotnet publish -c Release -f %target% -o "..\out\.NET Core\console"
 
 cd ..\csws
+echo ----------------
+echo Building csws.dll from %cd%
+echo ----------------
 dotnet publish -c Release -f %target%-windows -o "..\out\.NET Core\win"
 
-cd ..\cscs
+
+cd ..\CSScriptLib\src\CSScriptLib
+echo ----------------
+echo Building CSScriptLib.dll from %cd%
+echo ----------------
+dotnet build -c Release
+
+cd ..\..\..\cscs
 
 copy "..\out\.NET Core\win" "..\out\.NET Core" /Y
 copy "..\out\.NET Core\console" "..\out\.NET Core" /Y

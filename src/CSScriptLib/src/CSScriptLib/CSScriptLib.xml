@@ -96,6 +96,11 @@
             If set to 'true' "static...Main" in the imported script is not renamed.
             </summary>
         </member>
+        <member name="M:CSScriptLib.CSharpParser.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:CSScriptLib.CSharpParser"/> class.
+            </summary>
+        </member>
         <member name="M:CSScriptLib.CSharpParser.#ctor(System.String)">
             <summary>
             Creates an instance of CSharpParser.
@@ -669,8 +674,8 @@
         <member name="M:CSScriptLib.EvaluatorBase`1.CompileCode(System.String,CSScriptLib.CompileInfo)">
              <summary>
              Evaluates (compiles) C# code (script). The C# code is a typical C# code containing a single or multiple class definition(s).
-             <para>The method is identical to <see cref="!:RoslynEvaluator.CompileCode(string)"/> except that it allows specifying
-             the destination assembly file.</para>
+             <para>The method is identical to <see cref="M:CSScriptLib.IEvaluator.CompileCode(System.String,CSScriptLib.CompileInfo)"/> except that it allows specifying
+             the destination assembly file with <see cref="T:CSScriptLib.CompileInfo"/> object.</para>
              </summary>
              <example>
              <code>
@@ -1162,11 +1167,6 @@
         <member name="F:CSScriptLib.EvaluatorEngine.Roslyn">
             <summary>
             Roslyn compilation services
-            </summary>
-        </member>
-        <member name="F:CSScriptLib.EvaluatorEngine.Mono">
-            <summary>
-            Mono compilation services
             </summary>
         </member>
         <member name="F:CSScriptLib.EvaluatorEngine.CodeDom">
@@ -1740,7 +1740,7 @@
             For example //css_include for 'script(today).cs' should escape brackets as they are the directive delimiters.
             The correct syntax would be as follows '//css_include script((today)).cs;'</para>
             <remarks>The delimiters characters are ';,(){}'.
-            <para>However you should check <see cref="!:csscript.CSharpParser.DirectiveDelimiters"/> for the accurate list of all delimiters.
+            <para>However you should check <see cref="F:CSScriptLib.CSharpParser.DirectiveDelimiters"/> for the accurate list of all delimiters.
             </para>
             </remarks>
             </summary>

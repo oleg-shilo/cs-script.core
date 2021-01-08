@@ -56,7 +56,7 @@ namespace compile_server
                     ListenToShutdownRequest();
 
                     BuildServer.ReportRunning(port);
-                    App.Log($"Starting server pid:{ Process.GetCurrentProcess().Id}, port:{port} ");
+                    App.Log($"Starting server pid:{ Environment.ProcessId}, port:{port} ");
                     BuildServer.ListenToRequests(port);
                 }
                 else

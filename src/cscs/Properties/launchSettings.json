@@ -2,7 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "-vs D:\\dev\\Galos\\TrayIcon.cs",
+      "commandLineArgs": "-check -verbose -ng:csc \"D:\\dev\\Galos\\cs-script.core\\src\\out\\.NET Core\\print.cs\"",
       "remoteDebugEnabled": false
     }
   }

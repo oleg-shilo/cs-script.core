@@ -696,6 +696,10 @@ partial class dbg
                         if (argValue != null)
                             options.forceOutputAssembly = Environment.ExpandEnvironmentVariables(argValue);
                     }
+                    else if (Args.ParseValuedArg(arg, AppArgs.ng, AppArgs.engine, out argValue)) // -ng:<csc:dotnet> -engine:<csc:dotnet>
+                    {
+                        options.compilerEngine = argValue;
+                    }
                     else if (Args.ParseValuedArg(arg, AppArgs.c, out argValue)) // -c:<value>
                     {
                         if (!options.suppressExecution) // do not change the value if compilation is the objective
@@ -940,7 +944,7 @@ partial class dbg
                     }
                     else if (Args.Same(arg, AppArgs.stop)) // -stop
                     {
-                        StopVBCSCompilers();
+                        Globals.StopBuildServer();
                         StopSyntaxer();
                         CLIExitRequest.Throw();
                     }
@@ -1240,11 +1244,6 @@ partial class dbg
             }
 
             return retval;
-        }
-
-        internal static void StopVBCSCompilers()
-        {
-            kill("VBCSCompiler");
         }
 
         static void kill(string proc_name)

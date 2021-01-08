@@ -56,6 +56,20 @@ namespace CSScripting
 
         static string csc_file;
 
+        static public string dotnet
+        {
+            get
+            {
+                var file = "".GetType().Assembly.Location
+                  .Split(Path.DirectorySeparatorChar)
+                  .TakeWhile(x => x != "dotnet")
+                  .JoinBy(Path.DirectorySeparatorChar.ToString())
+                  .PathJoin("dotnet", "dotnet.exe");
+
+                return File.Exists(file) ? file : "dotnet.exe";
+            }
+        }
+
         static public string csc
         {
             set

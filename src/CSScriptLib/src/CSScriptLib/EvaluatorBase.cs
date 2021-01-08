@@ -127,8 +127,8 @@ namespace CSScriptLib
 
         /// <summary>
         /// Evaluates (compiles) C# code (script). The C# code is a typical C# code containing a single or multiple class definition(s).
-        /// <para>The method is identical to <see cref="RoslynEvaluator.CompileCode(string)"/> except that it allows specifying
-        /// the destination assembly file.</para>
+        /// <para>The method is identical to <see cref="IEvaluator.CompileCode(string, CompileInfo)"/> except that it allows specifying
+        /// the destination assembly file with <see cref="CompileInfo"/> object.</para>
         /// </summary>
         /// <example>
         /// <code>

@@ -25,7 +25,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "csws", "csws\csws.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BuildServer", "BuildServer\BuildServer.csproj", "{E1531A93-F78D-406D-B3F6-06367908F619}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.cscs", "Tsets.cscs\Tests.cscs.csproj", "{52B0AD60-8BA7-40EB-B07B-5661057DBBBA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.cscs", "Tests.cscs\Tests.cscs.csproj", "{52B0AD60-8BA7-40EB-B07B-5661057DBBBA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.CSScriptLib", "Tests.CSScriptLib\Tests.CSScriptLib.csproj", "{D28BEA4E-4680-4CFF-B13C-9BAE7AF1FE4A}"
 EndProject
@@ -52,6 +52,11 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp2", "ConsoleApp2\ConsoleApp2.csproj", "{6CD54154-ECAE-44AE-90A9-959A480A1040}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildServer", "BuildServer", "{B88CA45B-B3E9-4B93-A5B2-07136ED6B83C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{607BCC73-452D-4807-8DF8-13BF8140C841}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

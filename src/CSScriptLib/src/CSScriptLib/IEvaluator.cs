@@ -61,11 +61,6 @@ namespace CSScriptLib
         Roslyn,
 
         /// <summary>
-        /// Mono compilation services
-        /// </summary>
-        Mono,
-
-        /// <summary>
         /// CodeDom compilation infrastructure
         /// </summary>
         CodeDom

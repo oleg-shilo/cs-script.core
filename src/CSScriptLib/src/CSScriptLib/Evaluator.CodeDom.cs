@@ -138,7 +138,7 @@ namespace CSScriptLib
                 common_args.Add("/nostdlib+");
                 common_args.Add("-t:library");
 
-                if (info.CompilerOptions.HasText())
+                if (info?.CompilerOptions.HasText() == true)
                     common_args.Add(info.CompilerOptions);
 
                 // common_args.Add("/t:exe"); // need always build exe so "top-class" feature is supported even when building dlls

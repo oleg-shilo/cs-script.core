@@ -1,5 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>CSScriptLib</AssemblyName>
@@ -13,7 +13,7 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.4.3.0-NET5-RC3</Version>
+    <Version>1.4.4.0-NET5-RC3</Version>
     <Authors>Oleg Shilo</Authors>
     <Description>CS-Script engine Class Library for .NET 5</Description>
     <Copyright>(C) 2018-2020 Oleg Shilo</Copyright>
@@ -35,28 +35,23 @@
   - Implemented probing for default C#5 compiler when hosted on .NET Framework.
   - Extending u-testing to cover new Evaluator features (CSScriptLib.dll)</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>1.4.3.0</AssemblyVersion>
-    <FileVersion>1.4.3.0</FileVersion>
+    <AssemblyVersion>1.4.4.0</AssemblyVersion>
+    <FileVersion>1.4.4.0</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>css_logo.png</PackageIcon>
-
-</PropertyGroup>
-
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
   </ItemGroup>
-  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>CSScriptLib.xml</DocumentationFile>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DefineConstants>TRACE;class_lib</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DocumentationFile>CSScriptLib.xml</DocumentationFile>
     <DefineConstants>TRACE;class_lib</DefineConstants>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Remove="CSScriptLib.Eval.CodeDom.cs" />
     <Compile Remove="output\aggregate.cs" />
@@ -64,11 +59,9 @@
     <Compile Remove="sample.cs" />
     <Compile Remove="samples.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <None Remove="nuget-samples.cmd" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Include="..\..\..\cscs\CodeDom\CompilerResults.cs" Link="CodeDom\CompilerResults.cs" />
     <Compile Include="..\..\..\cscs\CodeDom\CompilerError.cs" Link="CodeDom\CompilerError.cs" />
@@ -88,14 +81,12 @@
     <Compile Include="..\..\..\cscs\Utils\StringExtensions.cs" Link="Utils\StringExtensions.cs" />
     <Compile Include="..\..\..\cscs\Utils\WildCardExtensions.cs" Link="Utils\WildCardExtensions.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.6.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" Version="3.6.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="3.1.6" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="..\..\..\logo\css_logo.png">
       <Pack>True</Pack>
@@ -103,11 +94,9 @@
     </None>
     <None Include="samples.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="CodeDom\" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DependentUpon>Resources.resx</DependentUpon>
@@ -115,7 +104,6 @@
       <AutoGen>True</AutoGen>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -123,13 +111,7 @@
       <CustomToolNamespace>CSScripting</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
-
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="md &quot;$(ProjectDir)output&quot;  &#xD;&#xA;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(ProjectDir)output\$(TargetFileName)&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(ProjectName).xml&quot; &quot;$(ProjectDir)output\$(ProjectName).xml&quot;&#xD;&#xA;rem copy &quot;$(ProjectDir)..\..\src\CSScriptLib.Client\Test.cs&quot; &quot;$(ProjectDir)output\Test.cs&quot;&#xD;&#xA;rem copy &quot;$(ProjectDir)..\..\src\CSScriptLib.Client\Test.cs&quot; &quot;$(ProjectDir)bin\$(ConfigurationName)\Test.cs&quot;&#xD;&#xA;&#xD;&#xA;" />
   </Target>
-
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="echo --- Copying build server to CSScriptLib build dir ---&#xD;&#xA;copy &quot;$(ProjectDir)..\..\..\out\bin\build.*&quot; &quot;$(TargetDir)&quot;" />
-  </Target>
-
 </Project>

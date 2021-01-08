@@ -78,12 +78,4 @@ del ..\cs-script.core.7z
 echo Published: %cd%
 cd ..\..\.
 
-echo .
-echo .
-echo .
-echo      (need to target netstandard2; neither netstandard21 nor netstandard3 are supported by shfbproj yet)
-echo !!!! DON'T forgert to build HELP (CS-Script.Core.Doc.ln) manually!!!!
-echo .
-
-
 pause

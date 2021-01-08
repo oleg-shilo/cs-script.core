@@ -9,6 +9,10 @@
     <FileVersion>1.0.1.0</FileVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;build_server</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="queue\**" />
     <EmbeddedResource Remove="queue\**" />
@@ -22,6 +26,6 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="md &quot;$(ProjectDir)..\out\bin&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).dll&quot; &quot;$(ProjectDir)..\out\bin\$(TargetName).dll&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).deps.json&quot; &quot;$(ProjectDir)..\out\bin\$(TargetName).deps.json&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).runtimeconfig.json&quot; &quot;$(ProjectDir)..\out\bin\$(TargetName).runtimeconfig.json&quot;" />
+    <Exec Command="md &quot;$(ProjectDir)out&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).dll&quot; &quot;$(ProjectDir)out\$(TargetName).dll&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).deps.json&quot; &quot;$(ProjectDir)out\$(TargetName).deps.json&quot;&#xD;&#xA;copy &quot;$(TargetDir)$(TargetName).runtimeconfig.json&quot; &quot;$(ProjectDir)out\$(TargetName).runtimeconfig.json&quot;" />
   </Target>
 </Project>

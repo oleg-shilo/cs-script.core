@@ -662,9 +662,14 @@ namespace csscript
                         Console.WriteLine("  Provider: " + options.altCompiler);
                         try
                         {
-                            Console.WriteLine("  Engine: " + Assembly.GetExecutingAssembly().Location);
+                            Console.WriteLine("  Script Engine: " + Assembly.GetExecutingAssembly().Location);
                         }
                         catch { }
+
+                        if (options.compilerEngine == "csc")
+                            Console.WriteLine($"  Compiler Engine: {options.compilerEngine} ({Globals.csc})");
+                        else
+                            Console.WriteLine($"  Compiler Engine: {options.compilerEngine} ({Globals.dotnet})");
 
                         try
                         {

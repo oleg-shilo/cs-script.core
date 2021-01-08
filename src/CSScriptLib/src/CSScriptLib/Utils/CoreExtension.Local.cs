@@ -27,7 +27,7 @@ namespace CSScriptLib
         /// For example //css_include for 'script(today).cs' should escape brackets as they are the directive delimiters.
         /// The correct syntax would be as follows '//css_include script((today)).cs;'</para>
         /// <remarks>The delimiters characters are ';,(){}'.
-        /// <para>However you should check <see cref="csscript.CSharpParser.DirectiveDelimiters"/> for the accurate list of all delimiters.
+        /// <para>However you should check <see cref="CSharpParser.DirectiveDelimiters"/> for the accurate list of all delimiters.
         /// </para>
         /// </remarks>
         /// </summary>

@@ -9,12 +9,11 @@ if exist "C:\Program Files (x86)\Microsoft Visual Studio\2019\%vs_edition%" (
 )
 
 rd /Q /S .\CSScriptLib.Doc\help
-
 set msbuild="C:\Program Files (x86)\Microsoft Visual Studio\2019\%vs_edition%\MSBuild\Current\Bin\MSBuild.exe"
 %msbuild% ".\CSScriptLib.Doc\CSScriptLib.Doc.shfbproj" -p:Configuration=Release -t:rebuild /p:WarningLevel=0
 
 cd ".\out\.NET Core"
-.\css -code var version = Assembly.LoadFrom(#''cscs.dll#'').GetName().Version.ToString();#nFile.Copy(#''..\\Documentation.chm#'', $#''..\\CSScriptLib.v{version}.chm#'', true);
+.\css -code var version = Assembly.LoadFrom(#''cscs.dll#'').GetName().Version.ToString();#nFile.Copy(#''..\\..\\CSScriptLib.Doc\\Help\\Documentation.chm#'', $#''..\\CSScriptLib.v{version}.chm#'', true);
 
 cd ..\..\
 

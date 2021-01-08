@@ -35,6 +35,8 @@ namespace csscript
         public const string version2 = "-version";
         public const string c = "c";
         public const string cd = "cd";
+        public const string engine = "engine";
+        public const string ng = "ng";
         public const string co = "co";
         public const string check = "check";
         public const string r = "r";
@@ -208,17 +210,24 @@ namespace csscript
             switch1Help[cache] = new ArgInfo("-cache[:<ls|trim|clear>]",
                                              "Performs script cache operations.",
                                                  " ls    - lists all cache items.",
-                                                     " trim  - removes all abandoned cache items.",
-                                                     " clear - removes all cache items.");
+                                                 " trim  - removes all abandoned cache items.",
+                                                 " clear - removes all cache items.");
             switch1Help[co] = new ArgInfo("-co:<options>",
                                           "Passes compiler options directly to the language compiler.",
                                               "(e.g.  -co:/d:TRACE pass /d:TRACE option to C# compiler",
                                                   "or  -co:/platform:x86 to produce Win32 executable)");
+            switch1Help[engine] =
+            switch1Help[ng] = new ArgInfo("-ng|-engine:<csc:dotnet>]",
+                                         "Forces compilation to be done by one of the supported .NET engines.",
+                                         "dotnet - ${<==}dotnet.exe compiler; this is the most versatile compilation engine.",
+                                         "csc    - ${<==}csc.exe compiler; the fastest compiler available. It is not suitable" +
+                                         "for WPF scripts as csc.exe cannot compile XAML.",
+                                         "(e.g. " + AppInfo.appName + " -engine:dotnet sample.cs",
+                                         " " + AppInfo.appName + " -ng:csc sample.cs)");
             switch1Help[sample] =
             switch1Help[s] = new ArgInfo("-s|-sample[:<C# version>]",
-                                         "Prints content of sample script file.",
-                                             " -s:7    - prints C# 7 sample. Otherwise it prints the default canonical 'Hello World' sample.",
-                                                 "(e.g. " + AppInfo.appName + " -s:7 > sample.cs).");
+                                         " -s:7    - prints C# 7 sample. Otherwise it prints the default canonical 'Hello World' sample.",
+                                         "(e.g. " + AppInfo.appName + " -s:7 > sample.cs).");
 
             switch1Help[@new] = new ArgInfo("-new[:<type>] [<script name>]",
                                             "Creates a new script.",
@@ -1296,7 +1305,7 @@ class Program
             builder.AppendLine("using System;")
                    .AppendLine("using System.IO;")
                    .AppendLine("using System.Diagnostics;")
-                   .AppendLine("using static dbg; // print() extension")
+                   .AppendLine("using static dbg; // for print() extension")
                    .AppendLine("using static System.Environment;")
                    .AppendLine()
                    .AppendLine("print(\"Script: \", GetEnvironmentVariable(\"EntryScript\"));")
@@ -1307,7 +1316,7 @@ class Program
                    .AppendLine("    public static void list_files(this string path)")
                    .AppendLine("        => Directory")
                    .AppendLine("               .GetFiles(path)")
-                   .AppendLine("               .print()")
+                   .AppendLine("               .print();")
                    .AppendLine("}");
 
             builder.AppendLine("");
@@ -1495,7 +1504,9 @@ nvironment.NewLine);
                 if (!string.IsNullOrEmpty(asm_path))
                 {
                     //System.Diagnostics.Debug.Assert(false);
-                    var alt_compiler = (Settings.Load(Settings.DefaultConfigFile, false) ?? new Settings()).ExpandUseAlternativeCompiler();
+                    var settings = Settings.Load(Settings.DefaultConfigFile, false) ?? new Settings();
+
+                    var alt_compiler = settings.ExpandUseAlternativeCompiler();
 
                     if (!string.IsNullOrEmpty(alt_compiler))
                     {
@@ -1520,9 +1531,9 @@ nvironment.NewLine);
                     }
                     else
                     {
-                        builder.AppendLine(compiler);
+                        builder.AppendLine(settings.DefaultCompilerEngine);
+                        builder.AppendLine($"                    {Globals.csc}");
                     }
-                    builder.AppendLine($"                    {Globals.csc}");
                 }
                 else
                     builder.AppendLine(compiler);

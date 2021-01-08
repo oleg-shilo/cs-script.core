@@ -181,6 +181,12 @@ namespace CSScriptLib
     /// </summary>
     public partial class CSScript
     {
+        static public void StartBuildServer()
+            => Globals.StartBuildServer();
+
+        static public void StopBuildServer()
+            => Globals.StopBuildServer();
+
         static EvaluatorConfig evaluatorConfig = new EvaluatorConfig();
 
         /// <summary>
@@ -229,6 +235,7 @@ namespace CSScriptLib
                 switch (CSScript.EvaluatorConfig.Engine)
                 {
                     case EvaluatorEngine.Roslyn: return RoslynEvaluator;
+                    case EvaluatorEngine.CodeDom: return CodeDomEvaluator;
                     default: return null;
                 }
             }

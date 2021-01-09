@@ -6,7 +6,7 @@
     <AssemblyName>cscs</AssemblyName>
     <RootNamespace>CSScripting</RootNamespace>
     <StartupObject />
-    <Version>1.4.4.0-NET5-RC3</Version>
+    <Version>1.4.4.0-NET5-RC4</Version>
     <Authors>Oleg Shilo</Authors>
     <Product>CS-Script</Product>
     <Copyright>(C) 2004-2021 Oleg Shilo</Copyright>
@@ -19,16 +19,9 @@
     <PackageTags>C# script dynamic</PackageTags>
     <AssemblyVersion>1.4.4.0</AssemblyVersion>
     <FileVersion>1.4.4.0</FileVersion>
-    <PackageReleaseNotes>
-- Build for .NET 5.0.101 (public release)
-- CLI
-  - `LoadFrom` is globally replaced with `LoadFile` (to avoid unintentional, CLR-backed asm memory caching)
-  - Implemented hot-loading for csc engine in standalone mode. First cut.
-  - Normalized all \n and \r\n CLI output by using Environment.NewLine
-  - Add config setting for using of csc vs dotnet builder
-  - Added reporting using of incompatible csc compiler for scripts requiring XAML compilation
-  - Implemented deployment of build server
-    </PackageReleaseNotes>
+    <PackageReleaseNotes>- Added `//css_engine` (`//css_ng`) directive for choosing the compiling engine
+- Added `-engine:&lt;csc|dotnet&gt;` switch
+- Extended unit-testing to cove CLI scenarios</PackageReleaseNotes>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>css_logo.png</PackageIcon>
   </PropertyGroup>

@@ -15,6 +15,8 @@ copy .\css\bin\Release\css.exe ".\out\.NET Core\css.exe"
 set target=net5.0
 md "out\.NET Core"
 
+del .\out\*.*nupkg 
+
 cd BuildServer
 echo ----------------
 echo Building build.dll from %cd%

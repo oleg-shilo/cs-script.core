@@ -17,4 +17,6 @@ cd ".\out\.NET Core"
 
 cd ..\..\
 
+explorer .\out
+
 pause

@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v5.0": {
-      "cscs/1.4.4.0-NET5-RC3": {
+      "cscs/1.4.4.0-NET5-RC4": {
         "dependencies": {
           "Microsoft.CodeAnalysis.CSharp.Scripting": "3.7.0"
         },
@@ -468,7 +468,7 @@
     }
   },
   "libraries": {
-    "cscs/1.4.4.0-NET5-RC3": {
+    "cscs/1.4.4.0-NET5-RC4": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

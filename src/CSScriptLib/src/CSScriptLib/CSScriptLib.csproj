@@ -13,27 +13,19 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.4.4.0-NET5-RC3</Version>
+    <Version>1.4.4.0-NET5-RC4</Version>
     <Authors>Oleg Shilo</Authors>
     <Description>CS-Script engine Class Library for .NET 5</Description>
-    <Copyright>(C) 2018-2020 Oleg Shilo</Copyright>
+    <Copyright>(C) 2018-2021 Oleg Shilo</Copyright>
     <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/oleg-shilo/cs-script</PackageProjectUrl>
     <PackageIconUrl></PackageIconUrl>
     <RepositoryUrl>https://github.com/oleg-shilo/cs-script.core.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>C#, scripting, script, dynamic, .NET. .NET Core</PackageTags>
-    <PackageReleaseNotes>- Build for .NET 5.0.101 (public release)
-- CSScriptLib
-  - Implemented deployment of build server
-  - Implemented hot-loading for csc engine in standalone mode. First cut
-  - Completed CSScript.Evaluator.CodeDom interface.
-  - Implemented transparent hosting of CSScriptLib in .NET-Framework and .NET-Core
-  - Removed dependency on Roslyn for pure CodeDom evaluator use-case
-  - added sample with downloading the latest C# compiler
-  - added passing compiler options
-  - Implemented probing for default C#5 compiler when hosted on .NET Framework.
-  - Extending u-testing to cover new Evaluator features (CSScriptLib.dll)</PackageReleaseNotes>
+    <PackageReleaseNotes>- Added `//css_engine` (`//css_ng`) directive for choosing the compiling engine
+- Added `-engine:&lt;csc|dotnet&gt;` switch
+- Extended unit-testing to cove CLI scenarios</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AssemblyVersion>1.4.4.0</AssemblyVersion>
     <FileVersion>1.4.4.0</FileVersion>

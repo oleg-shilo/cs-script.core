@@ -9,6 +9,7 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
+            CSScript.StopBuildServer();
             CSScript.EvaluatorConfig.DebugBuild = true;
 
             var sw = Stopwatch.StartNew();
@@ -22,8 +23,6 @@ namespace ConsoleApp1
             sw.Restart();
             Test_CodeDom();
             Console.WriteLine("  next run: " + sw.ElapsedMilliseconds);
-
-            return;
 
             Console.WriteLine("\nRoslyn");
             sw.Restart();

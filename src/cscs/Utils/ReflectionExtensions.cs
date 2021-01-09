@@ -9,9 +9,8 @@ namespace CSScripting
 {
     class Directives
     {
-        public const string compiler = "//css_compiler";
+        public const string compiler = "//css_engine";
         public const string compiler_csc = "csc";
-        public const string compiler_roslyn = "roslyn";
         public const string compiler_dotnet = "dotnet";
     }
 

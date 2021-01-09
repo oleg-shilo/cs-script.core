@@ -13,7 +13,14 @@ namespace EvaluatorTests
         [Fact]
         public void using_CompilerOptions()
         {
-            var info = new CompileInfo { CompilerOptions = "-define:test" };
+            // Note if you give AssemblyFile the name with the extension .dll xUnit runtime will lock the file simply
+            // because it was present in the local dir. So hide the assembly by dropping the file extension and giving the name "using_CompilerOptions".
+
+            var info = new CompileInfo
+            {
+                CompilerOptions = "-define:test",
+                AssemblyFile = nameof(using_CompilerOptions).GetFullPath()
+            };
 
             Assembly asm = CSScript.CodeDomEvaluator.CompileCode(
                     @"using System;
@@ -179,22 +186,22 @@ namespace EvaluatorTests
             Assert.Equal(5, result);
         }
 
-        [Fact(Skip = "VB is not supported yet")]
-        public void VB_Generic_Test()
-        {
-            Assembly asm = CSScript.CodeDomEvaluator
-                                   .CompileCode(@"' //css_ref System
-                                              Imports System
-                                              Class Script
+        // [Fact(Skip = "VB is not supported yet")]
+        // public void VB_Generic_Test()
+        // {
+        //     Assembly asm = CSScript.CodeDomEvaluator
+        //                            .CompileCode(@"' //css_ref System
+        //                                       Imports System
+        //                                       Class Script
 
-                                                Function Sum(a As Integer, b As Integer)
-                                                    Sum = a + b
-                                                End Function
+        //                                         Function Sum(a As Integer, b As Integer)
+        //                                             Sum = a + b
+        //                                         End Function
 
-                                            End Class");
+        //                                     End Class");
 
-            dynamic script = asm.CreateObject("*");
-            var result = script.Sum(7, 3);
-        }
+        //     dynamic script = asm.CreateObject("*");
+        //     var result = script.Sum(7, 3);
+        // }
     }
 }

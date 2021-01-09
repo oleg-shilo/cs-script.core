@@ -78,7 +78,7 @@ namespace EvaluatorTests
         public void CompileCode_CompileInfo()
         {
             // Note if you give AssemblyFile the name with the extension .dll xUnit runtime will lock the file simply
-            // because it was present in the local dir. So hide the assembly by dropping the file extenion.
+            // because it was present in the local dir. So hide the assembly by dropping the file extension.
 
             var asm_file = GetTempFileName(nameof(CompileCode_InmemAsmLocation));
 

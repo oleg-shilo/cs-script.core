@@ -95,10 +95,6 @@ namespace CSScripting.CodeDom
         {
             switch (CSExecutor.options.compilerEngine)
             {
-                case Directives.compiler_roslyn:
-                    throw new Exception("Roslyn compiler is not supported");
-                // return RoslynService.CompileAssemblyFromFileBatch_with_roslyn(options, fileNames);
-
                 case Directives.compiler_dotnet:
                     return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
 
@@ -106,7 +102,6 @@ namespace CSScripting.CodeDom
                     return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
 
                 default:
-                    // return RoslynService.CompileAssemblyFromFileBatch_with_roslyn(options, fileNames);
                     // return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
                     return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
             }
@@ -192,10 +187,12 @@ namespace CSScripting.CodeDom
             {
                 result.Errors.Add(new CompilerError
                 {
-                    ErrorText = $"In order to compile XAML you need to use `dotnet` compiler. " + NewLine +
-                    $"You can set it from code with \"//css_compler dotnet\" or as a config " +
-                    $"value \"dotnet .{Path.DirectorySeparatorChar}cscs.dll -config:set:DefaultCompilerEngine=dotnet\"."
-                });
+                    ErrorText = $"In order to compile XAML you need to use 'dotnet' compiler. " + NewLine +
+                                $"You can set it by any of this methods:" + NewLine +
+                                $"- for a specific script from code with \"//css_engine dotnet\" directive" + NewLine +
+                                $"- for the process with a CLI argument \"dotnet .{Path.DirectorySeparatorChar}cscs.dll -engine:dotnet <script>\"" + NewLine +
+                                $"- globally as a config value \"dotnet .{Path.DirectorySeparatorChar}cscs.dll -config:set:DefaultCompilerEngine=dotnet\""
+                }); ;
                 return result;
             }
 
@@ -429,9 +426,11 @@ namespace CSScripting.CodeDom
 
                 foreach (string asm in ref_assemblies)
                 {
-                    refs1.Add(new XElement("Reference",
-                                  new XAttribute("Include", asm.GetFileName()),
-                                  new XElement("HintPath", asm)));
+                    if (!asm.EndsWith("System.Windows.Forms.dll") &&
+                        !asm.EndsWith("PresentationFramework.dll"))
+                        refs1.Add(new XElement("Reference",
+                                      new XAttribute("Include", asm.GetFileName()),
+                                      new XElement("HintPath", asm)));
                 }
             }
 

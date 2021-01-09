@@ -291,15 +291,27 @@ namespace csscript
 
                 if (args.Length > 0)
                 {
-                    //Here we need to separate application arguments from script ones.
-                    //Script engine arguments are always followed by script arguments
-                    //[appArgs][scriptFile][scriptArgs][//x]
+                    // Here we need to separate application arguments from script ones.
+                    // Script engine arguments are always followed by script arguments
+                    // [appArgs][scriptFile][scriptArgs][//x]
                     List<string> appArgs = new List<string>();
 
-                    //The following will also update corresponding "options" members from "settings" data
+                    // load settings from file and then process user cli args as some settings values may need to be replaced
+                    // upon user request. So
+                    // 1 - load settings
+                    // 2 - process args and possibly update settings
+
+                    // The following will also update corresponding "options" members from "settings" data
                     Settings settings = LoadSettings(appArgs);
 
                     int firstScriptArg = this.ParseAppArgs(args);
+
+                    if (options.altConfig.HasText()) // user requested to use a non default config file, so start again.
+                    {
+                        appArgs.Clear();
+                        settings = LoadSettings(appArgs); // will use options.altConfig as a file source
+                        firstScriptArg = this.ParseAppArgs(args);
+                    }
 
                     options.resolveAutogenFilesRefs = settings.ResolveAutogenFilesRefs;
                     if (!options.processFile)
@@ -414,10 +426,11 @@ namespace csscript
                     options.searchDirs = dirs.ToArray();
                     var cmdScripts = new CSharpParser.CmdScriptInfo[0];
 
-                    var compilerDirective = "//css_compiler";
+                    var compilerDirective = "//css_engine";
+                    var compilerDirective2 = "//css_ng";
                     //do quick parsing for pre/post scripts, ThreadingModel and embedded script arguments
 
-                    CSharpParser parser = new CSharpParser(options.scriptFileName, true, new[] { compilerDirective }, options.searchDirs);
+                    CSharpParser parser = new CSharpParser(options.scriptFileName, true, new[] { compilerDirective, compilerDirective2 }, options.searchDirs);
 
                     // it is either '' or 'freestyle', but not 'null' if '//css_ac' was specified
                     if (parser.AutoClassMode != null)
@@ -425,9 +438,11 @@ namespace csscript
                         options.autoClass = true;
                     }
 
-                    var compilerDirectives = parser.GetDirective(compilerDirective);
+                    var compilerDirectives = parser.GetDirective(compilerDirective).Concat(parser.GetDirective(compilerDirective2));
                     if (compilerDirectives.Any())
-                        options.compilerEngine = parser.GetDirective(compilerDirective)?.Last();
+                    {
+                        options.compilerEngine = compilerDirectives.Last();
+                    }
 
                     if (parser.Inits.Length != 0)
                         options.initContext = parser.Inits[0];
@@ -1003,10 +1018,7 @@ namespace csscript
                         else
                             message = ex.Message; //Mono friendly
 
-                        if (Runtime.IsWin &&
-                            ex is System.Reflection.ReflectionTypeLoadException &&
-                            Assembly.GetExecutingAssembly().GetName().Name == "cscs" && // console app
-                            (message.Contains("'System.Windows.DependencyObject'") || message.Contains("'WindowsBase,")))
+                        if (Runtime.IsWin && IsWpfHostingException(ex) && Assembly.GetExecutingAssembly().GetName().Name == "cscs") // console app)
                         {
                             message += $"{NewLine}{NewLine}NOTE: If you are trying to use WPF ensure you have enabled WPF support " +
                                 "with `dotnet cscs.dll -wpf:enable`";
@@ -1016,6 +1028,18 @@ namespace csscript
                     }
                 }
             }
+        }
+
+        static bool IsWpfHostingException(Exception e)
+        {
+            var message = e.ToString();
+
+            if (e is System.Reflection.ReflectionTypeLoadException && (message.Contains("'System.Windows.DependencyObject'") || message.Contains("'WindowsBase,")))
+                return true;
+            else if (Runtime.IsWin && e.GetType().ToString().Contains("System.Windows.Markup.XamlParseException") && message.Contains("'System.Windows.Controls.UIElementCollection'"))
+                return true;
+            else
+                return false;
         }
 
         static void SaveDebuggingMetadata(string scriptFile)

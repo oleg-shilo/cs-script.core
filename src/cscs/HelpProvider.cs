@@ -226,7 +226,7 @@ namespace csscript
                                          " " + AppInfo.appName + " -ng:csc sample.cs)");
             switch1Help[sample] =
             switch1Help[s] = new ArgInfo("-s|-sample[:<C# version>]",
-                                         " -s:7    - prints C# 7 sample. Otherwise it prints the default canonical 'Hello World' sample.",
+                                         " -s:7    - prints C# 7+ sample. Otherwise it prints the default canonical 'Hello World' sample.",
                                          "(e.g. " + AppInfo.appName + " -s:7 > sample.cs).");
 
             switch1Help[@new] = new ArgInfo("-new[:<type>] [<script name>]",
@@ -592,8 +592,8 @@ namespace csscript
                          "//css_winapp",
                          " ",
                          alias_prefix + "//css_winapp",
-                         "Add serach directories required for running WinForm and WPF scripts.",
-                         "You need to use csws.exe engine to run such scripts.",
+                         "Adds search directories required for running WinForm and WPF scripts.",
+                         "Note: you need to use csws.exe engine to run WPF scripts.",
                          "Alternatively you can set environment variable 'CSS_WINAPP' to non empty value and css.exe shim will redirect the " +
                          "execution to the csws.exe executable.",
                          section_sep, //------------------------------------
@@ -693,26 +693,25 @@ namespace csscript
                          " Example: //css_co /d:TRACE pass /d:TRACE option to C# compiler",
                          "          //css_co /platform:x86 to produce Win32 executable\n",
                          section_sep, //------------------------------------
-                         "//css_compiler <csc|roslyn|dotnet>;",
+                         "//css_engine <csc|dotnet>;",
+                         " ",
+                         alias_prefix + "//css_ng",
                          " ",
                          "WARNING: this is an experimental feature that may not work as expected in some cases.",
-                         "This directive is used to select compiler cervices for building a script into an assembly.",
-                         "  dotnet - use `dotnet.exe` and on-fly .NET Core projects.",
+                         "This directive is used to select compiler services for building a script into an assembly.",
+                         "  dotnet - use `dotnet.exe` and on-fly .NET projects.",
                          "           ${<==}This is a default compiler engine that handles well even complicated " +
                          "heterogeneous multi-file scripts like WPF scripts.",
-                         "  csc    - use `csc.exe` (Roslyn C# compiler application). ",
-                         "           ${<==}This compiler sometimes show a somewhat better performance. Not suitable for WPF scripts.",
-                         "  roslyn - use hosted Roslyn C# compiler service.",
-                         "           ${<==}This option triggers staring a build server, which dispatches the build requests via a socket channel. " +
-                         "This feature is conceptually similar to the VBCSCompiler.exe build server, which is not included in yet in .NET Core. " +
-                         "Even though available on .NET. If for whatever reason build server fails to compile the supplied script the script engine " +
-                         "falls back to local (in-process) compilation.",
+                         "  csc    - use `csc.exe`. ",
+                         "           ${<==}This compiler shows much better performance. Though it is not suitable for WPF scripts.",
+                         "This feature is conceptually similar to the VBCSCompiler.exe build server, which is not available in in .NET5/.NET-Core. " +
+                         "Even though available on .NET-Fx (Roslyn).",
                          "           ${<==}Using this option can in order of magnitude improve compilation speed. However it's not suitable for " +
-                         "compiling WPF scripts and potentially other multi-script scenarios.",
-                         "           ${<==}While this feature useful it is to be deprecated when .NET Core starts distributing its own properly" +
+                         "compiling WPF scripts because csc.exe cannot compile XAML.",
+                         "           ${<==}While this feature useful it will be deprecated when .NET5+ starts distributing its own properly" +
                          "working build server VBCSCompiler.exe." +
                          " ",
-                         " Example: //css_compiler roslyn" + NewLine,
+                         " Example: //css_engine csc" + NewLine,
                          section_sep, //------------------------------------
                          "//css_ignore_namespace <namespace>;",
                          " ",
@@ -1333,24 +1332,20 @@ class Program
 
             cs.AppendLine("//css_ac")
               .AppendLine("using System;")
-              .AppendLine("using System.IO;");
-            if (CSExecutor.options.compilerEngine != Directives.compiler_roslyn)
-                cs.AppendLine("using static dbg; // to use 'print' instead of 'dbg.print'");
-            cs.AppendLine("")
+              .AppendLine("using System.IO;")
+              .AppendLine("using static dbg; // to use 'print' instead of 'dbg.print'")
+              .AppendLine("")
               .AppendLine("void main(string[] args)")
               .AppendLine("{")
               .AppendLine("    (string message, int version) setup_say_hello()")
               .AppendLine("    {")
-              .AppendLine("        return (\"Hello from C#\", 7);")
+              .AppendLine("        return (\"Hello from C#\", 9);")
               .AppendLine("    }")
               .AppendLine("")
               .AppendLine("    var info = setup_say_hello();")
-              .AppendLine("");
-            if (CSExecutor.options.compilerEngine == Directives.compiler_roslyn)
-                cs.AppendLine("    Console.WriteLine(info);");
-            else
-                cs.AppendLine("    print(info);");
-            cs.AppendLine("}");
+              .AppendLine("")
+              .AppendLine("    print(info);")
+              .AppendLine("}");
 
             return new[] { new SampleInfo(cs.ToString(), ".cs") };
         }
@@ -1364,37 +1359,30 @@ class Program
                 builder.AppendLine("// #!/usr/local/bin/cscs");
             }
 
-            builder.AppendLine("using System;");
-            builder.AppendLine("using System.Linq;");
-            builder.AppendLine("using System.Collections.Generic;");
-            if (CSExecutor.options.compilerEngine != Directives.compiler_roslyn)
-                builder.AppendLine("using static dbg; // to use 'print' instead of 'dbg.print'");
-            builder.AppendLine("            ");
-            builder.AppendLine("class Script");
-            builder.AppendLine("{");
-            builder.AppendLine("    static public void Main(string[] args)");
-            builder.AppendLine("    {");
-            builder.AppendLine("        (string message, int version) setup_say_hello()");
-            builder.AppendLine("        {");
-            builder.AppendLine("            return (\"Hello from C#\", 7);");
-            builder.AppendLine("        }");
-            builder.AppendLine("");
-            builder.AppendLine("        var info = setup_say_hello();");
-            builder.AppendLine("");
-            if (CSExecutor.options.compilerEngine == Directives.compiler_roslyn)
-            {
-                builder.AppendLine("        Console.WriteLine(info.message + \" \" + info.version);");
-            }
-            else
-            {
-                builder.AppendLine("        print(info.message, info.version);");
-                builder.AppendLine("");
-                builder.AppendLine("        print(Environment.GetEnvironmentVariables()");
-                builder.AppendLine("                            .Cast<object>()");
-                builder.AppendLine("                            .Take(5));");
-            }
-            builder.AppendLine("    }");
-            builder.AppendLine("}");
+            builder
+                .AppendLine("using System;")
+                .AppendLine("using System.Linq;")
+                .AppendLine("using System.Collections.Generic;")
+                .AppendLine("using static dbg; // to use 'print' instead of 'dbg.print'")
+                .AppendLine("            ")
+                .AppendLine("class Script")
+                .AppendLine("{")
+                .AppendLine("    static public void Main(string[] args)")
+                .AppendLine("    {")
+                .AppendLine("        (string message, int version) setup_say_hello()")
+                .AppendLine("        {")
+                .AppendLine("            return (\"Hello from C#\", 9);")
+                .AppendLine("        }")
+                .AppendLine("")
+                .AppendLine("        var info = setup_say_hello();")
+                .AppendLine("")
+                .AppendLine("        print(info.message, info.version);")
+                .AppendLine("")
+                .AppendLine("        print(Environment.GetEnvironmentVariables()")
+                .AppendLine("                            .Cast<object>()")
+                .AppendLine("                            .Take(5));")
+                .AppendLine("    }")
+                .AppendLine("}");
 
             return new[] { new SampleInfo(builder.ToString(), ".cs") };
         }

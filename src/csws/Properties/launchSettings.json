@@ -2,7 +2,7 @@
   "profiles": {
     "csws": {
       "commandName": "Project",
-      "commandLineArgs": "C:\\Users\\oleg.shilo\\show_properties.cs"
+      "commandLineArgs": "D:\\dev\\Galos\\cs-script.core\\src\\Tests.cscs\\bin\\Debug\\net5.0\\test.cli\\wf.cs"
     }
   }
 }

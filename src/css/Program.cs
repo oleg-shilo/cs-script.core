@@ -37,45 +37,6 @@ namespace css
                 args = args.Where(a => a != "-noconsole" && a != "-nc").ToArray();
             }
 
-            if (args.ParseValuedArg("runtime", "rt", out string value))
-            {
-                var full_env = Environment.OSVersion.IsWin() ? ".NET" : "Mono";
-
-                args = args.Where(a => !(a.StartsWith("-rt") || a.StartsWith("-runtime"))).ToArray();
-                if (value == null)
-                {
-                    if (args.Contains("?") || args.Contains("help"))
-                    {
-                        Console.WriteLine("-rt|-runtime[:<core|full>]\n" +
-                                          "    Sets the execution engine to .NET Core or the full version of .NET/Mono.");
-                    }
-                    else
-                    {
-                        if (File.Exists(RedirectFileName))
-                            Console.WriteLine($"The execution engine is set to {full_env}");
-                        else
-                            Console.WriteLine($"The execution engine is set to .NET Core");
-                    }
-                }
-                else
-                {
-                    switch (value.ToLower())
-                    {
-                        case "full":
-                            File.WriteAllText(RedirectFileName, "");
-                            Console.WriteLine($"The execution engine is set to {full_env}");
-                            break;
-
-                        case "core":
-                            if (File.Exists(RedirectFileName))
-                                File.Delete(RedirectFileName);
-                            Console.WriteLine($"The execution engine is set to .NET Core");
-                            break;
-                    }
-                }
-                return;
-            }
-
             var host = "dotnet";
             var arguments = new List<string>(args);
 

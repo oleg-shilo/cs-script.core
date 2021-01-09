@@ -784,41 +784,38 @@ partial class dbg
                     }
                     else if (Args.ParseValuedArg(arg, AppArgs.config, out argValue)) // -config:<file>
                     {
-                        if (!options.suppressExecution) // do not change the value if compilation is the objective
-                        {
-                            //-config:none             - ignore config file (use default settings)
-                            //-config:create           - create config file with default settings
-                            //-config:default          - print default config file
-                            //-config:raw              - print current config file content
-                            //-config:xml              - print current config file content
-                            //-config:ls               - lists/prints current config values
-                            //-config                  - lists/prints current config values
-                            //-config:get:name         - print current config file value
-                            //-config:set:name:value   - set current config file value
-                            //-config:<file>           - use custom config file
+                        //-config:none             - ignore config file (use default settings)
+                        //-config:create           - create config file with default settings
+                        //-config:default          - print default config file
+                        //-config:raw              - print current config file content
+                        //-config:xml              - print current config file content
+                        //-config:ls               - lists/prints current config values
+                        //-config                  - lists/prints current config values
+                        //-config:get:name         - print current config file value
+                        //-config:set:name:value   - set current config file value
+                        //-config:<file>           - use custom config file
 
-                            if (argValue == null ||
-                            argValue == "create" ||
-                            argValue == "default" ||
-                            argValue == "ls" ||
-                            argValue == "raw" ||
-                            argValue == "xml" ||
-                            argValue.StartsWith("get:") ||
-                            argValue.StartsWith("set:"))
-                            {
-                                // Debug.Assert(false);
-                                executor.ProcessConfigCommand(argValue);
-                                CLIExitRequest.Throw();
-                            }
-                            if (argValue == "none")
-                            {
-                                options.noConfig = true;
-                            }
-                            else
-                            {
-                                options.noConfig = true;
-                                options.altConfig = argValue;
-                            }
+                        if (argValue == null ||
+                        argValue == "create" ||
+                        argValue == "default" ||
+                        argValue == "ls" ||
+                        argValue == "raw" ||
+                        argValue == "xml" ||
+                        argValue.StartsWith("get:") ||
+                        argValue.StartsWith("set:"))
+                        {
+                            // Debug.Assert(false);
+                            executor.ProcessConfigCommand(argValue);
+                            CLIExitRequest.Throw();
+                        }
+                        if (argValue == "none")
+                        {
+                            options.noConfig = true;
+                        }
+                        else
+                        {
+                            options.noConfig = true;
+                            options.altConfig = argValue;
                         }
                     }
                     else if (Args.ParseValuedArg(arg, AppArgs.autoclass, AppArgs.ac, out argValue)) // -autoclass -ac
@@ -968,7 +965,7 @@ partial class dbg
                         executor.ShowHelpFor(nextArg);
                         CLIExitRequest.Throw();
                     }
-                    else if (Args.ParseValuedArg(arg, AppArgs.wpf, out argValue)) // -s:<C# version>
+                    else if (Args.ParseValuedArg(arg, AppArgs.wpf, out argValue)) // -wpf:<enable|disable>
                     {
                         executor.EnableWpf(argValue);
                         CLIExitRequest.Throw();

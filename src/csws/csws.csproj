@@ -1,5 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
@@ -7,7 +7,7 @@
     <AssemblyName>csws</AssemblyName>
     <RootNamespace>CSScripting</RootNamespace>
     <StartupObject />
-    <Version>1.4.3.0</Version>
+    <Version>1.4.4.0-NET5-RC3</Version>
     <Authors>Oleg Shilo</Authors>
     <Product>CS-Script</Product>
     <Copyright>(C) 2004-2021 Oleg Shilo</Copyright>
@@ -18,8 +18,8 @@
     <RepositoryUrl>https://github.com/oleg-shilo/cs-script.core</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>C# script dynamic</PackageTags>
-    <AssemblyVersion>1.4.3.0</AssemblyVersion>
-    <FileVersion>1.4.3.0</FileVersion>
+    <AssemblyVersion>1.4.4.0</AssemblyVersion>
+    <FileVersion>1.4.4.0</FileVersion>
     <PackageReleaseNotes>- Build for .NET 5.0.101 (public release)
 - CLI
   - `LoadFrom` is globally replaced with `LoadFile` (to avoid unintentional, CLR-backed asm memory caching)
@@ -29,24 +29,19 @@
   - Added reporting using of incompatible csc compiler for scripts requiring XAML compilation
   - Implemented deployment of build server
 </PackageReleaseNotes>
-
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <ApplicationIcon />
     <PackageIcon>..\logo\css_logo.png</PackageIcon>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE;TRACE, WIN_APP</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DefineConstants>TRACE;TRACE, WIN_APP</DefineConstants>
   </PropertyGroup>
-
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)..\out\.NET Core\$(TargetFileName)&quot;&#xD;&#xA;copy &quot;$(TargetDir)csws.exe&quot; &quot;$(ProjectDir)..\out\.NET Core\csws.exe&quot;&#xD;&#xA;copy &quot;$(TargetDir)csws.runtimeconfig.json&quot; &quot;$(ProjectDir)..\out\.NET Core\csws.runtimeconfig.json&quot;&#xD;&#xA;copy &quot;$(TargetDir)csws.deps.json&quot; &quot;$(ProjectDir)..\out\.NET Core\csws.deps.json&quot;&#xD;&#xA;&#xD;&#xA;copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)..\css\bin\$(ConfigurationName)\$(TargetName).dll&#xD;&#xA;copy &quot;$(TargetDir)csws.exe&quot; &quot;$(ProjectDir)..\css\bin\$(ConfigurationName)\$(TargetName).exe&#xD;&#xA;copy &quot;$(TargetDir)csws.runtimeconfig.json&quot; &quot;$(ProjectDir)..\css\bin\$(ConfigurationName)\csws.runtimeconfig.json&quot;&#xD;&#xA;" />
   </Target>
-
   <ItemGroup>
     <Compile Include="..\cscs\AssemblyExecutor.cs" Link="AssemblyExecutor.cs" />
     <Compile Include="..\cscs\AssemblyResolver.cs" Link="AssemblyResolver.cs" />
@@ -93,18 +88,15 @@
     <Compile Include="..\cscs\Utils\Utils.cs" Link="Utils\Utils.cs" />
     <Compile Include="..\cscs\Utils\WildCardExtensions.cs" Link="Utils\WildCardExtensions.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <None Include="..\logo\css_logo.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.2.0-beta1-final" />
   </ItemGroup>
-
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -112,7 +104,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

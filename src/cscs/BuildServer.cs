@@ -10,10 +10,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-// using compile_server;
-
-// using csscript;
-
 namespace CSScripting.CodeDom
 {
     public static partial class BuildServer
@@ -44,7 +40,7 @@ namespace CSScripting.CodeDom
                         var dirs = Directory.GetDirectories(sdkDir)
                                             .Where(dir => { var firstChar = Path.GetFileName(dir)[0]; return char.IsDigit(firstChar); })
                                             .OrderBy(x => Version.Parse(Path.GetFileName(x).Split('-').First()))
-                                            .ThenBy(x => Path.GetFileName(x).Split('-').Count())
+                                            .ThenBy(x => Path.GetFileName(x).Split('-').Length)
                                             .SelectMany(dir => Directory.GetDirectories(dir, "Roslyn"))
                                             .ToArray();
 
@@ -56,7 +52,7 @@ namespace CSScripting.CodeDom
             }
         }
 
-        public static int serverPort = 17001;
+        internal static int serverPort = 17001;
 
         static public string Request(string request, int? port)
         {
@@ -143,8 +139,8 @@ namespace CSScripting.CodeDom
             {
                 var buf = new StringBuilder();
 
-                if (Directory.Exists(build_server_active_instances))
-                    foreach (string activeServer in Directory.GetFiles(build_server_active_instances, "*.pid"))
+                if (Directory.Exists(BuildServerActiveInstances))
+                    foreach (string activeServer in Directory.GetFiles(BuildServerActiveInstances, "*.pid"))
                     {
                         var proc = GetProcess(int.Parse(Path.GetFileNameWithoutExtension(activeServer)));
                         if (proc != null)
@@ -157,17 +153,22 @@ namespace CSScripting.CodeDom
             catch { return "<no respone>"; }
         }
 
+#if build_server
+#pragma warning disable 414
+        static bool closeSocketRequested = false;
+
         public static void SimulateCloseSocketSignal()
             => closeSocketRequested = true;
 
+#pragma warning restore 414
+#endif
+
         public static void SimulateCloseAppSignal()
         {
-            var mutex = new Mutex(true, "cs-script.build_server.shutdown");
+            Mutex mutex = new Mutex(true, "cs-script.build_server.shutdown");
         }
 
-        static bool closeSocketRequested = false;
-
-        static internal string build_server_active_instances
+        static internal string BuildServerActiveInstances
             => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                             "cs-script",
                             "bin",
@@ -188,8 +189,8 @@ namespace CSScripting.CodeDom
 
         public static void ReportRunning(int? port)
         {
-            Directory.CreateDirectory(build_server_active_instances);
-            var pidFile = Path.Combine(build_server_active_instances, $"{Process.GetCurrentProcess().Id}.pid");
+            Directory.CreateDirectory(BuildServerActiveInstances);
+            var pidFile = Path.Combine(BuildServerActiveInstances, $"{Environment.ProcessId}.pid");
             File.WriteAllText(pidFile, (port ?? serverPort).ToString());
         }
 
@@ -197,8 +198,8 @@ namespace CSScripting.CodeDom
         {
             try
             {
-                if (Directory.Exists(build_server_active_instances))
-                    foreach (string activeServer in Directory.GetFiles(build_server_active_instances, "*.pid"))
+                if (Directory.Exists(BuildServerActiveInstances))
+                    foreach (string activeServer in Directory.GetFiles(BuildServerActiveInstances, "*.pid"))
                     {
                         var proc = GetProcess(int.Parse(Path.GetFileNameWithoutExtension(activeServer)));
                         if (proc == null)
@@ -218,7 +219,7 @@ namespace CSScripting.CodeDom
 
         public static void ReportExit()
         {
-            var pidFile = Path.Combine(build_server_active_instances, $"{Process.GetCurrentProcess().Id}.pid");
+            var pidFile = Path.Combine(BuildServerActiveInstances, $"{Environment.ProcessId}.pid");
 
             if (File.Exists(pidFile))
                 File.Delete(pidFile);
@@ -256,12 +257,12 @@ namespace CSScripting.CodeDom
 
                             if (request == "-stop")
                             {
-                                try { clientSocket.WriteAllText($"Terminating pid:{Process.GetCurrentProcess().Id}"); } catch { }
+                                try { clientSocket.WriteAllText($"Terminating pid:{Environment.ProcessId}"); } catch { }
                                 break;
                             }
                             else if (request == "-ping")
                             {
-                                try { clientSocket.WriteAllText($"pid:{Process.GetCurrentProcess().Id}"); } catch { }
+                                try { clientSocket.WriteAllText($"pid:{Environment.ProcessId}"); } catch { }
                             }
                             else
                             {

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using csscript;
 using CSScripting;
 using CSScripting.CodeDom;
@@ -19,7 +20,6 @@ using CSScripting.CodeDom;
      - add configurable exit on idle
 
    cscs
-     - remove old Roslyn-based build server
      - code cleanup
      - VB support
      - Unify namespaces
@@ -27,6 +27,7 @@ using CSScripting.CodeDom;
      - remove old not used settings
      - clean help content from unused stuff
      - implement config for port number
+     + remove old Roslyn-based build server
      + report using of csc_builder for WPF project
      + add configurable use of csc_builder
      + bind csc_builder to -server:exit and -server:start and read config
@@ -35,11 +36,11 @@ using CSScripting.CodeDom;
 
    CSSCriptLib
      - VB support
-     - tunneling compiler options
-     - XML documentation
      - implement config for port number
-     - implement Engine.CodeDom
-     - ensure Engine.CodeDom supports multi-scripting
+     + XML documentation
+     + tunneling compiler options
+     + implement Engine.CodeDom
+     + ensure Engine.CodeDom supports multi-scripting
 */
 
 namespace cscs

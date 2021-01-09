@@ -2,7 +2,8 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "-check -verbose -ng:csc \"D:\\dev\\Galos\\cs-script.core\\src\\out\\.NET Core\\print.cs\"",
+      "commandLineArgs": "-check -verbose -config:\"D:\\dev\\Galos\\cs-script.core\\src\\Tests.cscs\\bin\\Debug\\net5.0\\test.cli\\switch_engine_from_settings.config\" switch_engine_from_settings",
+      "workingDirectory": "D:\\dev\\Galos\\cs-script.core\\src\\Tests.cscs\\bin\\Debug\\net5.0\\test.cli",
       "remoteDebugEnabled": false
     }
   }

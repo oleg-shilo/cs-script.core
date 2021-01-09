@@ -110,23 +110,23 @@ namespace EvaluatorTests
             script.Test(printer);
         }
 
-        [Fact(Skip = "VB is not supported yet")]
-        public void VB_Generic_Test()
-        {
-            Assembly asm = CSScript.RoslynEvaluator
-                           .CompileCode(@"' //css_ref System
-                                      Imports System
-                                      Class Script
+        // [Fact(Skip = "VB is not supported yet")] // hiding it from xUnit
+        // public void VB_Generic_Test()
+        // {
+        //     Assembly asm = CSScript.RoslynEvaluator
+        //                    .CompileCode(@"' //css_ref System
+        //                               Imports System
+        //                               Class Script
 
-                                        Function Sum(a As Integer, b As Integer)
-                                            Sum = a + b
-                                        End Function
+        //                                 Function Sum(a As Integer, b As Integer)
+        //                                     Sum = a + b
+        //                                 End Function
 
-                                    End Class");
+        //                             End Class");
 
-            dynamic script = asm.CreateObject("*");
-            var result = script.Sum(7, 3);
-        }
+        //     dynamic script = asm.CreateObject("*");
+        //     var result = script.Sum(7, 3);
+        // }
 
         [Fact]
         public void Issue_185_Referencing()

@@ -13,7 +13,7 @@ namespace CSScriptLib
 {
     class ExecuteOptions
     {
-        public string compilerEngine = Directives.compiler_roslyn;
+        public string compilerEngine = Directives.compiler_csc;
     }
 
     class CSExecutor

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>cs-script.core</id>
-        <version>1.4.2.0-preview</version>
+        <version>1.4.4.0-NET5-RC4</version>
         <title>CS-Script.Core</title>
         <authors>Oleg Shilo</authors>
         <owners>Oleg Shilo</owners>
@@ -16,22 +16,24 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>CLR based runtime environment for executing scripts written in ECMA-compliant C#.
     The main idea of CS-Script is to allow "plain vanilla" C# code execution from both command-prompt and form any CLR application hosting the script engine.
-    CS-Script targets .NET Core 2.0.
+    CS-Script targets .NET 5.
     The default installation directory is "%ChocolateyInstall%\lib\cs-script.core".
     This package contains the set of scripts and binaries that required for the default functionality. However there is some additional content that represents somewhat less mainstream functionality and experimental features. This content is available as an `Extension Pack` from the releases page(https://github.com/oleg-shilo/cs-script/releases). Installing the `Extension Pack` is as simple as downloading and extracting the archive to your chocolatey install location (most likely C:\ProgramData\chocolatey\lib\cs-script.core\tools\cs-script.core).
 
 </description>
         <summary>CS-Script.Core</summary>
         <releaseNotes>
-# .NET5 Preview Release (RC2)
-- Migrated to .NET5 RC2
-- Implemented `//css_winapp` for WinForm and WPF applications
-- Added `-new:toplevel` CLI parameter
-- Added support for -vscode switch to open script in visual studio
-- Added support for -vs switch to open script folder in visual studio code
-- Added support for top-level statements (new classless script approach)
-- Added CLI switch -profile for testing script loading performance
-- Added CLI `-speed` for compiler performance testing
+# .NET5 Preview Release (RC4)
+v1.4.4.0
+- Added //css_engine (//css_ng) directive for choosing the compiling engine
+- Added -engine:&lt;csc|dotnet&gt; switch
+
+v1.4.3.0
+- LoadFrom is globally replaced with LoadFile (to avoid CLR-backed asm memory caching)
+- Implemented hot-loading for csc engine in standalone mode. First cut
+- Normalized all \n and \r\n CLI output by using Environment.NewLine
+- Add config setting for using of csc builder
+- Added reporting using of incompatible csc compiler for scripts requiring XAML compilation implemented deployment of build server
         </releaseNotes>
         <copyright>Oleg Shilo</copyright>
         <tags>cs-script C# script dynamic hosting</tags>

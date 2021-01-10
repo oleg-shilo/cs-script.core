@@ -1,6 +1,6 @@
-//_css_ac
 //_css_inc %csscript_inc%\cmd.cs
-//css_inc E:\Utils\inc\cmd.cs
+//css_inc ..\out\ci\cmd.cs
+
 
 using System.IO;
 using System.Net;
@@ -11,7 +11,7 @@ void main()
     ServicePointManager.Expect100Continue = true;
     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
-    var url = "https://github.com/oleg-shilo/cs-script.core/releases/download/v1.4.2.0/cs-script.core.v1.4.2.0.7z";
+    var url = "https://github.com/oleg-shilo/cs-script.core/releases/download/v1.4.4-NET5-RC4/cs-script.core.v1.4.4.0.7z";
 
     var installScript = @"tools\chocolateyInstall.ps1";
 

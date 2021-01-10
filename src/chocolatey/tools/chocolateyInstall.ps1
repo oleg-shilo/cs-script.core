@@ -1,45 +1,54 @@
 $packageName = 'cs-script.core'
-$url = 'https://github.com/oleg-shilo/cs-script.core/releases/download/v1.4.2.0/cs-script.core.v1.4.2.0.7z'
+$url = 'https://github.com/oleg-shilo/cs-script.core/releases/download/v1.4.4-NET5-RC4/cs-script.core.v1.4.4.0.7z'
 
 try {
   $installDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 
-  $cheksum = '0183EFDFC5B09968987B7DBE98BE76704F32BBC603255383749CB8B63C2991F9'
+  $cheksum = 'AE9ED5C9591A404778D29F392710E08556DFE1D402A0EC2658194C6BDF12D5D5'
   $checksumType = "sha256"
 
-  $server = "localhost"
-  $port = "17001"
-  $data = "-exit"
+  function stop-server
+  {
+     param(
+       $server,
+       $port,
+       $command
+     )
 
-  try {
+    try {
 
-      $client  = New-Object Net.Sockets.TcpClient($server, $port)
-      $socketStream  = $client.GetStream()
+        $client  = New-Object Net.Sockets.TcpClient($server, $port)
+        $socketStream  = $client.GetStream()
 
-      [Byte[]]$Buffer = [Text.Encoding]::ASCII.GetBytes($data)
+        [Byte[]]$Buffer = [Text.Encoding]::ASCII.GetBytes($data)
 
 
-      $socketStream.Write($Buffer, 0, $Buffer.Length)
-      $socketStream.Flush()
+        $socketStream.Write($Buffer, 0, $Buffer.Length)
+        $socketStream.Flush()
+    }
+    catch{
+    }
   }
-  catch{
-  }
+
+
+  stop-server "localhost" "17001" "-exit" # prev release Roslyn compiling server requires "-exit"
+  stop-server "localhost" "17001" "-stop" # starting from .NET 5 release CodeDom build server requires "-stop"
 
   # Download and unpack a zip file
   Install-ChocolateyZipPackage "$packageName" "$url" "$installDir" -checksum $checksum -checksumType $checksumType
 
-  $css_full_dir = [System.Environment]::GetEnvironmentVariable('CSSCRIPT_FULL_DIR')
+  $css_full_dir = Get-EnvironmentVariable 'CSSCRIPT_FULL_DIR' User
 
   if($css_full_dir) {
     # already captured
   }
   else {
-    $css_full_dir = [System.Environment]::GetEnvironmentVariable('CSSCRIPT_DIR')
-    [System.Environment]::SetEnvironmentVariable('CSSCRIPT_FULL_DIR', $css_full_dir, [System.EnvironmentVariableTarget]::User)
+    $css_full_dir = Get-EnvironmentVariable 'CSSCRIPT_DIR' User
+    Install-ChocolateyEnvironmentVariable 'CSSCRIPT_FULL_DIR' $css_full_dir User
   }
 
-  [System.Environment]::SetEnvironmentVariable('CSSCRIPT_DIR', $installDir, [System.EnvironmentVariableTarget]::User)
-
+  Install-ChocolateyEnvironmentVariable 'CSSCRIPT_DIR' $installDir User
+  
 } catch {
   throw $_.Exception
 }

@@ -203,9 +203,13 @@ namespace csscript
             switch1Help[proj] = new ArgInfo("-proj",
                                             "Shows script 'project info' - script and all its dependencies.");
             switch1Help[vs] = new ArgInfo("-vs",
-                                          "Generates Visual Studio project file and opens it in Visual Studio.",
-                                              "The path to the Visual Studio executable needs to be defined in the " +
+                                          "Generates .NET project file and opens it in Visual Studio.",
+                                              "The path to the Visual Studio executable (devenv.exe) needs to be defined in the " +
                                               "environment variable `CSSCRIPT_VSEXE`.");
+            switch1Help[vscode] = new ArgInfo("-vscode",
+                                          "Generates .NET project file and opens it in Visual Studio Code.",
+                                              "The path to the Visual Studio Code executable (code.exe) needs to be defined in the " +
+                                              "environment variable `CSSCRIPT_VSCODEEXE`.");
 
             switch1Help[cache] = new ArgInfo("-cache[:<ls|trim|clear>]",
                                              "Performs script cache operations.",
@@ -1484,9 +1488,13 @@ nvironment.NewLine);
                     builder.AppendLine("   Install dir:     " + (Environment.GetEnvironmentVariable("CSSCRIPT_ROOT") ?? "<not integrated>"));
 
                 var asm_path = Assembly.GetExecutingAssembly().Location;
-                builder.AppendLine("   Location:        " + asm_path);
+                try
+                {
+                    builder.AppendLine("   Script engine:   " + Assembly.GetExecutingAssembly().Location);
+                }
+                catch { }
+
                 builder.AppendLine("   Config file:     " + (Settings.DefaultConfigFile.FileExists() ? Settings.DefaultConfigFile : "<none>"));
-                builder.Append("   Engine:          ");
                 var compiler = "<default>";
 
                 if (!string.IsNullOrEmpty(asm_path))
@@ -1498,6 +1506,7 @@ nvironment.NewLine);
 
                     if (!string.IsNullOrEmpty(alt_compiler))
                     {
+                        builder.Append("   Provider:          ");
                         builder.AppendLine(alt_compiler);
                         try
                         {
@@ -1519,8 +1528,10 @@ nvironment.NewLine);
                     }
                     else
                     {
-                        builder.AppendLine(settings.DefaultCompilerEngine);
-                        builder.AppendLine($"                    {Globals.csc}");
+                        if (settings.DefaultCompilerEngine == "csc")
+                            builder.AppendLine($"   Compiler engine: {settings.DefaultCompilerEngine} ({Globals.csc})");
+                        else
+                            builder.AppendLine($"   Compiler engine: {settings.DefaultCompilerEngine} ({Globals.dotnet})");
                     }
                 }
                 else

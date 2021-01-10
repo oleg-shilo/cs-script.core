@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml.Linq;
 
 // var version = "1.4.4.0-NET5-RC4";
-var version = args.FirstOrDefault();
+var version = args.FirstOrDefault(); 
 
 @"CSScriptLib\src\CSScriptLib\CSScriptLib.csproj".set_version(version);
 @"csws\csws.csproj".set_version(version);

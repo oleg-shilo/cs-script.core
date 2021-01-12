@@ -170,24 +170,28 @@ namespace csscript
         static internal string CustomCommandsDir
             => Environment.SpecialFolder.CommonApplicationData.GetPath()
                                         .PathJoin("cs-script", "commands")
-                                        .EnsureDir();
+                                        .EnsureDir(false);
 
         static internal string GlobalIncludsDir
         {
             get
             {
-                var globalIncluds = Environment.GetEnvironmentVariable("CSSCRIPT_INC");
-                if (globalIncluds.IsNotEmpty())
-                    return globalIncluds.EnsureDir();
+                try
+                {
+                    var globalIncluds = Environment.GetEnvironmentVariable("CSSCRIPT_INC");
+                    if (globalIncluds.IsNotEmpty())
+                        return globalIncluds.EnsureDir();
 
-                return Environment.SpecialFolder.CommonApplicationData.GetPath()
-                                            .PathJoin("cs-script", "inc")
-                                            .With(x =>
-                                            {
-                                                Environment.SetEnvironmentVariable("CSSCRIPT_INC", x, EnvironmentVariableTarget.User);
-                                                return x;
-                                            })
-                                            .EnsureDir();
+                    return Environment.SpecialFolder.CommonApplicationData.GetPath()
+                                                .PathJoin("cs-script", "inc")
+                                                .With(x =>
+                                                {
+                                                    Environment.SetEnvironmentVariable("CSSCRIPT_INC", x, EnvironmentVariableTarget.User);
+                                                    return x;
+                                                })
+                                                .EnsureDir();
+                }
+                catch { return null; }
             }
         }
 
@@ -202,40 +206,47 @@ namespace csscript
         {
             get
             {
-                // There is no warranty that the dotnet dedktop assemblies belong to the same distro version as dotnet Core:
-                // C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.0-rc.1.20451.14
-                // C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\5.0.0-rc.1.20452.2
-                var netCoreDir = typeof(string).Assembly.Location.GetDirName();
-                var dir = netCoreDir.Replace("Microsoft.NETCore.App", "Microsoft.WindowsDesktop.App");
-
-                if (dir.DirExists())
-                    return dir; // Microsoft.WindowsDesktop.App and Microsoft.NETCore.App are of teh same version
-
-                var desiredVersion = netCoreDir.GetFileName();
-
-                int howSimilar(string stringA, string stringB)
+                try
                 {
-                    var maxSimilariry = Math.Min(stringA.Length, stringB.Length);
+                    // There is no warranty that the dotnet dedktop assemblies belong to the same distro version as dotnet Core:
+                    // C:\Program Files\dotnet\shared\Microsoft.NETCore.App\5.0.0-rc.1.20451.14
+                    // C:\Program Files\dotnet\shared\Microsoft.WindowsDesktop.App\5.0.0-rc.1.20452.2
+                    var netCoreDir = typeof(string).Assembly.Location.GetDirName();
+                    var dir = netCoreDir.Replace("Microsoft.NETCore.App", "Microsoft.WindowsDesktop.App");
 
-                    for (int i = 0; i < maxSimilariry; i++)
-                        if (stringA[i] != stringB[i])
-                            return i;
+                    if (dir.DirExists())
+                        return dir; // Microsoft.WindowsDesktop.App and Microsoft.NETCore.App are of teh same version
 
-                    return maxSimilariry;
+                    var desiredVersion = netCoreDir.GetFileName();
+
+                    int howSimilar(string stringA, string stringB)
+                    {
+                        var maxSimilariry = Math.Min(stringA.Length, stringB.Length);
+
+                        for (int i = 0; i < maxSimilariry; i++)
+                            if (stringA[i] != stringB[i])
+                                return i;
+
+                        return maxSimilariry;
+                    }
+
+                    var allDesktopVersionsRootDir = dir.GetDirName();
+
+                    var allInstalledVersions = Directory.GetDirectories(allDesktopVersionsRootDir)
+                                                        .Select(d => new
+                                                        {
+                                                            Path = d,
+                                                            Version = d.GetFileName(),
+                                                            SimialrityIndex = howSimilar(d.GetFileName(), desiredVersion)
+                                                        })
+                                                        .OrderByDescending(x => x.SimialrityIndex);
+
+                    return allInstalledVersions.FirstOrDefault()?.Path;
                 }
-
-                var allDesktopVersionsRootDir = dir.GetDirName();
-
-                var allInstalledVersions = Directory.GetDirectories(allDesktopVersionsRootDir)
-                                                    .Select(d => new
-                                                    {
-                                                        Path = d,
-                                                        Version = d.GetFileName(),
-                                                        SimialrityIndex = howSimilar(d.GetFileName(), desiredVersion)
-                                                    })
-                                                    .OrderByDescending(x => x.SimialrityIndex);
-
-                return allInstalledVersions.FirstOrDefault()?.Path;
+                catch
+                {
+                    return null;
+                }
             }
         }
     }

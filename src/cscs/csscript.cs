@@ -889,6 +889,9 @@ namespace csscript
 
                                 assemblyFileName = Compile(options.scriptFileName);
 
+                                if (Runtime.IsLinux && assemblyFileName.EndsWith(".exe"))
+                                    assemblyFileName = assemblyFileName.RemoveAssemblyExtension();
+
                                 Profiler.Stopwatch.Stop();
 
                                 if (options.verbose || Utils.IsSpeedTest || options.profile)
@@ -1574,7 +1577,10 @@ namespace csscript
             {
                 if (generateExe)
                 {
-                    assemblyFileName = Path.Combine(scriptDir, Path.GetFileNameWithoutExtension(scriptFileName) + ".exe");
+                    if (Runtime.IsLinux)
+                        assemblyFileName = Path.Combine(scriptDir, Path.GetFileNameWithoutExtension(scriptFileName));
+                    else
+                        assemblyFileName = Path.Combine(scriptDir, Path.GetFileNameWithoutExtension(scriptFileName) + ".exe");
                 }
                 else if (options.useCompiled || options.compileDLL)
                 {

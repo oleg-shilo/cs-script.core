@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using static System.StringComparison;
+using static CSScripting.PathExtensions;
 using System.Text;
 using System.Threading;
 using System.Xml.Linq;
@@ -80,7 +81,7 @@ namespace CSScripting.CodeDom
                     "<Project Sdk=\"Microsoft.NET.Sdk\">",
                     "  <PropertyGroup>",
                     "    <OutputType>Exe</OutputType>",
-                    "    <TargetFramework>netcoreapp3.1</TargetFramework>",
+                    "    <TargetFramework>net5.0</TargetFramework>",
                     "  </PropertyGroup>",
                     "</Project>"
                 });
@@ -93,18 +94,21 @@ namespace CSScripting.CodeDom
 
         public CompilerResults CompileAssemblyFromFileBatch(CompilerParameters options, string[] fileNames)
         {
-            switch (CSExecutor.options.compilerEngine)
-            {
-                case Directives.compiler_dotnet:
-                    return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
+            if (options.GenerateExecutable)
+                return CompileAssemblyFromFileBatch_with_Build(options, fileNames); // csc.exe does not support building self sufficient executables
+            else
+                switch (CSExecutor.options.compilerEngine)
+                {
+                    case Directives.compiler_dotnet:
+                        return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
 
-                case Directives.compiler_csc:
-                    return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
+                    case Directives.compiler_csc:
+                        return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
 
-                default:
-                    // return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
-                    return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
-            }
+                    default:
+                        // return CompileAssemblyFromFileBatch_with_Csc(options, fileNames);
+                        return CompileAssemblyFromFileBatch_with_Build(options, fileNames);
+                }
         }
 
         class FileWatcher
@@ -235,13 +239,22 @@ namespace CSScripting.CodeDom
             foreach (string file in sources)
                 source_args.Add($"\"{file}\"");
 
-            bool compile_on_server = true;
+            // running build server on Linux is problematic as if it is started from here it will be killed when the
+            // parent process (this) exits
+
+            bool compile_on_server = Runtime.IsWin;
             string cmd;
 
             Profiler.get("compiler").Start();
             //if (Runtime.IsCore) // currently it is always on .NET5 (.NET Core)
             {
-                if (compile_on_server && Globals.BuildServerIsDeployed)
+                if (compile_on_server)
+                {
+                    if (!Globals.BuildServerIsDeployed)
+                        compile_on_server = false;
+                }
+
+                if (compile_on_server)
                 {
                     bool usingCli = false;
                     if (usingCli)
@@ -289,8 +302,20 @@ namespace CSScripting.CodeDom
 
             if (result.NativeCompilerReturnValue == 0 && File.Exists(assembly))
             {
-                result.PathToAssembly = options.OutputAssembly;
-                File.Copy(assembly, result.PathToAssembly, true);
+                if (Runtime.IsLinux)
+                {
+                    result.PathToAssembly = options.OutputAssembly;
+                    //try
+                    //{
+                    File.Copy(assembly, result.PathToAssembly, true);
+                    //}
+                    //catch { }
+                }
+                else
+                {
+                    result.PathToAssembly = options.OutputAssembly;
+                    try { File.Copy(assembly, result.PathToAssembly, true); } catch { }
+                }
 
                 if (options.GenerateExecutable)
                 {
@@ -299,7 +324,15 @@ namespace CSScripting.CodeDom
                                      .Replace("{version}", Environment.Version.ToString());
 
                     File.WriteAllText(result.PathToAssembly.ChangeExtension(".runtimeconfig.json"), runtimeconfig);
-                    File.Copy(assembly, result.PathToAssembly.ChangeExtension(".exe"), true);
+                    try
+                    {
+                        // CSUtils.
+                        if (Runtime.IsLinux)
+                            File.Copy(assembly, result.PathToAssembly.RemoveAssemblyExtension(), true);
+                        else
+                            File.Copy(assembly, result.PathToAssembly.ChangeExtension(".exe"), true);
+                    }
+                    catch { }
                 }
                 else
                 {
@@ -525,9 +558,27 @@ EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWith
                 result.PathToAssembly = options.OutputAssembly;
                 if (options.GenerateExecutable)
                 {
-                    File.Copy(assembly.ChangeExtension(".runtimeconfig.json"), result.PathToAssembly.ChangeExtension(".runtimeconfig.json"), true);
-                    File.Copy(assembly.ChangeExtension(".exe"), result.PathToAssembly.ChangeExtension(".exe"), true);
-                    File.Copy(assembly.ChangeExtension(".dll"), result.PathToAssembly.ChangeExtension(".dll"), true);
+                    // strangely enough on some Linux distro (e.g. WSL2) the access denied error is raised after the files are successfully copied
+                    // so ignore
+                    PathExtensions.FileCopy(
+                        assembly.ChangeExtension(".runtimeconfig.json"),
+                        result.PathToAssembly.ChangeExtension(".runtimeconfig.json"),
+                        ignoreErrors: Runtime.IsLinux);
+
+                    if (Runtime.IsLinux) // on Linux executables are without extension
+                        PathExtensions.FileCopy(
+                            assembly.RemoveAssemblyExtension(),
+                            result.PathToAssembly.RemoveAssemblyExtension(),
+                            ignoreErrors: Runtime.IsLinux);
+                    else
+                        PathExtensions.FileCopy(
+                            assembly.ChangeExtension(".exe"),
+                            result.PathToAssembly.ChangeExtension(".exe"));
+
+                    PathExtensions.FileCopy(
+                        assembly.ChangeExtension(".dll"),
+                        result.PathToAssembly.ChangeExtension(".dll"),
+                        ignoreErrors: Runtime.IsLinux);
                 }
                 else
                 {
@@ -548,7 +599,7 @@ EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWith
                 }
             }
 
-            build_dir.DeleteDir();
+            build_dir.DeleteDir(handeExceptions: true);
 
             return result;
         }

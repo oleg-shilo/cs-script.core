@@ -9,8 +9,20 @@ namespace CSScripting
     /// <summary>
     /// Various PATH extensions
     /// </summary>
-    static class PathExtensions
+    public static class PathExtensions
     {
+        public static void FileCopy(this string src, string dest, bool ignoreErrors = false)
+        {
+            try
+            {
+                File.Copy(src, dest, true);
+            }
+            catch
+            {
+                if (!ignoreErrors) throw;
+            }
+        }
+
         public static string ChangeExtension(this string path, string extension) => Path.ChangeExtension(path, extension);
 
         public static string GetExtension(this string path) => Path.GetExtension(path);
@@ -32,10 +44,16 @@ namespace CSScripting
             return Environment.GetFolderPath(folder);
         }
 
-        public static string EnsureDir(this string path)
+        public static string EnsureDir(this string path, bool rethrow = true)
         {
-            Directory.CreateDirectory(path);
-            return path;
+            try
+            {
+                Directory.CreateDirectory(path);
+
+                return path;
+            }
+            catch { if (rethrow) throw; }
+            return null;
         }
 
         public static string DeleteDir(this string path, bool handeExceptions = false)

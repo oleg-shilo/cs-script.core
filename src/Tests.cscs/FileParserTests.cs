@@ -17,7 +17,7 @@ namespace Misc
     /// While cs-script provides every directive individually and completely. Meaning that it is
     /// impossible to specify in a single //css_ directive something like "include all '.cs' except temp.cs".
     /// </summary>
-    class TestFolder
+    public class TestFolder
     {
         public static string root = Assembly.GetExecutingAssembly().Location.GetDirName().PathJoin("test").EnsureDir();
 

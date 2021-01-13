@@ -5,6 +5,10 @@ using System.Linq;
 using System.Reflection;
 using static System.Reflection.BindingFlags;
 
+class FactWinOnlyAttribute : Attribute
+{
+}
+
 static class Extensions
 {
     public static string Run(this string exe, string args = null, string dir = null)

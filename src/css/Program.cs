@@ -17,6 +17,13 @@ namespace css
 {
     internal static class Program
     {
+        static void Main1(string[] args)
+        {
+            var dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var engine = Path.Combine(dir, "cscs.dll");
+            AppDomain.CurrentDomain.ExecuteAssembly(engine, args);
+        }
+
         static void Main(string[] args)
         {
             // Environment.SetEnvironmentVariable("CSS_WINAPP", "true", EnvironmentVariableTarget.User);

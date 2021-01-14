@@ -32,10 +32,11 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)..\css\bin\$(ConfigurationName)\$(TargetName).dll&#xD;&#xA;&#xD;&#xA;copy &quot;$(TargetDir)cscs.exe&quot; &quot;$(ProjectDir)..\css\bin\$(ConfigurationName)\$(TargetName).exe&#xD;&#xA;&#xD;&#xA;copy &quot;$(TargetDir)cscs.runtimeconfig.json&quot; &quot;$(ProjectDir)..\css\bin\$(ConfigurationName)\cscs.runtimeconfig.json&quot;&#xD;&#xA;" />
+    <Exec Command="copy &quot;$(TargetPath)&quot; &quot;$(ProjectDir)..\css\bin\$(ConfigurationName)\$(TargetName).dll&#xD;&#xA;copy &quot;$(TargetDir)cscs.exe&quot; &quot;$(ProjectDir)..\css\bin\$(ConfigurationName)\$(TargetName).exe&#xD;&#xA;copy &quot;$(TargetDir)cscs.runtimeconfig.json&quot; &quot;$(ProjectDir)..\css\bin\$(ConfigurationName)\cscs.runtimeconfig.json&quot;&#xD;&#xA;" />
   </Target>
   <ItemGroup>
     <Compile Remove="GACHelper.cs" />
+    <Compile Remove="Services.Roslyn.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\logo\css_logo.png">
@@ -43,9 +44,7 @@
       <PackagePath></PackagePath>
     </None>
     <None Include="GACHelper.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.7.0" />
+    <None Include="Services.Roslyn.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">

@@ -1,4 +1,4 @@
-using csscript;
+﻿using csscript;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -243,17 +243,14 @@ namespace CSScriptLib
         /// <summary>
         /// Searches for script file by given script name. Search order:
         /// 1. Current directory
-        /// 2. extraDirs (usually %CSSCRIPT_ROOT%\Lib and ExtraLibDirectory)
+        /// 2. extraDirs (usually %CSSCRIPT_DIR%\Lib and ExtraLibDirectory)
         /// 3. PATH
         /// Also fixes file name if user did not provide extension for script file (assuming .cs extension)
         /// <para>If the default implementation isn't suitable then you can set <c>FileParser.ResolveFilesAlgorithm</c>
         /// to the alternative implementation of the probing algorithm.</para>
         /// </summary>
         public static string ResolveFile(string file, string[] extraDirs, bool throwOnError)
-        {
-            string[] files = ResolveFilesAlgorithm(file, extraDirs, throwOnError);
-            return files.Length > 0 ? files[0] : null;
-        }
+            => ResolveFilesAlgorithm(file, extraDirs, throwOnError).FirstOrDefault();
 
         internal static string[] ResolveFiles(string file, string[] extraDirs, bool throwOnError)
             => ResolveFilesAlgorithm(file, extraDirs, throwOnError);
@@ -265,6 +262,34 @@ namespace CSScriptLib
                 retval = _ResolveFiles(file, extraDirs, ".cs");
             if (retval.Length == 0)
                 retval = _ResolveFiles(file, extraDirs, ".csl"); //script link file
+            if (retval.Length == 0)
+            {
+                // a complex command folder. IE:
+                // ├──  -selftest
+                // │   ├── run.cs
+                // │   ├── utils.cs
+                // │   ├── log.cs
+                // │   └── test_definitions.cs.
+
+                // possible cCLI command:
+                // css -selftest
+                // css -selftest:run
+                // css -selftest:log
+                if (file.GetFileName().StartsWith("-"))
+                {
+                    if (file.Contains(":"))
+                    {
+                        var filePath = file.Replace(':', Path.DirectorySeparatorChar);
+                        retval = _ResolveFiles(filePath, extraDirs, "");
+                        if (retval.Length == 0)
+                            retval = _ResolveFiles(filePath, extraDirs, ".cs");
+                    }
+                    else
+                    {
+                        retval = _ResolveFiles(file.PathJoin("run.cs"), extraDirs, "");
+                    }
+                }
+            }
 
             if (retval.Length == 0)
             {

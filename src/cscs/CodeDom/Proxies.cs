@@ -94,7 +94,7 @@ namespace CSScripting.CodeDom
 
         public CompilerResults CompileAssemblyFromFileBatch(CompilerParameters options, string[] fileNames)
         {
-            if (options.GenerateExecutable)
+            if (options.BuildExe)
                 return CompileAssemblyFromFileBatch_with_Build(options, fileNames); // csc.exe does not support building self sufficient executables
             else
                 switch (CSExecutor.options.compilerEngine)
@@ -653,7 +653,7 @@ EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWith
         public bool GenerateExecutable { get; set; }
 
         // Controls if the actiual executable needs to be build
-        public bool BoildExe { get; set; }
+        public bool BuildExe { get; set; }
 
         public string CoreAssemblyFileName { get; set; }
         internal TempFileCollection TempFiles { get; set; }

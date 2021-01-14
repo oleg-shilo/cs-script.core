@@ -90,27 +90,27 @@ namespace Xunit
 
     static class Extensions
     {
-        public static string GetFullPath(this string path) => Path.GetFullPath(path);
+        // public static string GetFullPath(this string path) => Path.GetFullPath(path);
 
-        public static string GetDirName(this string path) => path == null ? null : Path.GetDirectoryName(path);
+        // public static string GetDirName(this string path) => path == null ? null : Path.GetDirectoryName(path);
 
-        public static string PathJoin(this string path, params object[] parts)
-        {
-            var allParts = new[] { path ?? "" }.Concat(parts.Select(x => x?.ToString() ?? ""));
-            return Path.Combine(allParts.ToArray());
-        }
+        // public static string PathJoin(this string path, params object[] parts)
+        // {
+        //     var allParts = new[] { path ?? "" }.Concat(parts.Select(x => x?.ToString() ?? ""));
+        //     return Path.Combine(allParts.ToArray());
+        // }
 
-        public static string EnsureDir(this string path, bool rethrow = true)
-        {
-            try
-            {
-                Directory.CreateDirectory(path);
+        // public static string EnsureDir(this string path, bool rethrow = true)
+        // {
+        //     try
+        //     {
+        //         Directory.CreateDirectory(path);
 
-                return path;
-            }
-            catch { if (rethrow) throw; }
-            return null;
-        }
+        //         return path;
+        //     }
+        //     catch { if (rethrow) throw; }
+        //     return null;
+        // }
 
         public static string Run(this string exe, string args = null, string dir = null)
         {

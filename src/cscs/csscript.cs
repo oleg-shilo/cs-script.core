@@ -1514,7 +1514,9 @@ namespace csscript
                 Utils.AddCompilerOptions(compilerParams, "/d:DEBUG /d:TRACE");
 
             compilerParams.IncludeDebugInformation = options.DBG;
-            compilerParams.GenerateExecutable = !options.compileDLL;
+            compilerParams.GenerateExecutable = !options.compileDLL; // user asked to execute script but we still need to generate the exe assembly before 
+                                                                     // the execution so top-level classes are supported
+            compilerParams.BuildExe = options.buildExecutable; // user asked to build exe
             compilerParams.GenerateInMemory = false;
             compilerParams.WarningLevel = (options.hideCompilerWarnings ? -1 : 4);
 

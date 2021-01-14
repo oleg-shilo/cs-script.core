@@ -33,6 +33,8 @@ namespace CSScripting
 
         public static string GetFullPath(this string path) => Path.GetFullPath(path);
 
+        public static bool IsDir(this string path) => Directory.Exists(path);
+
         public static string PathJoin(this string path, params object[] parts)
         {
             var allParts = new[] { path ?? "" }.Concat(parts.Select(x => x?.ToString() ?? ""));

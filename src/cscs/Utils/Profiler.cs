@@ -8,6 +8,8 @@ namespace CSScripting
     {
         static public Stopwatch Stopwatch = new Stopwatch();
 
+        static public string EngineContext = "";
+
         static Dictionary<string, Stopwatch> items = new Dictionary<string, Stopwatch>();
 
         public static bool has(string key) => items.ContainsKey(key);

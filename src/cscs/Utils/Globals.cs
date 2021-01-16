@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using csscript;
+using CSScripting.CodeDom;
 using CSScriptLib;
 
 namespace CSScripting
@@ -14,11 +15,42 @@ namespace CSScripting
         // Roslyn still does not support anything else but `Submission#0` (17 Jul 2019)
         // [update] Roslyn now does support alternative class names (1 Jan 2020)
 
-        static internal void StartBuildServer()
+        static internal void StartBuildServer(bool report = false)
         {
             if (Globals.BuildServerIsDeployed)
                 // CSScriptLib.CoreExtensions.RunAsync(
                 "dotnet".RunAsync($"\"{Globals.build_server}\" -start");
+
+            if (report)
+                PrintBuildServerInfo();
+        }
+
+        static internal void PrintBuildServerInfo()
+        {
+            if (Globals.BuildServerIsDeployed)
+            {    // CSScriptLib.CoreExtensions.RunAsync(
+                Console.WriteLine($"Build server deployed: {Globals.build_server.GetFullPath()}");
+                Console.WriteLine($"Build server is {(BuildServer.IsServerAlive(null) ? "" : "not ")}running.");
+            }
+            else
+            {
+                Console.WriteLine("Build server is not deployed.");
+                Console.WriteLine($"Expected deployment: {Globals.build_server.GetFullPath()}");
+            }
+        }
+
+        static internal void Install(bool installRequest)
+        {
+            if (Globals.BuildServerIsDeployed)
+            {    // CSScriptLib.CoreExtensions.RunAsync(
+                Console.WriteLine($"Build server deployed: {Globals.build_server.GetFullPath()}");
+                Console.WriteLine($"Build server is {(BuildServer.IsServerAlive(null) ? "" : "not ")}running.");
+            }
+            else
+            {
+                Console.WriteLine("Build server is not deployed.");
+                Console.WriteLine($"Expected deployment: {Globals.build_server.GetFullPath()}");
+            }
         }
 
         static internal void StopBuildServer()
@@ -28,11 +60,58 @@ namespace CSScripting
         }
 
         static internal string build_server
-            => Environment.SpecialFolder.LocalApplicationData.GetPath().PathJoin("cs-script",
-                                                                                 "bin",
-                                                                                 "compiler",
-                                                                                 Assembly.GetExecutingAssembly().GetName().Version,
-                                                                                 "build.dll");
+        {
+            get
+            {
+                var path = Environment.SpecialFolder.CommonApplicationData.GetPath().PathJoin("cs-script",
+                                                                                      "bin",
+                                                                                      "compiler",
+                                                                                      Assembly.GetExecutingAssembly().GetName().Version,
+                                                                                      "build.dll");
+                if (Runtime.IsLinux)
+                {
+                    path = path.Replace("/usr/share/cs-script", "/usr/local/share/cs-script");
+                }
+                return path;
+            }
+        }
+
+        static public bool RemoveBuildServer()
+        {
+            try
+            {
+                File.Delete(build_server);
+                File.Delete(build_server.ChangeExtension(".deps.json"));
+                File.Delete(build_server.ChangeExtension(".runtimeconfig.json"));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return !File.Exists(build_server);
+        }
+
+        static public bool DeployBuildServer()
+        {
+            try
+            {
+                Directory.CreateDirectory(build_server.GetDirName());
+
+                File.WriteAllBytes(build_server, Resources.build);
+                File.WriteAllBytes(build_server.ChangeExtension(".deps.json"), Resources.build_deps);
+                File.WriteAllBytes(build_server.ChangeExtension(".runtimeconfig.json"), Resources.build_runtimeconfig);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return File.Exists(build_server);
+        }
+
+        static public void Ping()
+        {
+            Console.WriteLine(BuildServer.PingRemoteInstance(null));
+        }
 
         static public bool BuildServerIsDeployed
         {
@@ -44,6 +123,7 @@ namespace CSScripting
                 try
                 {
                     Directory.CreateDirectory(build_server.GetDirName());
+
                     File.WriteAllBytes(build_server, Resources.build);
                     File.WriteAllBytes(build_server.ChangeExtension(".deps.json"), Resources.build_deps);
                     File.WriteAllBytes(build_server.ChangeExtension(".runtimeconfig.json"), Resources.build_runtimeconfig);

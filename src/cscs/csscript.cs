@@ -197,7 +197,12 @@ namespace csscript
             {
                 // simulate `{engine_file} -code "/**/"`
                 code = $@"{this.GetType().Assembly.Location} -{AppArgs.code} /**/";
+
+                var engineArg = args.FirstOrDefault(x => x.StartsWith("-ng:") || x.StartsWith("-engine:"));
+
                 newArgs = new List<string>();
+                if (engineArg != null)
+                    newArgs.Add(engineArg);
             }
             else // all args before -code
                 newArgs = args.TakeWhile(a => !a.StartsWith($"-{AppArgs.code}")).ToList();
@@ -905,6 +910,7 @@ namespace csscript
                                     if (options.verbose || options.profile)
                                         Console.WriteLine("> ----------------");
 
+                                    Console.WriteLine(Profiler.EngineContext);
                                     Console.WriteLine($"Initialization time: {initializationTime.TotalMilliseconds} msec");
                                     Console.WriteLine($"Compilation time:    {pureCompilerTime.TotalMilliseconds} msec");
                                     Console.WriteLine($"Total load time:     {compilationTime.TotalMilliseconds} msec");
@@ -1514,7 +1520,7 @@ namespace csscript
                 Utils.AddCompilerOptions(compilerParams, "/d:DEBUG /d:TRACE");
 
             compilerParams.IncludeDebugInformation = options.DBG;
-            compilerParams.GenerateExecutable = !options.compileDLL; // user asked to execute script but we still need to generate the exe assembly before 
+            compilerParams.GenerateExecutable = !options.compileDLL; // user asked to execute script but we still need to generate the exe assembly before
                                                                      // the execution so top-level classes are supported
             compilerParams.BuildExe = options.buildExecutable; // user asked to build exe
             compilerParams.GenerateInMemory = false;

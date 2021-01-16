@@ -58,10 +58,17 @@ namespace cscs
                 Environment.SetEnvironmentVariable("css_nuget", null);
                 Runtime.GlobalIncludsDir?.EnsureDir();
 
-                if (args.Contains("-server:stop"))
-                    Globals.StopBuildServer();
-                else if (args.Contains("-server:start"))
-                    Globals.StartBuildServer();
+                var serverCommand = args.LastOrDefault(x => x.StartsWith("-server"));
+
+                if (serverCommand.HasText() && !args.Any(x => x == "?"))
+                {
+                    if (serverCommand == "-server:stop") Globals.StopBuildServer();
+                    else if (serverCommand == "-server:start") Globals.StartBuildServer();
+                    else if (serverCommand == "-server:ping") Globals.Ping();
+                    else if (serverCommand == "-server:add") Globals.DeployBuildServer();
+                    else if (serverCommand == "-server:remove") Globals.RemoveBuildServer();
+                    else Globals.PrintBuildServerInfo();
+                }
                 else
                     CSExecutionClient.Run(args);
 

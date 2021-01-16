@@ -37,5 +37,27 @@ namespace CSScriptLib
                 return e.ToString();
             }
         }
+
+        static public bool IsServerAlive(int? port)
+        {
+            try
+            {
+                Request("-ping", port);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static string PingRemoteInstance(int? port)
+        {
+            try
+            {
+                return "-ping".SendTo(IPAddress.Loopback, port ?? serverPort);
+            }
+            catch { return "<no respone>"; }
+        }
     }
 }

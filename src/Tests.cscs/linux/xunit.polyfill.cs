@@ -112,6 +112,9 @@ namespace Xunit
         //     return null;
         // }
 
+        public static bool IsWin(this OperatingSystem sys)
+            => !(Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX);
+
         public static string Run(this string exe, string args = null, string dir = null)
         {
             var process = new Process();

@@ -97,8 +97,8 @@ copy "Tests.cscs\linux\run.cs" "out\Linux\-selftest\run.cs"
 copy "Tests.cscs\linux\xunit.polyfill.cs" "out\Linux\-selftest\xunit.polyfill.cs" 
 copy "Tests.cscs\cli.cs" "out\Linux\-selftest\cli.cs" 
 copy "out\Linux\-selftest\*" "out\Windows\-selftest"
-copy "out\ststic_content\css.cs" "out\Linux\css.cs" 
-copy "out\ststic_content\install.sh" "out\Linux\install.sh" 
+copy "out\static_content\readme.md" "out\Linux\readme.md" 
+rem copy "out\static_content\css.cs" "out\Linux\css.cs" 
 
 
 cd out\Windows

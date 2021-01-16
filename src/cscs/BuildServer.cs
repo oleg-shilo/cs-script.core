@@ -64,19 +64,33 @@ namespace CSScripting.CodeDom
 
         static public string SendBuildRequest(string[] args, int? port)
         {
-            try
+            string get_response()
             {
-                // first arg is the compiler identifier: csc|vbc
+                try
+                {
+                    // first arg is the compiler identifier: csc|vbc
 
-                string request = string.Join('\n', args.Skip(1));
-                string response = BuildServer.Request(request, port);
+                    string request = string.Join('\n', args.Skip(1));
+                    string response = BuildServer.Request(request, port);
 
-                return response;
+                    return response;
+                }
+                catch (Exception e)
+                {
+                    return e.ToString();
+                }
             }
-            catch (Exception e)
+
+            var response = get_response();
+
+            var retry = 0;
+            while (response.Contains("SocketException") && retry < 5)
             {
-                return e.ToString();
+                Thread.Sleep(30);
+                response = get_response();
             }
+
+            return response;
         }
 
         static public bool IsServerAlive(int? port)
@@ -262,7 +276,7 @@ namespace CSScripting.CodeDom
                             }
                             else if (request == "-ping")
                             {
-                                try { clientSocket.WriteAllText($"pid:{Environment.ProcessId}"); } catch { }
+                                try { clientSocket.WriteAllText($"pid:{Environment.ProcessId}\nfile: {Assembly.GetExecutingAssembly().Location}"); } catch { }
                             }
                             else
                             {

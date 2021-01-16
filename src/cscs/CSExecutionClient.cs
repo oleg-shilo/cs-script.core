@@ -189,11 +189,14 @@ namespace csscript
             Utils.SetEnvironmentVariable("CSScriptRuntimeLocation", Assembly.GetExecutingAssembly().Location);
             Utils.SetEnvironmentVariable("cscs_exe_dir", Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 
-            if (Environment.GetEnvironmentVariable("CSSCRIPT_ROOT") == null && !Runtime.IsWin)
+            if (Environment.GetEnvironmentVariable("CSSCRIPT_ROOT").HasText())
             {
-                // GetExecutingAssembly().Location may be empty even for the entry assembly
-                var cscs_exe_dir = Environment.GetEnvironmentVariable("cscs_exe_dir");
-                if (cscs_exe_dir != null && cscs_exe_dir.StartsWith("/usr/local/"))
+                Utils.SetEnvironmentVariable("CSSCRIPT_INSTALLED", Environment.GetEnvironmentVariable("CSSCRIPT_ROOT"));
+            }
+            else
+            {
+                var cscs_exe_dir = GetEnvironmentVariable("cscs_exe_dir");
+                if (cscs_exe_dir != null)
                     Utils.SetEnvironmentVariable("CSSCRIPT_ROOT", cscs_exe_dir);
             }
 

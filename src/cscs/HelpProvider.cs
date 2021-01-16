@@ -23,6 +23,7 @@ namespace csscript
         public const string wpf = "wpf";
         public const string cmd = "cmd";
         public const string syntax = "syntax";
+        public const string server = "server";
         public const string commands = "commands";
         public const string config = "config";
         public const string s = "s";
@@ -356,9 +357,18 @@ namespace csscript
             switch2Help[speed] = new ArgInfo("-speed",
                                              "Prints script initialization/compilation time information of the .NET compiler. ",
                                                  "It is a convenient way of testing performance of the .NET distribution.");
-            switch2Help[stop] = new ArgInfo("-stop",
-                                            "Stops all running instances of Roslyn sever (VBCSCompiler.exe).",
-                                                "(applicable for .NET/Windows only)");
+
+            switch2Help[server] = new ArgInfo("-server[:start|stop|add|remove|ping]",
+                                          "Prints the information about build server.",
+                                          "Build server is a background process which implements hop loading of C# compiler csc.exe. " +
+                                          "Somewhat similar to VBCSCompiler.exe.",
+                                          "This option is only relevant if compiler engine is set to 'csc' (see '-engine' command).",
+                                          " -server:start  - ${<==}deploys and start starts build server",
+                                          " -server:stop   - ${<==}stops starts build server",
+                                          " -server:add    - ${<==}deploys build server",
+                                          " -server:remove - ${<==}removes build server files. Useful for troubleshooting.",
+                                          " -server:ping   - ${<==}Pins running instance (if any) of the build server");
+
             switch2Help[tc] = new ArgInfo("-tc",
                                           "Trace compiler input produced by CS-Script code provider CSSRoslynProvider.dll.",
                                               "It's useful when troubleshooting custom compilers (e.g. Roslyn on Linux).");
@@ -373,27 +383,27 @@ namespace csscript
 
             switch2Help[config] = new ArgInfo("-config[:<option>]",
                                               "Performs various CS-Script config operations",
-                                                  " -config:none               - ${<==}ignores config file (uses default settings)",
-                                                  " -config:create             - ${<==}creates config file with default settings",
-                                                  " -config:default            - ${<==}prints default config file",
-                                                  " -config:<raw|xml>          - ${<==}prints current config file content",
-                                                  " -config[:ls]               - ${<==}lists/prints current config values",
-                                                  " -config:get:name           - ${<==}prints current config value",
-                                                  " -config:set:name=value     - ${<==}sets current config value",
-                                                  " -config:set:name=add:value - ${<==}updates the current config value content by appending the specified value.",
-                                                  " -config:set:name=del:value - ${<==}updates the current config value content by removing all occurrences of the specified value.",
-                                                  " -config:<file>             - ${<==}uses custom config file",
-                                                  " ",
-                                                      "Note: The property name in -config:set and -config:set is case insensitive and can also contain '_' " +
-                                                      "as a token separator that is ignored during property lookup.",
-                                                      "(e.g. " + AppInfo.appName + " -config:none sample.cs",
-                                                      "${<=6}" + AppInfo.appName + " -config:default > css_VB.xml",
+                                              " -config:none               - ${<==}ignores config file (uses default settings)",
+                                              " -config:create             - ${<==}creates config file with default settings",
+                                              " -config:default            - ${<==}prints default config file",
+                                              " -config:<raw|xml>          - ${<==}prints current config file content",
+                                              " -config[:ls]               - ${<==}lists/prints current config values",
+                                              " -config:get:name           - ${<==}prints current config value",
+                                              " -config:set:name=value     - ${<==}sets current config value",
+                                              " -config:set:name=add:value - ${<==}updates the current config value content by appending the specified value.",
+                                              " -config:set:name=del:value - ${<==}updates the current config value content by removing all occurrences of the specified value.",
+                                              " -config:<file>             - ${<==}uses custom config file",
+                                              " ",
+                                                  "Note: The property name in -config:set and -config:set is case insensitive and can also contain '_' " +
+                                                  "as a token separator that is ignored during property lookup.",
+                                                  "(e.g. " + AppInfo.appName + " -config:none sample.cs",
+                                                  "${<=6}" + AppInfo.appName + " -config:default > css_VB.xml",
 
-                                                      // "${<=6}" + AppInfo.appName + " -config:set:" + inmem + "=true", // may need to resurrect if users do miss it :)
+                                                  // "${<=6}" + AppInfo.appName + " -config:set:" + inmem + "=true", // may need to resurrect if users do miss it :)
 
-                                                      "${<=6}" + AppInfo.appName + " -config:set:DefaultArguments=add:-ac",
-                                                      "${<=6}" + AppInfo.appName + " -config:set:default_arguments=del:-ac",
-                                                      "${<=6}" + AppInfo.appName + " -config:c:\\cs-script\\css_VB.xml sample.vb)");
+                                                  "${<=6}" + AppInfo.appName + " -config:set:DefaultArguments=add:-ac",
+                                                  "${<=6}" + AppInfo.appName + " -config:set:default_arguments=del:-ac",
+                                                  "${<=6}" + AppInfo.appName + " -config:c:\\cs-script\\css_VB.xml sample.vb)");
             switch2Help[@out] = new ArgInfo("-out[:<file>]",
                                             "Forces the script to be compiled into a specific location.",
                                                 "Used only for very fine hosting tuning.",
@@ -455,7 +465,6 @@ namespace csscript
             switch2Help[commands] =
             switch2Help[cmd] = new ArgInfo("-commands|-cmd",
                                            "Prints list of supported commands (arguments).");
-
             miscHelp["file"] = new ArgInfo("file",
                                            "Specifies name of a script file to be run.");
             miscHelp["params"] = new ArgInfo("params",
@@ -1485,7 +1494,7 @@ nvironment.NewLine);
                        .AppendLine("   System:          " + Environment.OSVersion)
                        .AppendLine("   Architecture:    " + (Environment.Is64BitProcess ? "x64" : "x86"));
                 if (Runtime.IsWin)
-                    builder.AppendLine("   Install dir:     " + (Environment.GetEnvironmentVariable("CSSCRIPT_ROOT") ?? "<not integrated>"));
+                    builder.AppendLine("   Install dir:     " + (Environment.GetEnvironmentVariable("CSSCRIPT_INSTALLED") ?? "<not integrated>"));
 
                 var asm_path = Assembly.GetExecutingAssembly().Location;
                 try

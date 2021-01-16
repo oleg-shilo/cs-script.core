@@ -243,7 +243,7 @@ namespace CSScriptLib
         /// <summary>
         /// Searches for script file by given script name. Search order:
         /// 1. Current directory
-        /// 2. extraDirs (usually %CSSCRIPT_DIR%\Lib and ExtraLibDirectory)
+        /// 2. extraDirs (usually %CSSCRIPT_ROOT%\Lib and ExtraLibDirectory)
         /// 3. PATH
         /// Also fixes file name if user did not provide extension for script file (assuming .cs extension)
         /// <para>If the default implementation isn't suitable then you can set <c>FileParser.ResolveFilesAlgorithm</c>

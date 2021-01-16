@@ -197,7 +197,7 @@ namespace csscript
         /// <value>
         /// The default compiler.
         /// </value>
-        public string DefaultCompilerEngine { get; set; } = "dotnet";
+        public string DefaultCompilerEngine { get; set; } = Runtime.IsLinux ? "csc" : "dotnet";
 
         /// <summary>
         /// List of assembly names to be automatically referenced by the script. The items must be separated by coma or semicolon. Specifying .dll extension (e.g. System.Core.dll) is optional.
@@ -244,7 +244,7 @@ namespace csscript
             set { searchDirs = value; }
         }
 
-        string searchDirs = "%CSSCRIPT_DIR%".PathJoin("lib") + ";" +
+        string searchDirs = "%CSSCRIPT_ROOT%".PathJoin("lib") + ";" +
                    Runtime.CustomCommandsDir + ";" +
                            "%CSSCRIPT_INC%;";
 

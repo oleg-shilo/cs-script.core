@@ -23,40 +23,45 @@ class Script
 
         CliTestFolder.Set(Path.Combine(Path.GetDirectoryName(Path.GetTempFileName()), "cs-script.test"));
 
-        Console.WriteLine("Discovering tests...");
-        
+        print("Discovering tests...");
+
         var tests = typeof(cscs_cli)
             .GetMethods()
             .Where(m =>
             {
+                bool isWinHost = Environment.OSVersion.IsWin();
+
                 var attrs = m.GetCustomAttributes(false);
-                return attrs.OfType<FactAttribute>().Any() && !attrs.OfType<FactWinOnlyAttribute>().Any();
+
+                bool isTest = attrs.OfType<FactAttribute>().Any();
+                bool isWinOnlyTest = attrs.OfType<FactWinOnlyAttribute>().Any();
+
+                return isTest && (isWinHost || !isWinOnlyTest);
             });
 
-
         int? requestedTest = null;
-            
-        if(args.Any())
-        {
 
-            if(int.TryParse(args[0], out int value))
-            requestedTest = value;
+        if (args.Any())
+        {
+            if (int.TryParse(args[0], out int value))
+                requestedTest = value;
         }
-            
+
         var passed = 0;
         var failed = 0;
 
         var sw = Stopwatch.StartNew();
 
-        Console.WriteLine("Starting the tests execution in:\n\t" + CliTestFolder.root);
+        print($"Starting the test execution of {tests.Count()} tests in:\n\t", CliTestFolder.root);
+        print("================================");
 
         var index = 0;
         //Parallel.ForEach(tests, test =>
         foreach (var test in tests)
         {
             index++;
-            
-            if(requestedTest.HasValue && requestedTest != index)
+
+            if (requestedTest.HasValue && requestedTest != index)
                 continue;
 
             try
@@ -71,8 +76,8 @@ class Script
                 failed++;
                 // Console.Write($"{index}> {test.Name}: ");
                 Console.WriteLine("failed");
-                if(requestedTest.HasValue)
-                    Console.WriteLine(e.InnerException?.Message??e.Message);
+                if (requestedTest.HasValue)
+                    Console.WriteLine(e.InnerException?.Message ?? e.Message);
             }
         }
         //);

@@ -29,6 +29,9 @@ namespace CSScripting.CodeDom
             if (CSExecutor.options.compilerEngine == null || CSExecutor.options.compilerEngine == Directives.compiler_dotnet)
                 isErrroSection = false;
 
+            // Console.WriteLine("-----------");
+            // Console.WriteLine(">>>" + Output.JoinBy("\n"));
+            // Console.WriteLine("-----------");
             // Build succeeded.
             foreach (var line in Output)
             {

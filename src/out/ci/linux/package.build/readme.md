@@ -3,6 +3,7 @@
 ref: https://ubuntuforums.org/showthread.php?t=910717
      https://www.debian.org/doc/debian-policy/ch-controlfields.html#s-f-package-type
 
+Note: chmod 775 cs-script_4.0-0/DEBIAN/p* will cover postinst,prerm and postrm
 
 mkdir cs-script_4.0-0
 mkdir cs-script_4.0-0/usr
@@ -13,7 +14,9 @@ mkdir cs-script_4.0-0/usr/local/bin/cs-script/-selftest
 cp -r /mnt/d/dev/Galos/cs-script.core/src/out/Linux/cs-script_4.0-0/* /usr/local/bin/cs-script
 cp -r /mnt/d/dev/Galos/cs-script.core/src/out/Linux/cs-script_4.0-0/-selftest* /usr/local/bin/cs-script/-selftest
 mkdir cs-script_4.0-0v/DEBIAN
-sudo chmod 775 cs-script_4.0-0/DEBIAN/postinst
+
+sudo chmod 775 cs-script_4.0-0/DEBIAN/p*
+
 dpkg-deb --build cs-script_4.0-0
 
 

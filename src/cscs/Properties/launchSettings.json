@@ -2,7 +2,8 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": " -ng:csc  -check -test:run",
+      "commandLineArgs": "-server ?",
+      "workingDirectory": "..\\",
       "remoteDebugEnabled": false
     }
   }

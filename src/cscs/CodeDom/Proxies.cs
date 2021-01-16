@@ -242,48 +242,36 @@ namespace CSScripting.CodeDom
             // running build server on Linux is problematic as if it is started from here it will be killed when the
             // parent process (this) exits
 
-            bool compile_on_server = Runtime.IsWin;
+            // bool compile_on_server = Runtime.IsWin;
+            bool compile_on_server = true;
             string cmd;
 
             Profiler.get("compiler").Start();
-            //if (Runtime.IsCore) // currently it is always on .NET5 (.NET Core)
+            if (compile_on_server)
+                compile_on_server = Globals.BuildServerIsDeployed;
+
+            if (compile_on_server)
             {
-                if (compile_on_server)
-                {
-                    if (!Globals.BuildServerIsDeployed)
-                        compile_on_server = false;
-                }
+                Profiler.EngineContext = "Building with csc engine server (Build server)...";
 
-                if (compile_on_server)
-                {
-                    bool usingCli = false;
-                    if (usingCli)
-                    {
-                        // using CLI app to send/receive sockets data
-                        cmd = $@"""{Globals.build_server}"" -port:{BuildServer.serverPort} csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
-                        result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
-                    }
-                    else
-                    {
-                        // using sockets directly
-                        var request = $@"csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}"
-                                      .SplitCommandLine();
+                // using sockets directly
+                var request = $@"csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}"
+                              .SplitCommandLine();
 
-                        // ensure server running
-                        // it will gracefully exit if another instance is running
-                        dotnet.RunAsync($@"""{Globals.build_server}"" -listen -port:{BuildServer.serverPort}");
-                        Thread.Sleep(30);
-                        var response = BuildServer.SendBuildRequest(request, BuildServer.serverPort);
+                // ensure server running
+                // it will gracefully exit if another instance is running
+                dotnet.RunAsync($@"""{Globals.build_server}"" -listen -port:{BuildServer.serverPort}");
+                Thread.Sleep(30);
+                var response = BuildServer.SendBuildRequest(request, BuildServer.serverPort);
 
-                        result.NativeCompilerReturnValue = 0;
-                        result.Output.AddRange(response.GetLines());
-                    }
-                }
-                else
-                {
-                    cmd = $@"""{Globals.csc}"" {common_args.JoinBy(" ")} /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
-                    result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
-                }
+                result.NativeCompilerReturnValue = 0;
+                result.Output.AddRange(response.GetLines());
+            }
+            else
+            {
+                Profiler.EngineContext = "Building with local csc engine...";
+                cmd = $@"""{Globals.csc}"" {common_args.JoinBy(" ")} /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
+                result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
             }
 
             Profiler.get("compiler").Stop();
@@ -543,6 +531,8 @@ EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWith
                 if (timing != null)
                     Console.WriteLine("    dotnet: " + timing);
             }
+
+            Profiler.EngineContext = "Building with dotnet engine...";
 
             result.ProcessErrors();
 

@@ -481,6 +481,17 @@ namespace CSScripting.CodeDom
             var projectFile = build_dir.PathJoin(projectShortName + Path.GetExtension(template));
             File.WriteAllText(projectFile, project_element.ToString());
 
+            var working_dir = fileNames.FirstOrDefault()?.GetDirName().Replace(@"\", @"\\");
+            var props_file = projectFile.GetDirName().PathJoin("Properties")
+                                                     .EnsureDir()
+                                                     .PathJoin("launchSettings.json");
+            var props = @"{""profiles"": {
+                              ""Start"": {
+                                  ""commandName"": ""Project"",
+                                  ""workingDirectory"": """ + working_dir + @""" } } }";
+
+            File.WriteAllText(props_file, props);
+
             var solution = @"
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
@@ -502,7 +513,10 @@ Global
     GlobalSection(ExtensibilityGlobals) = postSolution
         SolutionGuid = {629108FC-1E4E-4A2B-8D8E-159E40FF5950}
     EndGlobalSection
-EndGlobal".Replace("`", "\"").Replace("{proj_name}", projectFile.GetFileNameWithoutExtension());
+EndGlobal"
+.Replace("`", "\"")
+.Replace("    ", "\t")
+.Replace("{proj_name}", projectFile.GetFileNameWithoutExtension());
             File.WriteAllText(projectFile.ChangeExtension(".sln"), solution);
 
             return projectFile;

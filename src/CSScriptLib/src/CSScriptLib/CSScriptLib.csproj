@@ -13,7 +13,7 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.4.4.0-NET5-RC4</Version>
+    <Version>1.4.5.0-NET5-RC5</Version>
     <Authors>Oleg Shilo</Authors>
     <Description>CS-Script engine Class Library for .NET 5</Description>
     <Copyright>(C) 2018-2021 Oleg Shilo</Copyright>
@@ -23,12 +23,14 @@
     <RepositoryUrl>https://github.com/oleg-shilo/cs-script.core.git</RepositoryUrl>
     <RepositoryType>Git</RepositoryType>
     <PackageTags>C#, scripting, script, dynamic, .NET. .NET Core</PackageTags>
-    <PackageReleaseNotes>- Added `//css_engine` (`//css_ng`) directive for choosing the compiling engine
-- Added `-engine:&lt;csc|dotnet&gt;` switch
-- Extended unit-testing to cove CLI scenarios</PackageReleaseNotes>
+    <PackageReleaseNotes>## CLI
+- Added complex (multi-file) commands support (e.g. `css -selftest:run`)
+- Build changes to support Linux distro
+- `-selftest` switch (wip)
+- Added `-vscode` help info</PackageReleaseNotes>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <AssemblyVersion>1.4.4.0</AssemblyVersion>
-    <FileVersion>1.4.4.0</FileVersion>
+    <AssemblyVersion>1.4.5.0</AssemblyVersion>
+    <FileVersion>1.4.5.0</FileVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>css_logo.png</PackageIcon>
   </PropertyGroup>

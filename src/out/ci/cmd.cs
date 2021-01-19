@@ -1,13 +1,15 @@
 using System.Net;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Collections.Generic;
-// using System.Windows.Forms;
+
+using static System.Environment;
 using System.Security.Cryptography;
 using System.Diagnostics;
 
-public class cmd
+public static class cmd
 {
     static public bool print = true;
     static public Action<string> printRoutine = (x) => Console.WriteLine(x);
@@ -70,7 +72,7 @@ public class cmd
         return sha256;
     }
 
-    static public void DownloadBinary(string url, string destinationPath, Action<long, long> onProgress = null)
+    static public void download(string url, string destinationPath, Action<long, long> onProgress = null)
     {
         var sb = new StringBuilder();
         byte[] buf = new byte[1024 * 4];
@@ -101,12 +103,7 @@ public class cmd
             throw new Exception($"Resource {url} cannot be downloaded.");
     }
 
-    static public void xcopy(string src, string dest)
-    {
-        xcopy(src, dest, "");
-    }
-
-    static public void xcopy(string src, string dest, string excludeExtensions)
+    static public void xcopy(string src, string dest, string excludeExtensions = "")
     {
         src = Environment.ExpandEnvironmentVariables(src);
         dest = Environment.ExpandEnvironmentVariables(dest);
@@ -115,7 +112,7 @@ public class cmd
         xcopyImpl(srcDir, Path.GetFileName(src), srcDir, dest, excludeExtensions.ToLower().Split(",".ToCharArray(), StringSplitOptions.RemoveEmptyEntries));
     }
 
-    static public void rd(string path) //remove directory
+    static public void rm(string path)
     {
         if (Directory.Exists(path))
         {
@@ -124,9 +121,13 @@ public class cmd
 
             Directory.Delete(path, true);
         }
+        else if (File.Exists(path))
+            File.Delete(path);
+        else
+            throw new Exception($"Path '{path}' does not exist");
     }
 
-    static public void md(string src, string dest) //move directory
+    static public void move(string src, string dest) //move directory
     {
         if (Directory.Exists(src))
         {
@@ -134,14 +135,12 @@ public class cmd
                 Directory.Delete(dest, true);
             cmd.xcopy(Path.Combine(src, @"*.*"), dest + Path.DirectorySeparatorChar);
             System.Threading.Thread.Sleep(1000);
-            rd(src);
+            rm(src);
         }
-    }
-
-    static public void cd(string dir) //create directory
-    {
-        if (!Directory.Exists(dir))
-            Directory.CreateDirectory(dir);
+        else if (File.Exists(src))
+            copy(src, dest);
+        else
+            throw new Exception($"Path '{src}' does not exist");
     }
 
     static public void del(string path) //delete file
@@ -165,21 +164,14 @@ public class cmd
         }
     }
 
-    static public string readFile(string path)
+    static public string mkdir(string path)
     {
-        using (StreamReader sr = new StreamReader(path))
-        {
-            return sr.ReadToEnd();
-        }
+        Directory.CreateDirectory(path); return path;
     }
 
-    static public void writeFile(string path, string text)
-    {
-        using (StreamWriter sw = new StreamWriter(path))
-        {
-            sw.Write(text);
-        }
-    }
+    static public string join(this string path1, string path2) => Path.Combine(path1, path2);
+
+    static public string getFullPath(this string path) => Path.GetFullPath(path);
 
     static public void pause()
     {
@@ -187,20 +179,25 @@ public class cmd
         Console.ReadLine();
     }
 
+    static public string replaceInFile(string file, string pattern, string replacement)
+    {
+        var content = File.ReadAllText(file);
+        content = content.Replace(pattern, replacement);
+        File.WriteAllText(file, content);
+        return file;
+    }
+
+    static public string modiyFile(string file, Func<string, string> replace)
+    {
+        var content = File.ReadAllText(file);
+        File.WriteAllText(file, replace(content));
+        return file;
+    }
+
     static public string run(string app, string args, bool echo = true)
     {
         int exitCode = 0;
         return run(app, args, ref exitCode, echo);
-    }
-
-    static public string runAndCheck(string app, string args, bool echo = true)
-    {
-        int exitCode = 0;
-        var retval = run(app, args, ref exitCode, echo);
-
-        if (exitCode != 0) throw new Exception(Path.GetFileName(app) + " failure...");
-
-        return retval;
     }
 
     static public string run(string app, string args, ref int exitCode, bool echo = true)
@@ -232,11 +229,6 @@ public class cmd
         exitCode = myProcess.ExitCode;
         return sb.ToString();
     }
-
-    // static public void runLocal(string app, string[] args)
-    // {
-    //     AppDomain.CurrentDomain.ExecuteAssembly(Path.GetFullPath(app), null, args, null);
-    // }
 
     static private void xcopyImpl(string src, string mask, string roolSrcDir, string roolDestDir, string[] exclude)
     {
@@ -292,23 +284,41 @@ public class cmd
     {
         return path.IndexOfAny("*?\"<>|".ToCharArray()) != -1;
     }
+}
 
-    public static void ForAllFiles(string src, string filter, Action<string> handler)
+static class vs
+{
+    public static (string version, string lnx_version, string changes) parse_release_notes(string file)
     {
-        int iterator = 0;
-        List<string> dirList = new List<string>();
+        var release_notes = File.ReadAllLines(file);
 
-        dirList.Add(src);
+        var changes = release_notes.Skip(1).join_by(NewLine).Trim();
 
-        while (iterator < dirList.Count)
-        {
-            foreach (string dir in Directory.GetDirectories(dirList[iterator]))
-                dirList.Add(dir);
+        // "# Release v1.4.5.0-NET5-RC5" -> "1.4.5.0-NET5-RC5"
+        string version = release_notes.First()
+                                      .SkipWhile(x => !char.IsDigit(x))
+                                      .join_by("");
 
-            foreach (string file in Directory.GetFiles(dirList[iterator], filter))
-                handler(file);
+        // "1.4.5.0-NET5-RC5" -> "1.4-5"
+        var lnx_version = version.TakeWhile(x => char.IsDigit(x) || x == '.')
+                                 .Where(x => x != '.')
+                                 .ToArray()
+                                 .with(a => $"{a[0]}.{a[1]}-{a[2]}");
 
-            iterator++;
-        }
+        return (version, lnx_version, changes);
     }
+}
+
+static class GenericExtensions
+{
+    public static string strip_text(this string version)
+       => new string(version.TakeWhile(c => char.IsDigit(c) || c == '.').ToArray());
+
+    public static string join_by(this IEnumerable<string> items, string separator)
+        => string.Join(separator, items.ToArray());
+
+    public static string join_by(this IEnumerable<char> items, string separator)
+        => string.Join(separator, items.Select(x => x.ToString()).ToArray());
+
+    public static T2 with<T, T2>(this T obj, Func<T, T2> process) => process(obj);
 }

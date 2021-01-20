@@ -32,7 +32,7 @@ namespace CSScriptLib
         /// </remarks>
         /// </summary>
         /// <param name="text">The text to be processed.</param>
-        /// <returns></returns>
+        /// <returns>The escaped string.</returns>
         public static string EscapeDirectiveDelimiters(this string text)
         {
             foreach (char c in CSharpParser.DirectiveDelimiters)

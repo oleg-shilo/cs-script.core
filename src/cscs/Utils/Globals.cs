@@ -8,6 +8,9 @@ using CSScriptLib;
 
 namespace CSScripting
 {
+    /// <summary>
+    /// The configuration and methods of the global context.
+    /// </summary>
     public partial class Globals
     {
         static internal string DynamicWrapperClassName = "DynamicClass";
@@ -76,6 +79,10 @@ namespace CSScripting
             }
         }
 
+        /// <summary>
+        /// Removes the build server from the target system.
+        /// </summary>
+        /// <returns><c>true</c> if success; otherwise <c>false</c></returns>
         static public bool RemoveBuildServer()
         {
             try
@@ -91,6 +98,9 @@ namespace CSScripting
             return !File.Exists(build_server);
         }
 
+        /// <summary>
+        /// Deploys the build server on the target system.
+        /// </summary>
         static public bool DeployBuildServer()
         {
             try
@@ -108,11 +118,20 @@ namespace CSScripting
             return File.Exists(build_server);
         }
 
+        /// <summary>
+        /// Pings the running instance of the build server.
+        /// </summary>
         static public void Ping()
         {
             Console.WriteLine(BuildServer.PingRemoteInstance(null));
         }
 
+        /// <summary>
+        /// Gets a value indicating whether build server is deployed.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if build server is deployed; otherwise, <c>false</c>.
+        /// </value>
         static public bool BuildServerIsDeployed
         {
             get
@@ -136,6 +155,12 @@ namespace CSScripting
 
         static string csc_file;
 
+        /// <summary>
+        /// Gets the path to the dotnet executable.
+        /// </summary>
+        /// <value>
+        /// The dotnet executable path.
+        /// </value>
         static public string dotnet
         {
             get
@@ -150,6 +175,12 @@ namespace CSScripting
             }
         }
 
+        /// <summary>
+        /// Gets or sets the path to the C# compiler executable (e.g. csc.exe or csc.dll)
+        /// </summary>
+        /// <value>
+        /// The CSC.
+        /// </value>
         static public string csc
         {
             set

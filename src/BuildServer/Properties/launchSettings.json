@@ -2,7 +2,7 @@
   "profiles": {
     "compile_server": {
       "commandName": "Project",
-      "commandLineArgs": "-listen "
+      "commandLineArgs": "-stop"
     }
   }
 }

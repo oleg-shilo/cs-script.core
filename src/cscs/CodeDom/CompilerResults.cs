@@ -8,14 +8,65 @@ using CSScriptLib;
 
 namespace CSScripting.CodeDom
 {
+    /// <summary>
+    ///
+    /// </summary>
     public class CompilerResults
     {
+        /// <summary>
+        /// Gets or sets the collection of the temporary files that the runtime will delete on the application exit.
+        /// </summary>
+        /// <value>
+        /// The temporary files.
+        /// </value>
         public TempFileCollection TempFiles { get; set; } = new TempFileCollection();
+
+        /// <summary>
+        /// Gets or sets the probing directories to be used for assembly probings.
+        /// </summary>
+        /// <value>
+        /// The probing directories.
+        /// </value>
         public List<string> ProbingDirs { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Gets or sets the compiled assembly.
+        /// </summary>
+        /// <value>
+        /// The compiled assembly.
+        /// </value>
         public Assembly CompiledAssembly { get; set; }
+
+        /// <summary>
+        /// Gets or sets the errors.
+        /// </summary>
+        /// <value>
+        /// The errors.
+        /// </value>
         public List<CompilerError> Errors { get; set; } = new List<CompilerError>();
+
+        /// <summary>
+        /// Gets or sets the output.
+        /// </summary>
+        /// <value>
+        /// The output.
+        /// </value>
         public List<string> Output { get; set; } = new List<string>();
+
+        /// <summary>
+        /// Gets or sets the path to assembly.
+        /// </summary>
+        /// <value>
+        /// The path to assembly.
+        /// </value>
         public string PathToAssembly { get; set; }
+
+        /// <summary>
+        /// Gets or sets the native compiler return value, which is a process exit code of the compiler executable (e.g. dotnet.exe).
+        /// </summary>
+        /// <value>
+        /// The native compiler return value.
+        /// </value>
         public int NativeCompilerReturnValue { get; set; }
 
         internal void ProcessErrors()
@@ -59,12 +110,12 @@ namespace CSScripting.CodeDom
                 }
             }
 
-            // if (Errors.IsEmpty() && !Output.IsEmpty())
-            //     Errors.Add(new CompilerError
-            //     {
-            //         ErrorText = NewLine + Output.Where(x => x.IsNotEmpty()).JoinBy(NewLine),
-            //         ErrorNumber = "CS0000"
-            //     });
+            if (this.NativeCompilerReturnValue != 0 && Errors.IsEmpty() && !Output.IsEmpty())
+                Errors.Add(new CompilerError
+                {
+                    ErrorText = NewLine + Output.Where(x => x.IsNotEmpty()).JoinBy(NewLine),
+                    ErrorNumber = "CS0000"
+                });
         }
     }
 }

@@ -19,7 +19,7 @@ namespace csscript
         /// </summary>
         /// <param name="baseDir">The working dir.</param>
         /// <param name="rootDir">The root dir path as per Git 'ignore specification'.</param>
-        /// <returns></returns>
+        /// <returns>The method result.</returns>
         static public string[] GetMatchingDirs(this string baseDir, string rootDir)
         {
             if (!Path.IsPathRooted(rootDir))

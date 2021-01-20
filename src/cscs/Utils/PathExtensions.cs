@@ -11,6 +11,12 @@ namespace CSScripting
     /// </summary>
     public static class PathExtensions
     {
+        /// <summary>
+        /// Copies the file.
+        /// </summary>
+        /// <param name="src">The source path to the file.</param>
+        /// <param name="dest">The destination path to the file.</param>
+        /// <param name="ignoreErrors">if set to <c>true</c> [ignore errors].</param>
         public static void FileCopy(this string src, string dest, bool ignoreErrors = false)
         {
             try
@@ -23,29 +29,79 @@ namespace CSScripting
             }
         }
 
+        /// <summary>
+        /// Changes the extension of the file.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <param name="extension">The extension.</param>
+        /// <returns>A new path</returns>
         public static string ChangeExtension(this string path, string extension) => Path.ChangeExtension(path, extension);
 
+        /// <summary>
+        /// Gets the extension.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns>File extension</returns>
         public static string GetExtension(this string path) => Path.GetExtension(path);
 
+        /// <summary>
+        /// Gets the file name part of the full path.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns>The method result.</returns>
         public static string GetFileName(this string path) => Path.GetFileName(path);
 
+        /// <summary>
+        /// Checks if the directory exists.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns>The result of the test.</returns>
         public static bool DirExists(this string path) => path.IsNotEmpty() ? Directory.Exists(path) : false;
 
+        /// <summary>
+        /// Gets the full path.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns>The path</returns>
         public static string GetFullPath(this string path) => Path.GetFullPath(path);
 
+        /// <summary>
+        /// Determines whether the path is directory.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified path is dir; otherwise, <c>false</c>.
+        /// </returns>
         public static bool IsDir(this string path) => Directory.Exists(path);
 
+        /// <summary>
+        /// A more convenient API version of <see cref="Path.Combine(string[])"/>.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <param name="parts">The parts.</param>
+        /// <returns>A new path.</returns>
         public static string PathJoin(this string path, params object[] parts)
         {
             var allParts = new[] { path ?? "" }.Concat(parts.Select(x => x?.ToString() ?? ""));
             return Path.Combine(allParts.ToArray());
         }
 
+        /// <summary>
+        /// Gets the special folder path.
+        /// </summary>
+        /// <param name="folder">The folder.</param>
+        /// <returns>A folder path.</returns>
         public static string GetPath(this Environment.SpecialFolder folder)
         {
             return Environment.GetFolderPath(folder);
         }
 
+        /// <summary>
+        /// Ensures the directory exists.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <param name="rethrow">if set to <c>true</c> [rethrow].</param>
+        /// <returns>Path of the created/existing directory </returns>
         public static string EnsureDir(this string path, bool rethrow = true)
         {
             try
@@ -58,7 +114,13 @@ namespace CSScripting
             return null;
         }
 
-        public static string DeleteDir(this string path, bool handeExceptions = false)
+        /// <summary>
+        /// Deletes the directory and its all content.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <param name="handleExceptions">if set to <c>true</c> [handle exceptions].</param>
+        /// <returns>The original directory path</returns>
+        public static string DeleteDir(this string path, bool handleExceptions = false)
         {
             if (Directory.Exists(path))
             {
@@ -97,26 +159,58 @@ namespace CSScripting
                 }
                 catch
                 {
-                    if (!handeExceptions) throw;
+                    if (!handleExceptions) throw;
                 }
             }
             return path;
         }
 
+        /// <summary>
+        /// Checks if the file exists.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns>The result of the test.</returns>
         public static bool FileExists(this string path) => path.IsNotEmpty() ? File.Exists(path) : false;
 
+        /// <summary>
+        /// Gets the directory name from the path.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns>The directory path.</returns>
         public static string GetDirName(this string path)
             => path == null ? null : Path.GetDirectoryName(path);
 
+        /// <summary>
+        /// Changes the name of the file.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <param name="fileName">Name of the file.</param>
+        /// <returns>A new path.</returns>
         public static string ChangeFileName(this string path, string fileName) => path.GetDirName().PathJoin(fileName);
 
+        /// <summary>
+        /// Gets the file name without the extension.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns>File name</returns>
         public static string GetFileNameWithoutExtension(this string path) => Path.GetFileNameWithoutExtension(path);
 
+        /// <summary>
+        /// Normalizes directory separators in the given path by ensuring the separators are compatible with the target file system.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <returns>A new normalized path.</returns>
         public static string PathNormaliseSeparators(this string path)
         {
             return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
         }
 
+        /// <summary>
+        /// Gets the subdirectories of the specified directory path.
+        /// </summary>
+        /// <param name="path">The path.</param>
+        /// <param name="mask">The mask.</param>
+        /// <returns>A list of the discovered directories.</returns>
         public static string[] PathGetDirs(this string path, string mask)
         {
             return Directory.GetDirectories(path, mask);

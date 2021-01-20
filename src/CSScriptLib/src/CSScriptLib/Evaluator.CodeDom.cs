@@ -45,10 +45,24 @@ using Scripting;
 
 namespace CSScriptLib
 {
+    /// <summary>
+    /// Class implementing CodeDom favor of (csc.exe/csc.dll) <see cref="IEvaluator"/>
+    /// </summary>
+    /// <seealso cref="CSScriptLib.IEvaluator" />
     public class CodeDomEvaluator : EvaluatorBase<CodeDomEvaluator>, IEvaluator
     {
+        /// <summary>
+        /// The flag indicating if the compilation should happen on the build server or locally.
+        /// </summary>
         public static bool CompileOnServer = true;
 
+        /// <summary>
+        /// Validates the specified information.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <exception cref="CSScriptException">CompileInfo.RootClass property should only be used with Roslyn evaluator as " +
+        ///                     "it addresses the limitation associated with Roslyn. Specifically wrapping ALL scripts in the illegally " +
+        ///                     "named parent class. You are using CodeDomEvaluator so you should not set CompileInfo.RootClass to any custom value</exception>
         protected override void Validate(CompileInfo info)
         {
             if (info != null && info.RootClass != Globals.RootClassName)
@@ -57,6 +71,13 @@ namespace CSScriptLib
                     "named parent class. You are using CodeDomEvaluator so you should not set CompileInfo.RootClass to any custom value");
         }
 
+        /// <summary>
+        /// Compiles the specified script text.
+        /// </summary>
+        /// <param name="scriptText">The script text.</param>
+        /// <param name="scriptFile">The script file.</param>
+        /// <param name="info">The information.</param>
+        /// <returns>The method result.</returns>
         override protected (byte[] asm, byte[] pdb) Compile(string scriptText, string scriptFile, CompileInfo info)
         {
             // Debug.Assert(false);
@@ -113,7 +134,7 @@ namespace CSScriptLib
 
             try
             {
-                build_dir.DeleteDir(handeExceptions: true)
+                build_dir.DeleteDir(handleExceptions: true)
                          .EnsureDir();
 
                 var sources = new List<string>(fileNames); // sources may need to hold more than fileNames
@@ -264,7 +285,7 @@ namespace CSScriptLib
             }
             finally
             {
-                build_dir.DeleteDir(handeExceptions: true);
+                build_dir.DeleteDir(handleExceptions: true);
             }
         }
 
@@ -303,7 +324,7 @@ namespace CSScriptLib
         /// <summary>
         /// Gets the referenced assemblies files.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The method result.</returns>
         public override string[] GetReferencedAssembliesFiles()
             => referencedAssemblies.ToArray();
 
@@ -313,7 +334,7 @@ namespace CSScriptLib
         /// Notre: the set of assemblies is cleared on Reset.
         /// </para>
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The method result.</returns>
         public override Assembly[] GetReferencedAssemblies()
             => referencedAssemblies.Select(Assembly.LoadFile).ToArray();
     }

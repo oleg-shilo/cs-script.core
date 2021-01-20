@@ -115,7 +115,7 @@ namespace csscript
         /// </summary>
         /// <param name="element">The element.</param>
         /// <param name="path">The path.</param>
-        /// <returns></returns>
+        /// <returns>Selected XML element</returns>
         internal static XElement SelectFirst(this XContainer element, string path)
         {
             string[] parts = path.Split('/');
@@ -138,7 +138,7 @@ namespace csscript
         /// based on the path being case sensitive depending on the hosting OS file system.
         /// </summary>
         /// <param name="list">The list.</param>
-        /// <returns></returns>
+        /// <returns>A list with the unique items</returns>
         internal static string[] RemovePathDuplicates(this string[] list)
         {
             return list.Where(x => x.IsNotEmpty())
@@ -169,14 +169,14 @@ namespace csscript
         /// Converts to bool.
         /// </summary>
         /// <param name="text">The text.</param>
-        /// <returns></returns>
+        /// <returns>Conversion result</returns>
         internal static bool ToBool(this string text) => text.ToLower() == "true";
 
         /// <summary>
         /// Removes the assembly extension.
         /// </summary>
         /// <param name="asmName">Name of the asm.</param>
-        /// <returns></returns>
+        /// <returns>Result of the string manipulation</returns>
         public static string RemoveAssemblyExtension(this string asmName)
         {
             if (asmName.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase) || asmName.EndsWith(".exe", StringComparison.CurrentCultureIgnoreCase))
@@ -190,7 +190,7 @@ namespace csscript
         /// </summary>
         /// <param name="path1">The path1.</param>
         /// <param name="path2">The path2.</param>
-        /// <returns></returns>
+        /// <returns>The result of the test.</returns>
         public static bool SamePathAs(this string path1, string path2) =>
             string.Compare(path1, path2, Runtime.IsWin) == 0;
 
@@ -198,7 +198,7 @@ namespace csscript
         /// Captures the exception dispatch information.
         /// </summary>
         /// <param name="ex">The ex.</param>
-        /// <returns></returns>
+        /// <returns>Processed exception instanse</returns>
         public static Exception CaptureExceptionDispatchInfo(this Exception ex)
         {
             try
@@ -360,10 +360,22 @@ namespace csscript
         }
     }
 
+    /// <summary>
+    /// Collection of temp files to be removed during cleanup
+    /// </summary>
     public class TempFileCollection
     {
+        /// <summary>
+        /// Gets or sets the items (file paths) composing the temporarty files collections.
+        /// </summary>
+        /// <value>
+        /// The items.
+        /// </value>
         public List<string> Items { get; set; } = new List<string>();
 
+        /// <summary>
+        /// Clears the collection.
+        /// </summary>
         public void Clear() => Items.ForEach(File.Delete);
     }
 }

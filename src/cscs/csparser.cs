@@ -1121,7 +1121,7 @@ namespace csscript
         /// </remarks>
         /// </summary>
         /// <param name="text">The text to be processed.</param>
-        /// <returns></returns>
+        /// <returns>Escaped string</returns>
         public static string EscapeDirectiveDelimiters(string text)
         {
             foreach (char c in DirectiveDelimiters)
@@ -1136,7 +1136,7 @@ namespace csscript
         ///
         /// </summary>
         /// <param name="text">The text.</param>
-        /// <returns></returns>
+        /// <returns>Escaped string</returns>
         internal static string UserToInternalEscaping(string text)
         {
             foreach (char c in DirectiveDelimiters)
@@ -1163,7 +1163,7 @@ namespace csscript
         /// </remarks>
         /// </summary>
         /// <param name="text">The text to be processed.</param>
-        /// <returns></returns>
+        /// <returns>Unescaped string</returns>
         public static string UnescapeDirectiveDelimiters(string text)
         {
             foreach (char c in DirectiveDelimiters)

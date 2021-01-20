@@ -256,7 +256,7 @@
             </remarks>
             </summary>
             <param name="text">The text to be processed.</param>
-            <returns></returns>
+            <returns>The escaped string.</returns>
         </member>
         <member name="M:CSScriptLib.CSharpParser.UserToInternalEscaping(System.String)">
              <summary>
@@ -266,7 +266,7 @@
             
              </summary>
              <param name="text">The text.</param>
-             <returns></returns>
+             <returns>The escaped string.</returns>
         </member>
         <member name="M:CSScriptLib.CSharpParser.UnescapeDirectiveDelimiters(System.String)">
             <summary>
@@ -280,7 +280,7 @@
             </remarks>
             </summary>
             <param name="text">The text to be processed.</param>
-            <returns></returns>
+            <returns>The unescaped string.</returns>
         </member>
         <member name="F:CSScriptLib.CSharpParser.DirectiveDelimiters">
             <summary>
@@ -308,6 +308,11 @@
             Settings is an class that holds CS-Script application settings.
             </summary>
         </member>
+        <member name="F:CSScriptLib.Settings.Load">
+            <summary>
+            Loads and returns the settings instance.
+            </summary>
+        </member>
         <member name="P:CSScriptLib.Settings.DefaultConfigFile">
             <summary>
             Gets the default configuration file path. It is a "css_config.xml" file located in the same directory where the assembly
@@ -323,28 +328,46 @@
             This setting is similar to the system environment variable PATH.
             </summary>
         </member>
+        <member name="P:CSScriptLib.Settings.DefaultRefAssemblies">
+            <summary>
+            Gets or sets the default reference assemblies.
+            </summary>
+            <value>
+            The default reference assemblies.
+            </value>
+        </member>
         <member name="M:CSScriptLib.Settings.ClearSearchDirs">
             <summary>
             Clears the search directories.
             </summary>
-            <returns></returns>
+            <returns>The Settings instance.</returns>
         </member>
         <member name="M:CSScriptLib.Settings.AddSearchDir(System.String)">
             <summary>
             Adds the search directories aggregated from the unique locations of all assemblies referenced by the host application.
             </summary>
             <param name="dir">The dir.</param>
-            <returns></returns>
+            <returns>The Settings instance</returns>
         </member>
         <member name="M:CSScriptLib.Settings.AddSearchDirsFromHost">
             <summary>
             Adds the search dirs from host.
             </summary>
-            <returns></returns>
+            <returns>The Settings instance</returns>
         </member>
         <member name="T:CSScriptLib.CSScript">
             <summary>
             Class which is implements CS-Script class library interface.
+            </summary>
+        </member>
+        <member name="M:CSScriptLib.CSScript.StartBuildServer">
+            <summary>
+            Starts the build server.
+            </summary>
+        </member>
+        <member name="M:CSScriptLib.CSScript.StopBuildServer">
+            <summary>
+            Stops the build server.
             </summary>
         </member>
         <member name="P:CSScriptLib.CSScript.EvaluatorConfig">
@@ -433,6 +456,47 @@
             Note the script cache is always maintained by the script engine. The CacheEnabled property only indicates if the cached script should be used or not when CSScript.Load(...) method is called.
             </summary>
         </member>
+        <member name="M:CSScriptLib.CSScript.NoteTempFile(System.String)">
+            <summary>
+            Notes the temporary file to be removed on application exit.
+            </summary>
+            <param name="file">The file.</param>
+        </member>
+        <member name="M:CSScriptLib.CSScript.StartPurgingOldTempFiles(System.Boolean)">
+            <summary>
+            Starts the purging old temporary files.
+            </summary>
+            <param name="ignoreCurrentProcessScripts">if set to <c>true</c> [ignore current process scripts].</param>
+        </member>
+        <member name="T:CSScriptLib.CodeDomEvaluator">
+            <summary>
+            Class implementing CodeDom favor of (csc.exe/csc.dll) <see cref="T:CSScriptLib.IEvaluator"/>
+            </summary>
+            <seealso cref="T:CSScriptLib.IEvaluator" />
+        </member>
+        <member name="F:CSScriptLib.CodeDomEvaluator.CompileOnServer">
+            <summary>
+            The flag indicating if the compilation should happen on the build server or locally.
+            </summary>
+        </member>
+        <member name="M:CSScriptLib.CodeDomEvaluator.Validate(CSScriptLib.CompileInfo)">
+            <summary>
+            Validates the specified information.
+            </summary>
+            <param name="info">The information.</param>
+            <exception cref="T:Scripting.CSScriptException">CompileInfo.RootClass property should only be used with Roslyn evaluator as " +
+                                "it addresses the limitation associated with Roslyn. Specifically wrapping ALL scripts in the illegally " +
+                                "named parent class. You are using CodeDomEvaluator so you should not set CompileInfo.RootClass to any custom value</exception>
+        </member>
+        <member name="M:CSScriptLib.CodeDomEvaluator.Compile(System.String,System.String,CSScriptLib.CompileInfo)">
+            <summary>
+            Compiles the specified script text.
+            </summary>
+            <param name="scriptText">The script text.</param>
+            <param name="scriptFile">The script file.</param>
+            <param name="info">The information.</param>
+            <returns>The method result.</returns>
+        </member>
         <member name="M:CSScriptLib.CodeDomEvaluator.ReferenceAssembly(System.Reflection.Assembly)">
             <summary>
             References the given assembly.
@@ -452,7 +516,7 @@
             <summary>
             Gets the referenced assemblies files.
             </summary>
-            <returns></returns>
+            <returns>The method result.</returns>
         </member>
         <member name="M:CSScriptLib.CodeDomEvaluator.GetReferencedAssemblies">
             <summary>
@@ -461,7 +525,7 @@
             Notre: the set of assemblies is cleared on Reset.
             </para>
             </summary>
-            <returns></returns>
+            <returns>The method result.</returns>
         </member>
         <member name="T:CSScriptLib.CompileInfo">
             <summary>
@@ -553,7 +617,13 @@
             <param name="hideCompilerWarnings">if set to <c>true</c> hide compiler warnings.</param>
             <param name="resolveAutogenFilesRefs">if set to <c>true</c> all references to the path of the derived auto-generated files
             (e.g. errors in the decorated classless scripts) will be replaced with the path of the original files (e.g. classless script itself).</param>
-            <returns></returns>
+            <returns>The method result.</returns>
+        </member>
+        <member name="T:CSScriptLib.RoslynEvaluator">
+             <summary>
+            
+             </summary>
+             <seealso cref="T:CSScriptLib.IEvaluator" />
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.GetReferencedAssemblies">
             <summary>
@@ -562,7 +632,7 @@
             Notre: the set of assemblies is cleared on Reset.
             </para>
             </summary>
-            <returns></returns>
+            <returns>The method result.</returns>
         </member>
         <member name="P:CSScriptLib.RoslynEvaluator.CompilerSettings">
             <summary>
@@ -581,6 +651,16 @@
             You may want to call this method to pre-load the compiler assembly your script evaluation performance.
             </para>
             </summary>
+        </member>
+        <member name="M:CSScriptLib.RoslynEvaluator.Compile(System.String,System.String,CSScriptLib.CompileInfo)">
+            <summary>
+            Compiles the specified script text.
+            </summary>
+            <param name="scriptText">The script text.</param>
+            <param name="scriptFile">The script file.</param>
+            <param name="info">The information.</param>
+            <returns>The method result.</returns>
+            <exception cref="T:CSScriptLib.CompilerException"></exception>
         </member>
         <member name="M:CSScriptLib.RoslynEvaluator.ReferenceAssembly(System.Reflection.Assembly)">
             <summary>
@@ -643,6 +723,14 @@
             </summary>
             <value><c>true</c> if 'debug build'; otherwise, <c>false</c>.</value>
         </member>
+        <member name="P:CSScriptLib.EvaluatorBase`1.IsDebug">
+            <summary>
+            Gets a value indicating whether this instance is debug.
+            </summary>
+            <value>
+              <c>true</c> if this instance is debug; otherwise, <c>false</c>.
+            </value>
+        </member>
         <member name="M:CSScriptLib.EvaluatorBase`1.#ctor">
             <summary>
             Initializes a new instance of the <see cref="T:CSScriptLib.RoslynEvaluator" /> class.
@@ -703,6 +791,29 @@
              <param name="scriptText">The C# script text.</param>
              <param name="info"></param>
              <returns>The compiled assembly.</returns>
+        </member>
+        <member name="M:CSScriptLib.EvaluatorBase`1.Validate(CSScriptLib.CompileInfo)">
+            <summary>
+            Validates the specified information.
+            </summary>
+            <param name="info">The information.</param>
+        </member>
+        <member name="M:CSScriptLib.EvaluatorBase`1.GetReferencedAssemblies">
+            <summary>
+            Returns set of referenced assemblies.
+            <para>
+            Notre: the set of assemblies is cleared on Reset.
+            </para>
+            </summary>
+            <returns>The method result.</returns>
+            <exception cref="T:System.NotImplementedException"></exception>
+        </member>
+        <member name="M:CSScriptLib.EvaluatorBase`1.GetReferencedAssembliesFiles">
+            <summary>
+            Gets the referenced assemblies files.
+            </summary>
+            <returns>The method result.</returns>
+            <exception cref="T:System.NotImplementedException"></exception>
         </member>
         <member name="M:CSScriptLib.EvaluatorBase`1.CompileAssemblyFromFile(System.String,System.String)">
             <summary>
@@ -770,7 +881,16 @@
              </code>
              </example>
              <param name="scriptText">The script text.</param>
-             <returns></returns>
+        </member>
+        <member name="M:CSScriptLib.EvaluatorBase`1.Compile(System.String,System.String,CSScriptLib.CompileInfo)">
+            <summary>
+            Compiles the specified script text.
+            </summary>
+            <param name="scriptText">The script text.</param>
+            <param name="scriptFile">The script file.</param>
+            <param name="info">The information.</param>
+            <returns>The method result.</returns>
+            <exception cref="T:System.NotImplementedException"></exception>
         </member>
         <member name="M:CSScriptLib.EvaluatorBase`1.CompileMethod(System.String)">
              <summary>
@@ -1031,6 +1151,14 @@
             </summary>
             <param name="assembly">The path to the assembly file.</param>
             <returns>The instance of the <see cref="T:CSScriptLib.IEvaluator"/> to allow  fluent interface.</returns>
+        </member>
+        <member name="P:CSScriptLib.EvaluatorBase`1.EngineName">
+            <summary>
+            Gets the name of the engine (e.g. 'csc' or 'dotnet').
+            </summary>
+            <value>
+            The name of the engine.
+            </value>
         </member>
         <member name="M:CSScriptLib.EvaluatorBase`1.ReferenceAssembly(System.Reflection.Assembly)">
             <summary>
@@ -1306,7 +1434,6 @@
              </code>
              </example>
              <param name="scriptText">The script text.</param>
-             <returns></returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.CompileAssemblyFromCode(System.String,System.String)">
              <summary>
@@ -1423,7 +1550,7 @@
             Notre: the set of assemblies is cleared on Reset.
             </para>
             </summary>
-            <returns></returns>
+            <returns>The method result.</returns>
         </member>
         <member name="M:CSScriptLib.IEvaluator.LoadCode(System.String,System.Object[])">
              <summary>
@@ -1745,7 +1872,7 @@
             </remarks>
             </summary>
             <param name="text">The text to be processed.</param>
-            <returns></returns>
+            <returns>The escaped string.</returns>
         </member>
         <member name="M:CSScriptLib.CoreExtensions.SelectFirst(System.Xml.Linq.XContainer,System.String)">
             <summary>
@@ -1753,7 +1880,7 @@
             </summary>
             <param name="element">The element.</param>
             <param name="path">The path.</param>
-            <returns></returns>
+            <returns>Selected XML element</returns>
         </member>
         <member name="M:CSScriptLib.CoreExtensions.RemovePathDuplicates(System.String[])">
             <summary>
@@ -1761,7 +1888,7 @@
             based on the path being case sensitive depending on the hosting OS file system.
             </summary>
             <param name="list">The list.</param>
-            <returns></returns>
+            <returns>A list with the unique items</returns>
         </member>
         <member name="M:CSScriptLib.CoreExtensions.IsSharedAssembly(System.String)">
             <summary>
@@ -1777,14 +1904,14 @@
             Converts to bool.
             </summary>
             <param name="text">The text.</param>
-            <returns></returns>
+            <returns>Conversion result</returns>
         </member>
         <member name="M:CSScriptLib.CoreExtensions.RemoveAssemblyExtension(System.String)">
             <summary>
             Removes the assembly extension.
             </summary>
             <param name="asmName">Name of the asm.</param>
-            <returns></returns>
+            <returns>Result of the string manipulation</returns>
         </member>
         <member name="M:CSScriptLib.CoreExtensions.SamePathAs(System.String,System.String)">
             <summary>
@@ -1792,14 +1919,14 @@
             </summary>
             <param name="path1">The path1.</param>
             <param name="path2">The path2.</param>
-            <returns></returns>
+            <returns>The result of the test.</returns>
         </member>
         <member name="M:CSScriptLib.CoreExtensions.CaptureExceptionDispatchInfo(System.Exception)">
             <summary>
             Captures the exception dispatch information.
             </summary>
             <param name="ex">The ex.</param>
-            <returns></returns>
+            <returns>Processed exception instanse</returns>
         </member>
         <member name="M:CSScriptLib.CoreExtensions.FileDelete(System.String,System.Boolean)">
             <summary>
@@ -1911,14 +2038,13 @@
             </para>
             </summary>
             <param name="script">The script.</param>
-            <returns></returns>
+            <returns>The project instance</returns>
         </member>
         <member name="M:CSScriptLib.ProjectBuilder.GetCSSConfig">
-             <summary>
-             Gets the CSS configuration. Used by ST3 Syntaxer
-             </summary>
-             <returns></returns>cls
-            
+            <summary>
+            Gets the CSS configuration. Used by ST3 Syntaxer
+            </summary>
+            <returns>Default config file location</returns>
         </member>
         <member name="T:CSScriptLib.ScriptParser">
             <summary>
@@ -1929,7 +2055,7 @@
             <summary>
             Gets the script parsing context. This object is effectively a parsing result.
             </summary>
-            <returns></returns>
+            <returns>Parsing result</returns>
         </member>
         <member name="M:CSScriptLib.ScriptParser.ProcessImportedScript(System.String)">
             <summary>
@@ -1941,7 +2067,7 @@
             original script file location.</para>
             </summary>
             <param name="scriptFile">The script file.</param>
-            <returns></returns>
+            <returns>Path to the script file to be compiled and executed</returns>
         </member>
         <member name="F:CSScriptLib.ScriptParser.apartmentState">
             <summary>
@@ -2064,7 +2190,7 @@
              <param name="searchDirs">The search dirs.</param>
              <param name="defaultRefAsms">The default ref asms.</param>
              <param name="defaultNamespacess">The default namespaces.</param>
-             <returns></returns>
+             <returns>List of references</returns>
         </member>
         <member name="T:CSScriptLib.ScriptParsingResult">
             <summary>
@@ -2121,6 +2247,24 @@
             The time of parsing.
             </summary>
         </member>
+        <member name="T:CSScriptLib.TempFileCollection">
+             <summary>
+            
+             </summary>
+        </member>
+        <member name="P:CSScriptLib.TempFileCollection.Items">
+            <summary>
+            Gets or sets the items (file paths) composing the temporarty files collections.
+            </summary>
+            <value>
+            The items.
+            </value>
+        </member>
+        <member name="M:CSScriptLib.TempFileCollection.Clear">
+            <summary>
+            Clears the collection.
+            </summary>
+        </member>
         <member name="T:CSScriptLib.Runtime">
             <summary>
             A class that hosts the most common properties of the runtime environment.
@@ -2134,6 +2278,24 @@
             </para>
             </summary>
             <returns>Temporary directory name.</returns>
+        </member>
+        <member name="M:CSScriptLib.Runtime.CleanAbandonedCache">
+            <summary>
+            Cleans the abandoned script execution cache.
+            </summary>
+        </member>
+        <member name="M:CSScriptLib.Runtime.CleanSnippets">
+            <summary>
+            Cleans the snippets.
+            </summary>
+        </member>
+        <member name="M:CSScriptLib.Runtime.CleanUnusedTmpFiles(System.String,System.String,System.Boolean)">
+            <summary>
+            Cleans the unused temporary files.
+            </summary>
+            <param name="dir">The dir.</param>
+            <param name="pattern">The pattern.</param>
+            <param name="verifyPid">if set to <c>true</c> [verify pid].</param>
         </member>
         <member name="P:CSScriptLib.Runtime.NuGetCacheView">
             <summary>
@@ -2181,7 +2343,7 @@
             </summary>
             <param name="baseDir">The working dir.</param>
             <param name="rootDir">The root dir path as per Git 'ignore specification'.</param>
-            <returns></returns>
+            <returns>The method result.</returns>
         </member>
         <member name="T:csscript.ResolveSourceFileAlgorithm">
             <summary>
@@ -2190,7 +2352,7 @@
             <param name="file">The file.</param>
             <param name="searchDirs">The extra dirs.</param>
             <param name="throwOnError">if set to <c>true</c> [throw on error].</param>
-            <returns></returns>
+            <returns>Location of the files matching the resolution input. </returns>
         </member>
         <member name="T:csscript.ResolveAssemblyHandler">
             <summary>
@@ -2198,7 +2360,7 @@
             </summary>
             <param name="file">The file.</param>
             <param name="searchDirs">The extra dirs.</param>
-            <returns></returns>
+            <returns>Location of the files matching the resolution input.</returns>
         </member>
         <member name="T:csscript.AssemblyResolver">
             <summary>
@@ -2278,6 +2440,127 @@
               Looks up a localized resource of type System.Byte[].
             </summary>
         </member>
+        <member name="T:CSScripting.CodeDom.CompilerResults">
+             <summary>
+            
+             </summary>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerResults.TempFiles">
+            <summary>
+            Gets or sets the collection of the temporary files that the runtime will delete on the application exit.
+            </summary>
+            <value>
+            The temporary files.
+            </value>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerResults.ProbingDirs">
+            <summary>
+            Gets or sets the probing directories to be used for assembly probings.
+            </summary>
+            <value>
+            The probing directories.
+            </value>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerResults.CompiledAssembly">
+            <summary>
+            Gets or sets the compiled assembly.
+            </summary>
+            <value>
+            The compiled assembly.
+            </value>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerResults.Errors">
+            <summary>
+            Gets or sets the errors.
+            </summary>
+            <value>
+            The errors.
+            </value>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerResults.Output">
+            <summary>
+            Gets or sets the output.
+            </summary>
+            <value>
+            The output.
+            </value>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerResults.PathToAssembly">
+            <summary>
+            Gets or sets the path to assembly.
+            </summary>
+            <value>
+            The path to assembly.
+            </value>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerResults.NativeCompilerReturnValue">
+            <summary>
+            Gets or sets the native compiler return value, which is a process exit code of the compiler executable (e.g. dotnet.exe).
+            </summary>
+            <value>
+            The native compiler return value.
+            </value>
+        </member>
+        <member name="T:CSScripting.CodeDom.CompilerError">
+             <summary>
+            
+             </summary>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerError.Line">
+            <summary>
+            Gets or sets the line number of the syntax causing the error.
+            </summary>
+            <value>
+            The line.
+            </value>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerError.Column">
+            <summary>
+            Gets or sets the column number of the syntax causing the error.
+            </summary>
+            <value>
+            The column.
+            </value>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerError.ErrorNumber">
+            <summary>
+            Gets or sets the error number.
+            </summary>
+            <value>
+            The error number.
+            </value>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerError.ErrorText">
+            <summary>
+            Gets or sets the error text.
+            </summary>
+            <value>
+            The error text.
+            </value>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerError.IsWarning">
+            <summary>
+            Gets or sets a value indicating whether this instance of the error is a warning.
+            </summary>
+            <value>
+              <c>true</c> if this instance is warning; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:CSScripting.CodeDom.CompilerError.FileName">
+            <summary>
+            Gets or sets the name of the file causing the error.
+            </summary>
+            <value>
+            The name of the file.
+            </value>
+        </member>
+        <member name="M:CSScripting.CodeDom.CompilerError.Parse(System.String)">
+            <summary>
+            Parses the specified compiler output.
+            </summary>
+            <param name="compilerOutput">The compiler output.</param>
+            <returns><c>Error</c> object</returns>
+        </member>
         <member name="T:CSScripting.LinqExtensions">
             <summary>
             Various LINQ extensions
@@ -2290,7 +2573,7 @@
             <typeparam name="T"></typeparam>
             <param name="items">The items.</param>
             <param name="predicate">The predicate.</param>
-            <returns></returns>
+            <returns>Result of the test</returns>
         </member>
         <member name="M:CSScripting.LinqExtensions.AddItem``1(System.Collections.Generic.IEnumerable{``0},``0)">
             <summary>
@@ -2299,7 +2582,7 @@
             <typeparam name="TSource">The type of the source.</typeparam>
             <param name="items">The items.</param>
             <param name="item">The item.</param>
-            <returns></returns>
+            <returns>The original collection instance.</returns>
         </member>
         <member name="M:CSScripting.LinqExtensions.IsEmpty``1(System.Collections.Generic.IEnumerable{``0})">
             <summary>
@@ -2318,12 +2601,185 @@
             <typeparam name="T"></typeparam>
             <param name="collection">The collection.</param>
             <param name="action">The action.</param>
-            <returns></returns>
+            <returns>The original collection instance</returns>
         </member>
         <member name="T:CSScripting.PathExtensions">
             <summary>
             Various PATH extensions
             </summary>
+        </member>
+        <member name="M:CSScripting.PathExtensions.FileCopy(System.String,System.String,System.Boolean)">
+            <summary>
+            Copies the file.
+            </summary>
+            <param name="src">The source path to the file.</param>
+            <param name="dest">The destination path to the file.</param>
+            <param name="ignoreErrors">if set to <c>true</c> [ignore errors].</param>
+        </member>
+        <member name="M:CSScripting.PathExtensions.ChangeExtension(System.String,System.String)">
+            <summary>
+            Changes the extension of the file.
+            </summary>
+            <param name="path">The path.</param>
+            <param name="extension">The extension.</param>
+            <returns>A new path</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.GetExtension(System.String)">
+            <summary>
+            Gets the extension.
+            </summary>
+            <param name="path">The path.</param>
+            <returns>File extension</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.GetFileName(System.String)">
+            <summary>
+            Gets the file name part of the full path.
+            </summary>
+            <param name="path">The path.</param>
+            <returns>The method result.</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.DirExists(System.String)">
+            <summary>
+            Checks if the directory exists.
+            </summary>
+            <param name="path">The path.</param>
+            <returns>The result of the test.</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.GetFullPath(System.String)">
+            <summary>
+            Gets the full path.
+            </summary>
+            <param name="path">The path.</param>
+            <returns>The path</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.IsDir(System.String)">
+            <summary>
+            Determines whether the path is directory.
+            </summary>
+            <param name="path">The path.</param>
+            <returns>
+              <c>true</c> if the specified path is dir; otherwise, <c>false</c>.
+            </returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.PathJoin(System.String,System.Object[])">
+            <summary>
+            A more convenient API version of <see cref="M:System.IO.Path.Combine(System.String[])"/>.
+            </summary>
+            <param name="path">The path.</param>
+            <param name="parts">The parts.</param>
+            <returns>A new path.</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.GetPath(System.Environment.SpecialFolder)">
+            <summary>
+            Gets the special folder path.
+            </summary>
+            <param name="folder">The folder.</param>
+            <returns>A folder path.</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.EnsureDir(System.String,System.Boolean)">
+            <summary>
+            Ensures the directory exists.
+            </summary>
+            <param name="path">The path.</param>
+            <param name="rethrow">if set to <c>true</c> [rethrow].</param>
+            <returns>Path of the created/existing directory </returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.DeleteDir(System.String,System.Boolean)">
+            <summary>
+            Deletes the directory and its all content.
+            </summary>
+            <param name="path">The path.</param>
+            <param name="handleExceptions">if set to <c>true</c> [handle exceptions].</param>
+            <returns>The original directory path</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.FileExists(System.String)">
+            <summary>
+            Checks if the file exists.
+            </summary>
+            <param name="path">The path.</param>
+            <returns>The result of the test.</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.GetDirName(System.String)">
+            <summary>
+            Gets the directory name from the path.
+            </summary>
+            <param name="path">The path.</param>
+            <returns>The directory path.</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.ChangeFileName(System.String,System.String)">
+            <summary>
+            Changes the name of the file.
+            </summary>
+            <param name="path">The path.</param>
+            <param name="fileName">Name of the file.</param>
+            <returns>A new path.</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.GetFileNameWithoutExtension(System.String)">
+            <summary>
+            Gets the file name without the extension.
+            </summary>
+            <param name="path">The path.</param>
+            <returns>File name</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.PathNormaliseSeparators(System.String)">
+            <summary>
+            Normalizes directory separators in the given path by ensuring the separators are compatible with the target file system.
+            </summary>
+            <param name="path">The path.</param>
+            <returns>A new normalized path.</returns>
+        </member>
+        <member name="M:CSScripting.PathExtensions.PathGetDirs(System.String,System.String)">
+            <summary>
+            Gets the subdirectories of the specified directory path.
+            </summary>
+            <param name="path">The path.</param>
+            <param name="mask">The mask.</param>
+            <returns>A list of the discovered directories.</returns>
+        </member>
+        <member name="T:CSScripting.Globals">
+            <summary>
+            The configuration and methods of the global context.
+            </summary>
+        </member>
+        <member name="M:CSScripting.Globals.RemoveBuildServer">
+            <summary>
+            Removes the build server from the target system.
+            </summary>
+            <returns><c>true</c> if success; otherwise <c>false</c></returns>
+        </member>
+        <member name="M:CSScripting.Globals.DeployBuildServer">
+            <summary>
+            Deploys the build server on the target system.
+            </summary>
+        </member>
+        <member name="M:CSScripting.Globals.Ping">
+            <summary>
+            Pings the running instance of the build server.
+            </summary>
+        </member>
+        <member name="P:CSScripting.Globals.BuildServerIsDeployed">
+            <summary>
+            Gets a value indicating whether build server is deployed.
+            </summary>
+            <value>
+              <c>true</c> if build server is deployed; otherwise, <c>false</c>.
+            </value>
+        </member>
+        <member name="P:CSScripting.Globals.dotnet">
+            <summary>
+            Gets the path to the dotnet executable.
+            </summary>
+            <value>
+            The dotnet executable path.
+            </value>
+        </member>
+        <member name="P:CSScripting.Globals.csc">
+            <summary>
+            Gets or sets the path to the C# compiler executable (e.g. csc.exe or csc.dll)
+            </summary>
+            <value>
+            The CSC.
+            </value>
         </member>
         <member name="T:CSScripting.ReflectionExtensions">
             <summary>
@@ -2335,7 +2791,7 @@
             Returns directory where the specified assembly file is.
             </summary>
             <param name="asm">The asm.</param>
-            <returns></returns>
+            <returns>The directory path</returns>
         </member>
         <member name="M:CSScripting.ReflectionExtensions.Location(System.Reflection.Assembly)">
             <summary>
@@ -2343,14 +2799,14 @@
             of dynamic assembly.
             </summary>
             <param name="asm">The asm.</param>
-            <returns></returns>
+            <returns>The path to the assembly file</returns>
         </member>
         <member name="M:CSScripting.ReflectionExtensions.GetName(System.Type)">
             <summary>
             Gets the name of the type.
             </summary>
             <param name="type">The type.</param>
-            <returns></returns>
+            <returns>Thew name of the type.</returns>
         </member>
         <member name="M:CSScripting.ReflectionExtensions.CreateObject(System.Reflection.Assembly,System.String,System.Object[])">
             <summary>
@@ -2408,13 +2864,40 @@
               <c>true</c> if [is not empty] [the specified text]; otherwise, <c>false</c>.
             </returns>
         </member>
+        <member name="M:CSScripting.StringExtensions.HasText(System.String)">
+            <summary>
+            Determines whether this instance has text.
+            </summary>
+            <param name="text">The text.</param>
+            <returns>
+              <c>true</c> if the specified text has text; otherwise, <c>false</c>.
+            </returns>
+        </member>
         <member name="M:CSScripting.StringExtensions.TrimSingle(System.String,System.Char[])">
             <summary>
             Trims a single character form the head and the end of the string.
             </summary>
             <param name="text">The text.</param>
             <param name="trimChars">The trim chars.</param>
-            <returns></returns>
+            <returns>The result of trimming.</returns>
+        </member>
+        <member name="M:CSScripting.StringExtensions.GetLines(System.String)">
+            <summary>
+            Gets the lines.
+            </summary>
+            <param name="str">The string.</param>
+            <returns>The method result.</returns>
+        </member>
+        <member name="M:CSScripting.StringExtensions.Contains(System.String,System.String,System.Boolean)">
+            <summary>
+            Determines whether this string contains the substring defined by the pattern.
+            </summary>
+            <param name="text">The text.</param>
+            <param name="pattern">The pattern.</param>
+            <param name="ignoreCase">if set to <c>true</c> [ignore case].</param>
+            <returns>
+              <c>true</c> if [contains] [the specified pattern]; otherwise, <c>false</c>.
+            </returns>
         </member>
         <member name="M:CSScripting.StringExtensions.SameAs(System.String,System.String,System.Boolean)">
             <summary>
@@ -2423,7 +2906,7 @@
             <param name="text">The text.</param>
             <param name="pattern">The pattern.</param>
             <param name="ignoreCase">if set to <c>true</c> [ignore case].</param>
-            <returns></returns>
+            <returns>The result of the test.</returns>
         </member>
         <member name="M:CSScripting.StringExtensions.IsOneOf(System.String,System.String[])">
             <summary>
@@ -2431,7 +2914,7 @@
             </summary>
             <param name="text">The text.</param>
             <param name="patterns">The patterns</param>
-            <returns></returns>
+            <returns>The method result.</returns>
         </member>
         <member name="M:CSScripting.StringExtensions.JoinBy(System.Collections.Generic.IEnumerable{System.String},System.String)">
             <summary>
@@ -2439,7 +2922,14 @@
             </summary>
             <param name="values">The values.</param>
             <param name="separator">The separator.</param>
-            <returns></returns>
+            <returns>The method result.</returns>
+        </member>
+        <member name="M:CSScripting.StringExtensions.GetHashCodeEx(System.String)">
+            <summary>
+            The custom implementation of the <see cref="M:System.String.GetHashCode"/> method.
+            </summary>
+            <param name="text">The text to generate the hash for.s.</param>
+            <returns>The method result.</returns>
         </member>
     </members>
 </doc>

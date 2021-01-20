@@ -7,15 +7,64 @@ using CSScriptLib;
 
 namespace CSScripting.CodeDom
 {
+    /// <summary>
+    ///
+    /// </summary>
     public class CompilerError
     {
+        /// <summary>
+        /// Gets or sets the line number of the syntax causing the error.
+        /// </summary>
+        /// <value>
+        /// The line.
+        /// </value>
         public int Line { get; set; }
+
+        /// <summary>
+        /// Gets or sets the column number of the syntax causing the error.
+        /// </summary>
+        /// <value>
+        /// The column.
+        /// </value>
         public int Column { get; set; }
+
+        /// <summary>
+        /// Gets or sets the error number.
+        /// </summary>
+        /// <value>
+        /// The error number.
+        /// </value>
         public string ErrorNumber { get; set; }
+
+        /// <summary>
+        /// Gets or sets the error text.
+        /// </summary>
+        /// <value>
+        /// The error text.
+        /// </value>
         public string ErrorText { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this instance of the error is a warning.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is warning; otherwise, <c>false</c>.
+        /// </value>
         public bool IsWarning { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the file causing the error.
+        /// </summary>
+        /// <value>
+        /// The name of the file.
+        /// </value>
         public string FileName { get; set; }
 
+        /// <summary>
+        /// Parses the specified compiler output.
+        /// </summary>
+        /// <param name="compilerOutput">The compiler output.</param>
+        /// <returns><c>Error</c> object</returns>
         public static CompilerError Parse(string compilerOutput)
         {
             // C:\Program Files\dotnet\sdk\2.1.300-preview1-008174\Sdks\Microsoft.NET.Sdk\build\Microsoft.NET.ConflictResolution.targets(59,5): error MSB4018: The "ResolvePackageFileConflicts" task failed unexpectedly. [C:\Users\%username%\AppData\Local\Temp\csscript.core\cache\1822444284\.build\script.cs\script.csproj]

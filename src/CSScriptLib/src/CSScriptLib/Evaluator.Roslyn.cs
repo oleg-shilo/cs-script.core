@@ -167,7 +167,7 @@ namespace CSScriptLib
         /// <param name="hideCompilerWarnings">if set to <c>true</c> hide compiler warnings.</param>
         /// <param name="resolveAutogenFilesRefs">if set to <c>true</c> all references to the path of the derived auto-generated files
         /// (e.g. errors in the decorated classless scripts) will be replaced with the path of the original files (e.g. classless script itself).</param>
-        /// <returns></returns>
+        /// <returns>The method result.</returns>
         public static CompilerException Create(IEnumerable<CompilerError> Errors, bool hideCompilerWarnings, bool resolveAutogenFilesRefs)
         {
             var compileErr = new StringBuilder();
@@ -219,6 +219,10 @@ namespace CSScriptLib
         }
     }
 
+    /// <summary>
+    ///
+    /// </summary>
+    /// <seealso cref="CSScriptLib.IEvaluator" />
     public class RoslynEvaluator : EvaluatorBase<RoslynEvaluator>, IEvaluator
     {
         ScriptOptions compilerSettings = ScriptOptions.Default;
@@ -229,7 +233,7 @@ namespace CSScriptLib
         /// Notre: the set of assemblies is cleared on Reset.
         /// </para>
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The method result.</returns>
         public override Assembly[] GetReferencedAssemblies()
         {
             // Note all ref assemblies are already loaded as the Evaluator interface is "align" to behave as Mono evaluator,
@@ -267,6 +271,14 @@ namespace CSScriptLib
             CSharpScript.EvaluateAsync("1 + 2"); //this will loaded all required assemblies
         }
 
+        /// <summary>
+        /// Compiles the specified script text.
+        /// </summary>
+        /// <param name="scriptText">The script text.</param>
+        /// <param name="scriptFile">The script file.</param>
+        /// <param name="info">The information.</param>
+        /// <returns>The method result.</returns>
+        /// <exception cref="CSScriptLib.CompilerException"></exception>
         override protected (byte[] asm, byte[] pdb) Compile(string scriptText, string scriptFile, CompileInfo info)
         {
             // http://www.michalkomorowski.com/2016/10/roslyn-how-to-create-custom-debuggable_27.html

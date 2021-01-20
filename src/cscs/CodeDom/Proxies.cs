@@ -262,9 +262,10 @@ namespace CSScripting.CodeDom
                 // it will gracefully exit if another instance is running
                 dotnet.RunAsync($@"""{Globals.build_server}"" -listen -port:{BuildServer.serverPort}");
                 Thread.Sleep(30);
-                var response = BuildServer.SendBuildRequest(request, BuildServer.serverPort);
 
-                result.NativeCompilerReturnValue = 0;
+                (string response, int exitCode) = BuildServer.SendBuildRequest(request, BuildServer.serverPort);
+
+                result.NativeCompilerReturnValue = exitCode;
                 result.Output.AddRange(response.GetLines());
             }
             else

@@ -23,7 +23,7 @@ namespace CSScripting
         /// <typeparam name="T"></typeparam>
         /// <param name="items">The items.</param>
         /// <param name="predicate">The predicate.</param>
-        /// <returns></returns>
+        /// <returns>Result of the test</returns>
         public static bool None<T>(this IEnumerable<T> items, Func<T, bool> predicate) => !items.Any(predicate);
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace CSScripting
         /// <typeparam name="TSource">The type of the source.</typeparam>
         /// <param name="items">The items.</param>
         /// <param name="item">The item.</param>
-        /// <returns></returns>
+        /// <returns>The original collection instance.</returns>
         public static IEnumerable<TSource> AddItem<TSource>(this IEnumerable<TSource> items, TSource item) =>
             items.Concat(new[] { item });
 
@@ -63,7 +63,7 @@ namespace CSScripting
         /// <typeparam name="T"></typeparam>
         /// <param name="collection">The collection.</param>
         /// <param name="action">The action.</param>
-        /// <returns></returns>
+        /// <returns>The original collection instance</returns>
         public static IEnumerable<T> ForEach<T>(this IEnumerable<T> collection, Action<T> action)
         {
             foreach (T item in collection)

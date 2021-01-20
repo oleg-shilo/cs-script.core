@@ -88,6 +88,12 @@ namespace CSScriptLib
         /// <value><c>true</c> if 'debug build'; otherwise, <c>false</c>.</value>
         public bool? DebugBuild { get; set; }
 
+        /// <summary>
+        /// Gets a value indicating whether this instance is debug.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is debug; otherwise, <c>false</c>.
+        /// </value>
         protected bool IsDebug => DebugBuild ?? CSScript.EvaluatorConfig.DebugBuild;
 
         /// <summary>
@@ -161,6 +167,10 @@ namespace CSScriptLib
             return CompileCode(scriptText, null, info);
         }
 
+        /// <summary>
+        /// Validates the specified information.
+        /// </summary>
+        /// <param name="info">The information.</param>
         protected virtual void Validate(CompileInfo info)
         { }
 
@@ -188,9 +198,22 @@ namespace CSScriptLib
             }
         }
 
+        /// <summary>
+        /// Returns set of referenced assemblies.
+        /// <para>
+        /// Notre: the set of assemblies is cleared on Reset.
+        /// </para>
+        /// </summary>
+        /// <returns>The method result.</returns>
+        /// <exception cref="NotImplementedException"></exception>
         public virtual Assembly[] GetReferencedAssemblies()
             => throw new NotImplementedException();
 
+        /// <summary>
+        /// Gets the referenced assemblies files.
+        /// </summary>
+        /// <returns>The method result.</returns>
+        /// <exception cref="NotImplementedException"></exception>
         public virtual string[] GetReferencedAssembliesFiles()
             => throw new NotImplementedException();
 
@@ -275,12 +298,19 @@ namespace CSScriptLib
         /// </code>
         /// </example>
         /// <param name="scriptText">The script text.</param>
-        /// <returns></returns>
         public void Check(string scriptText)
         {
             Compile(scriptText, null, null);
         }
 
+        /// <summary>
+        /// Compiles the specified script text.
+        /// </summary>
+        /// <param name="scriptText">The script text.</param>
+        /// <param name="scriptFile">The script file.</param>
+        /// <param name="info">The information.</param>
+        /// <returns>The method result.</returns>
+        /// <exception cref="NotImplementedException"></exception>
         protected virtual (byte[] asm, byte[] pdb) Compile(string scriptText, string scriptFile, CompileInfo info)
         {
             throw new NotImplementedException();
@@ -681,6 +711,12 @@ namespace CSScriptLib
             return this;
         }
 
+        /// <summary>
+        /// Gets the name of the engine (e.g. 'csc' or 'dotnet').
+        /// </summary>
+        /// <value>
+        /// The name of the engine.
+        /// </value>
         protected virtual string EngineName => "CS-Script evaluator";
 
         /// <summary>

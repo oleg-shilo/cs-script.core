@@ -38,6 +38,9 @@ namespace csscript
 
         static string tempDir = null;
 
+        /// <summary>
+        /// Cleans the abandoned script execution cache.
+        /// </summary>
         public static void CleanAbandonedCache()
         {
             var rootDir = GetScriptTempDir().PathJoin("cache");
@@ -81,6 +84,9 @@ namespace csscript
             }
         }
 
+        /// <summary>
+        /// Cleans the snippets.
+        /// </summary>
         public static void CleanSnippets()
         {
             // CSScript.GetScriptTempDir()
@@ -99,6 +105,12 @@ namespace csscript
             }
         }
 
+        /// <summary>
+        /// Cleans the unused temporary files.
+        /// </summary>
+        /// <param name="dir">The dir.</param>
+        /// <param name="pattern">The pattern.</param>
+        /// <param name="verifyPid">if set to <c>true</c> [verify pid].</param>
         public static void CleanUnusedTmpFiles(string dir, string pattern, bool verifyPid)
         {
             if (!Directory.Exists(dir))

@@ -97,6 +97,9 @@ namespace CSScriptLib
     /// </summary>
     public class Settings
     {
+        /// <summary>
+        /// Loads and returns the settings instance.
+        /// </summary>
         public static Func<string, Settings> Load = (file) => new Settings();
 
         /// <summary>
@@ -127,6 +130,12 @@ namespace CSScriptLib
         /// </summary>
         public string[] SearchDirs { get => searchDirs.ToArray(); }
 
+        /// <summary>
+        /// Gets or sets the default reference assemblies.
+        /// </summary>
+        /// <value>
+        /// The default reference assemblies.
+        /// </value>
         public string DefaultRefAssemblies { get; set; } = "";
 
         List<string> searchDirs { get; set; } = new List<string>();
@@ -134,7 +143,7 @@ namespace CSScriptLib
         /// <summary>
         /// Clears the search directories.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The Settings instance.</returns>
         public Settings ClearSearchDirs()
         {
             searchDirs.Clear();
@@ -145,7 +154,7 @@ namespace CSScriptLib
         /// Adds the search directories aggregated from the unique locations of all assemblies referenced by the host application.
         /// </summary>
         /// <param name="dir">The dir.</param>
-        /// <returns></returns>
+        /// <returns>The Settings instance</returns>
         public Settings AddSearchDir(string dir)
         {
             searchDirs.Add(Environment.ExpandEnvironmentVariables(dir));
@@ -155,7 +164,7 @@ namespace CSScriptLib
         /// <summary>
         /// Adds the search dirs from host.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The Settings instance</returns>
         public Settings AddSearchDirsFromHost()
         {
             try
@@ -181,9 +190,15 @@ namespace CSScriptLib
     /// </summary>
     public partial class CSScript
     {
+        /// <summary>
+        /// Starts the build server.
+        /// </summary>
         static public void StartBuildServer()
             => Globals.StartBuildServer();
 
+        /// <summary>
+        /// Stops the build server.
+        /// </summary>
         static public void StopBuildServer()
             => Globals.StopBuildServer();
 
@@ -346,6 +361,10 @@ namespace CSScriptLib
 
         static List<string> tempFiles;
 
+        /// <summary>
+        /// Notes the temporary file to be removed on application exit.
+        /// </summary>
+        /// <param name="file">The file.</param>
         internal static void NoteTempFile(string file)
         {
             if (file.IsNotEmpty())
@@ -361,6 +380,10 @@ namespace CSScriptLib
 
         static bool purging = false;
 
+        /// <summary>
+        /// Starts the purging old temporary files.
+        /// </summary>
+        /// <param name="ignoreCurrentProcessScripts">if set to <c>true</c> [ignore current process scripts].</param>
         public static void StartPurgingOldTempFiles(bool ignoreCurrentProcessScripts)
         {
             if (!purging)

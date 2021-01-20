@@ -10,7 +10,7 @@ namespace csscript
     /// <param name="file">The file.</param>
     /// <param name="searchDirs">The extra dirs.</param>
     /// <param name="throwOnError">if set to <c>true</c> [throw on error].</param>
-    /// <returns></returns>
+    /// <returns>Location of the files matching the resolution input. </returns>
     public delegate string[] ResolveSourceFileAlgorithm(string file, string[] searchDirs, bool throwOnError);
 
     /// <summary>
@@ -18,7 +18,7 @@ namespace csscript
     /// </summary>
     /// <param name="file">The file.</param>
     /// <param name="searchDirs">The extra dirs.</param>
-    /// <returns></returns>
+    /// <returns>Location of the files matching the resolution input.</returns>
     public delegate string[] ResolveAssemblyHandler(string file, string[] searchDirs);
 
     /// <summary>

@@ -15,7 +15,7 @@ namespace CSScriptLib
         /// <summary>
         /// Gets the script parsing context. This object is effectively a parsing result.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Parsing result</returns>
         public ScriptParsingResult GetContext()
         {
             return new ScriptParsingResult
@@ -41,7 +41,7 @@ namespace CSScriptLib
         /// original script file location.</para>
         /// </summary>
         /// <param name="scriptFile">The script file.</param>
-        /// <returns></returns>
+        /// <returns>Path to the script file to be compiled and executed</returns>
         public static string ProcessImportedScript(string scriptFile)
         {
             var parser = new FileParser(scriptFile, new ParsingParams(), true, true, new string[0], true);
@@ -413,7 +413,7 @@ namespace CSScriptLib
         /// <param name="searchDirs">The search dirs.</param>
         /// <param name="defaultRefAsms">The default ref asms.</param>
         /// <param name="defaultNamespacess">The default namespaces.</param>
-        /// <returns></returns>
+        /// <returns>List of references</returns>
         public List<string> AgregateReferences(IEnumerable<string> searchDirs, IEnumerable<string> defaultRefAsms, IEnumerable<string> defaultNamespacess)
         {
             var probingDirs = searchDirs.ToArray();

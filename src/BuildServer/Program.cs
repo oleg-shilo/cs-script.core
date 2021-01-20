@@ -12,8 +12,9 @@ namespace compile_server
 {
     class Program
     {
-        static void Main(string[] app_args)
+        static int Main(string[] app_args)
         {
+            var exitCode = 0;
             try
             {
                 var args = app_args.Where(x => !x.StartsWith("-port:")).ToArray();
@@ -63,7 +64,7 @@ namespace compile_server
                 {
                     // Debugger.Launch();
                     BuildServer.StartRemoteInstance(port);
-                    var buildLog = BuildServer.SendBuildRequest(args, port);
+                    (var buildLog, _) = BuildServer.SendBuildRequest(args, port);
 
                     // keep Console as app.log may be swallowing the messages
                     // and the parent process needs to read the console output
@@ -79,6 +80,7 @@ namespace compile_server
                 BuildServer.ReportExit();
                 BuildServer.PurgeRunningHistory();
             }
+            return exitCode;
         }
 
         static void SendShutdownRequest()

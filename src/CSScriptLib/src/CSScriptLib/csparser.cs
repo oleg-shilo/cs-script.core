@@ -305,7 +305,7 @@ namespace CSScriptLib
         }
 
 #endif
-        public static bool NeedInitEnvironment = true;
+        internal static bool NeedInitEnvironment = true;
 
         static void InitEnvironment()
         {
@@ -1100,7 +1100,7 @@ namespace CSScriptLib
         /// </remarks>
         /// </summary>
         /// <param name="text">The text to be processed.</param>
-        /// <returns></returns>
+        /// <returns>The escaped string.</returns>
         public static string EscapeDirectiveDelimiters(string text)
         {
             foreach (char c in DirectiveDelimiters)
@@ -1115,7 +1115,7 @@ namespace CSScriptLib
         ///
         /// </summary>
         /// <param name="text">The text.</param>
-        /// <returns></returns>
+        /// <returns>The escaped string.</returns>
         internal static string UserToInternalEscaping(string text)
         {
             foreach (char c in DirectiveDelimiters)
@@ -1152,7 +1152,7 @@ namespace CSScriptLib
         /// </remarks>
         /// </summary>
         /// <param name="text">The text to be processed.</param>
-        /// <returns></returns>
+        /// <returns>The unescaped string.</returns>
         public static string UnescapeDirectiveDelimiters(string text)
         {
             foreach (char c in DirectiveDelimiters)

@@ -50,7 +50,7 @@ namespace CSScriptLib
         /// </para>
         /// </summary>
         /// <param name="script">The script.</param>
-        /// <returns></returns>
+        /// <returns>The project instance</returns>
         static public Project GenerateProjectFor(string script)
         {
             return ProjectBuilder.GenerateProjectFor(script);
@@ -180,8 +180,7 @@ namespace CSScriptLib
         /// <summary>
         /// Gets the CSS configuration. Used by ST3 Syntaxer
         /// </summary>
-        /// <returns></returns>cls
-        ///
+        /// <returns>Default config file location</returns>
         static public string GetCSSConfig()
             => Settings.DefaultConfigFile;
     }

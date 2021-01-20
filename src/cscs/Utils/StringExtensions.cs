@@ -27,6 +27,13 @@ namespace CSScripting
         /// </returns>
         public static bool IsNotEmpty(this string text) => !string.IsNullOrEmpty(text);
 
+        /// <summary>
+        /// Determines whether this instance has text.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified text has text; otherwise, <c>false</c>.
+        /// </returns>
         public static bool HasText(this string text) => !string.IsNullOrEmpty(text) && !string.IsNullOrWhiteSpace(text);
 
         /// <summary>
@@ -34,7 +41,7 @@ namespace CSScripting
         /// </summary>
         /// <param name="text">The text.</param>
         /// <param name="trimChars">The trim chars.</param>
-        /// <returns></returns>
+        /// <returns>The result of trimming.</returns>
         public static string TrimSingle(this string text, params char[] trimChars)
         {
             if (text.IsEmpty())
@@ -49,9 +56,23 @@ namespace CSScripting
                 return text;
         }
 
+        /// <summary>
+        /// Gets the lines.
+        /// </summary>
+        /// <param name="str">The string.</param>
+        /// <returns>The method result.</returns>
         public static string[] GetLines(this string str) =>// too simplistic though adequate
             str.Replace("\r\n", "\n").Split('\n');
 
+        /// <summary>
+        /// Determines whether this string contains the substring defined by the pattern.
+        /// </summary>
+        /// <param name="text">The text.</param>
+        /// <param name="pattern">The pattern.</param>
+        /// <param name="ignoreCase">if set to <c>true</c> [ignore case].</param>
+        /// <returns>
+        ///   <c>true</c> if [contains] [the specified pattern]; otherwise, <c>false</c>.
+        /// </returns>
         public static bool Contains(this string text, string pattern, bool ignoreCase)
             => text.IndexOf(pattern, ignoreCase ? StringComparison.OrdinalIgnoreCase : default(StringComparison)) != -1;
 
@@ -61,7 +82,7 @@ namespace CSScripting
         /// <param name="text">The text.</param>
         /// <param name="pattern">The pattern.</param>
         /// <param name="ignoreCase">if set to <c>true</c> [ignore case].</param>
-        /// <returns></returns>
+        /// <returns>The result of the test.</returns>
         public static bool SameAs(this string text, string pattern, bool ignoreCase = true)
             => 0 == string.Compare(text, pattern, ignoreCase);
 
@@ -70,7 +91,7 @@ namespace CSScripting
         /// </summary>
         /// <param name="text">The text.</param>
         /// <param name="patterns">The patterns</param>
-        /// <returns></returns>
+        /// <returns>The method result.</returns>
         public static bool IsOneOf(this string text, params string[] patterns)
             => patterns.Any(x => x == text);
 
@@ -79,11 +100,16 @@ namespace CSScripting
         /// </summary>
         /// <param name="values">The values.</param>
         /// <param name="separator">The separator.</param>
-        /// <returns></returns>
+        /// <returns>The method result.</returns>
         public static string JoinBy(this IEnumerable<string> values, string separator)
             => string.Join(separator, values);
 
-        public static int GetHashCodeEx(this string s)
+        /// <summary>
+        /// The custom implementation of the <see cref="string.GetHashCode"/> method.
+        /// </summary>
+        /// <param name="text">The text to generate the hash for.s.</param>
+        /// <returns>The method result.</returns>
+        public static int GetHashCodeEx(this string text)
         {
             //during the script first compilation GetHashCodeEx is called ~10 times
             //during the cached execution ~5 times only
@@ -99,14 +125,14 @@ namespace CSScripting
             if (csscript.ExecuteOptions.options.customHashing)
             {
                 // deterministic GetHashCode; useful for integration with third party products (e.g. CS-Script.Npp)
-                return s.GetHashCode32();
+                return text.GetHashCode32();
             }
             else
             {
-                return s.GetHashCode();
+                return text.GetHashCode();
             }
 #else
-            return s.GetHashCode();
+            return text.GetHashCode();
 #endif
         }
 

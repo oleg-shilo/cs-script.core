@@ -23,7 +23,7 @@ namespace CSScripting
         /// Returns directory where the specified assembly file is.
         /// </summary>
         /// <param name="asm">The asm.</param>
-        /// <returns></returns>
+        /// <returns>The directory path</returns>
         public static string Directory(this Assembly asm)
         {
             var file = asm.Location();
@@ -38,7 +38,7 @@ namespace CSScripting
         /// of dynamic assembly.
         /// </summary>
         /// <param name="asm">The asm.</param>
-        /// <returns></returns>
+        /// <returns>The path to the assembly file</returns>
         public static string Location(this Assembly asm)
         {
             if (asm.IsDynamic())
@@ -65,7 +65,7 @@ namespace CSScripting
         /// Gets the name of the type.
         /// </summary>
         /// <param name="type">The type.</param>
-        /// <returns></returns>
+        /// <returns>Thew name of the type.</returns>
         public static string GetName(this Type type)
         {
             return type.GetTypeInfo().Name;

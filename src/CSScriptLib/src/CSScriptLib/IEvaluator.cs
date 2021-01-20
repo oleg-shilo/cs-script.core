@@ -217,7 +217,6 @@ namespace CSScriptLib
         /// </code>
         /// </example>
         /// <param name="scriptText">The script text.</param>
-        /// <returns></returns>
         void Check(string scriptText);
 
         /// <summary>
@@ -334,7 +333,7 @@ namespace CSScriptLib
         /// Notre: the set of assemblies is cleared on Reset.
         /// </para>
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The method result.</returns>
         Assembly[] GetReferencedAssemblies();
 
         /// <summary>

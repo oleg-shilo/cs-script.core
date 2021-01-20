@@ -62,8 +62,10 @@ namespace CSScripting.CodeDom
             return clientSocket.ReadAllBytes().GetString();
         }
 
-        static public string SendBuildRequest(string[] args, int? port)
+        static public (string response, int exitCode) SendBuildRequest(string[] args, int? port)
         {
+            int exitCode = 0;
+
             string get_response()
             {
                 try
@@ -73,7 +75,16 @@ namespace CSScripting.CodeDom
                     string request = string.Join('\n', args.Skip(1));
                     string response = BuildServer.Request(request, port);
 
-                    return response;
+                    var responseItems = response.Split(new char[] { '|' }, 2);
+                    if (responseItems.Count() < 2)
+                    {
+                        exitCode = 1;
+                        return "Build server output is in unexpected format. The compiler exit code is not available.\n" +
+                               "Try to restart the build server with 'css -server:stop' followed by 'css -server:start'.";
+                    }
+
+                    exitCode = int.Parse(responseItems[0]);
+                    return responseItems[1];
                 }
                 catch (Exception e)
                 {
@@ -90,7 +101,7 @@ namespace CSScripting.CodeDom
                 response = get_response();
             }
 
-            return response;
+            return (response, exitCode);
         }
 
         static public bool IsServerAlive(int? port)
@@ -319,9 +330,10 @@ namespace CSScripting.CodeDom
 
                 Console.SetOut(buff);
 
+                int exitCode = 0;
                 try
                 {
-                    AppDomain.CurrentDomain.ExecuteAssembly(csc, args);
+                    exitCode = AppDomain.CurrentDomain.ExecuteAssembly(csc, args);
                 }
                 catch (Exception e)
                 {
@@ -331,7 +343,7 @@ namespace CSScripting.CodeDom
                 {
                     Console.SetOut(oldOut);
                 }
-                return buff.GetStringBuilder().ToString();
+                return $"{exitCode}|{buff.GetStringBuilder()}";
             }
         }
     }

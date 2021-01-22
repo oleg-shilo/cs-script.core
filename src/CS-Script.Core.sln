@@ -3,11 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.202
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "css (win launcher)", "css\css (win launcher).csproj", "{A8755B0E-EE1D-4CC0-9C58-A7ABB0EFAE3C}"
-	ProjectSection(ProjectDependencies) = postProject
-		{847D3D48-443D-42F6-BB42-9467EC22994B} = {847D3D48-443D-42F6-BB42-9467EC22994B}
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CSScriptLib", "CSScriptLib\src\CSScriptLib\CSScriptLib.csproj", "{55C76AC3-5FD6-4974-AF40-E4966126D09F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{E1531A93-F78D-406D-B3F6-06367908F619} = {E1531A93-F78D-406D-B3F6-06367908F619}
@@ -62,10 +57,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A8755B0E-EE1D-4CC0-9C58-A7ABB0EFAE3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A8755B0E-EE1D-4CC0-9C58-A7ABB0EFAE3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A8755B0E-EE1D-4CC0-9C58-A7ABB0EFAE3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A8755B0E-EE1D-4CC0-9C58-A7ABB0EFAE3C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{55C76AC3-5FD6-4974-AF40-E4966126D09F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{55C76AC3-5FD6-4974-AF40-E4966126D09F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55C76AC3-5FD6-4974-AF40-E4966126D09F}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -119,7 +110,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{A8755B0E-EE1D-4CC0-9C58-A7ABB0EFAE3C} = {6004D708-5D76-4CE2-A243-91F5D296C59B}
 		{55C76AC3-5FD6-4974-AF40-E4966126D09F} = {AD647B83-35A2-4B81-B2BF-82CCD7E55C2C}
 		{847D3D48-443D-42F6-BB42-9467EC22994B} = {6004D708-5D76-4CE2-A243-91F5D296C59B}
 		{856DEA01-07B4-472D-9B82-73B37BBD1A25} = {6004D708-5D76-4CE2-A243-91F5D296C59B}

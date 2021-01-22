@@ -1030,7 +1030,7 @@ namespace csscript
                         if (Runtime.IsWin && IsWpfHostingException(ex) && Assembly.GetExecutingAssembly().GetName().Name == "cscs") // console app)
                         {
                             message += $"{NewLine}{NewLine}NOTE: If you are trying to use WPF ensure you have enabled WPF support " +
-                                "with `dotnet cscs.dll -wpf:enable`";
+                                       $"with `{Environment.GetEnvironmentVariable("ENTRY_ASM")} -wpf:enable`";
                         }
 
                         print(message);

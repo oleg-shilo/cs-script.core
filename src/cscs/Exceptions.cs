@@ -8,7 +8,7 @@ using System.Text;
 namespace csscript
 {
     /// <summary>
-    /// The exception that is thrown when an incvalid CS-Script directive is encountered.
+    /// The exception that is thrown when an invalid CS-Script directive is encountered.
     /// </summary>
     /// <seealso cref="csscript.CompilerException" />
     class InvalidDirectiveException : CompilerException

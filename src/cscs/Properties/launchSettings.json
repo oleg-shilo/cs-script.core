@@ -2,8 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "-ng:csc D:\\dev\\Galos\\cs-script.core\\src\\out\\ci\\set_version.cs",
-      "workingDirectory": "..\\",
+      "commandLineArgs": "-new:console",
       "remoteDebugEnabled": false
     }
   }

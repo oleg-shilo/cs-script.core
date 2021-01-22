@@ -24,8 +24,8 @@ namespace CLI
             Environment.CurrentDirectory = root;
         }
 
-         public static void Set(string path)
-            => Environment.CurrentDirectory = root = path.EnsureDir();
+        public static void Set(string path)
+           => Environment.CurrentDirectory = root = path.EnsureDir();
     }
 
     public class cscs_cli : IClassFixture<CliTestFolder>
@@ -38,9 +38,16 @@ namespace CLI
             var config = "Release";
 #endif
             cscs_exe = Environment.GetEnvironmentVariable("css_test_asm") ?? $@"..\..\..\..\..\cscs\bin\{config}\net5.0\cscs.dll".GetFullPath();
+            var cmd_dir = cscs_exe.ChangeFileName("-self");
+
+            if (cmd_dir.DirExists())
+                static_content = cmd_dir;
+            else
+                static_content = $@"..\..\..\..\..\out\static_content".GetFullPath();
         }
 
         public string cscs_exe;
+        public string static_content;
 
         string cscs_run(string args, string dir = null) => "dotnet".Run($"\"{cscs_exe}\" {args}", dir).Trim();
 
@@ -163,6 +170,34 @@ namespace CLI
         }
 
         [Fact]
+        public void complex_commands()
+        {
+            var is_win = (Environment.OSVersion.Platform == PlatformID.Win32NT);
+            var probing_dir = $"-dir:{static_content}";
+
+            var output = cscs_run($"{probing_dir} -self");
+            Assert.Equal(cscs_exe, output);
+
+            output = cscs_run($"{probing_dir} -self-run");
+            Assert.Equal(cscs_exe, output);
+
+            // --------------
+            // it will fail on Linux as elevation will be required. so building exe
+            // needs to be tested manually.
+            if (is_win)
+            {
+                output = cscs_run($"{probing_dir} -self-exe");
+                Assert.Equal($"Created: {cscs_exe.ChangeFileName("css.exe")}", output);
+
+                output = cscs_run($"{probing_dir} -self-exe-run");
+                Assert.Equal($"Created: {cscs_exe.ChangeFileName("css.exe")}", output);
+
+                output = cscs_run($"{probing_dir} -self-exe-build");
+                Assert.Equal($"Created: {cscs_exe.ChangeFileName("css.exe")}", output);
+            }
+        }
+
+        [Fact]
         [FactWinOnly]
         public void new_winform()
         {
@@ -203,11 +238,22 @@ namespace CLI
             // WPF           |  cscs       |  dotnet            |  success      |  success  |  success            |  //css_winapp (execute `cscs -wpf:enable` once)
             // WPF           |  csws       |  dotnet            |  success      |  success  |  success            |  //css_winapp
 
-            if(!Runtime.IsLinux)
+            if (!Runtime.IsLinux)
             {
-                var script_file = nameof(new_wpf_with_cscs);
+                var script_file = nameof(new_wpf_with_cscs) + ".cs";
 
                 var output = cscs_run($"-new:wpf {script_file}");
+
+                // --------------
+
+                output = cscs_run($"-check {script_file}");
+                Assert.Equal("Compile: OK", output);
+
+                // --------------
+
+                // removing in-code engine directive so the engine from CLI param will be used
+                var content = File.ReadAllLines(script_file).Where(x => !x.Contains("//css_ng")).ToArray();
+                File.WriteAllLines(script_file, content);
 
                 output = cscs_run($"-check -ng:dotnet {script_file}");
                 Assert.Equal("Compile: OK", output);

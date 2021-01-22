@@ -12,8 +12,12 @@ set PATH=%PATH%;%%\out\ci\
 set target=net5.0
 md "out\Windows"
 md "out\Linux"
-md "out\Linux\-selftest"
-md "out\Windows\-selftest"
+md "out\Linux\-self"
+md "out\Linux\-self\-exe"
+md "out\Linux\-self\-test"
+md "out\Windows\-self"
+md "out\Windows\-self\-exe"
+md "out\Windows\-self\-test"
 
 rem in case some contentis already there
 del /S /Q "out\Linux\"
@@ -93,13 +97,20 @@ cd ..\..
 
 copy "out\static_content\-code.header" "out\Linux" 
 copy "out\static_content\-code.header" "out\Windows" 
-copy "Tests.cscs\linux\run.cs" "out\Linux\-selftest\run.cs" 
-copy "Tests.cscs\linux\xunit.polyfill.cs" "out\Linux\-selftest\xunit.polyfill.cs" 
-copy "Tests.cscs\cli.cs" "out\Linux\-selftest\cli.cs" 
-copy "out\Linux\-selftest\*" "out\Windows\-selftest"
-copy "out\static_content\readme.md" "out\Linux\readme.md" 
-rem copy "out\static_content\css.cs" "out\Linux\css.cs" 
 
+copy "out\static_content\-self\*" "out\Windows\-self\" 
+copy "out\static_content\-self\*" "out\Linux\-self\" 
+
+copy "out\static_content\-self\-exe\*" "out\Windows\-self\-exe\" 
+copy "out\static_content\-self\-exe\*" "out\Linux\-self\-exe\" 
+
+copy "out\static_content\-self\-test\*" "out\Windows\-self\-test\" 
+copy "out\static_content\-self\-test\*" "out\Linux\-self\-test\" 
+
+copy "Tests.cscs\cli.cs" "out\Linux\-self\-test\cli.cs" 
+copy "Tests.cscs\cli.cs" "out\Windows\-self\-test\cli.cs" 
+
+copy "out\static_content\readme.md" "out\Linux\readme.md" 
 
 cd out\Windows
 echo =====================

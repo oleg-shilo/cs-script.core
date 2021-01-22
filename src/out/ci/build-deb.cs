@@ -14,7 +14,7 @@ using System.Linq;
  string changes) = vs.parse_release_notes(args.FirstOrDefault() ?? Path.GetFullPath(@"..\..\release_notes.md"));
 
 var lnx_root = @"\\wsl$\Ubuntu\home\user";
-
+																															
 var win_root = @".\";
 var bld_root = lnx_root.join($@"lnx-build\cs-script_{version}");
 

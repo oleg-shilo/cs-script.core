@@ -366,7 +366,7 @@ namespace csscript
     public class TempFileCollection
     {
         /// <summary>
-        /// Gets or sets the items (file paths) composing the temporarty files collections.
+        /// Gets or sets the items (file paths) composing the temporary files collections.
         /// </summary>
         /// <value>
         /// The items.

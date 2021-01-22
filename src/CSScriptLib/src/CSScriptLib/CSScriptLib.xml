@@ -2248,13 +2248,13 @@
             </summary>
         </member>
         <member name="T:CSScriptLib.TempFileCollection">
-             <summary>
-            
-             </summary>
+            <summary>
+            Collection of temp files to be removed during cleanup
+            </summary>
         </member>
         <member name="P:CSScriptLib.TempFileCollection.Items">
             <summary>
-            Gets or sets the items (file paths) composing the temporarty files collections.
+            Gets or sets the items (file paths) composing the temporary files collections.
             </summary>
             <value>
             The items.

@@ -265,29 +265,25 @@ namespace CSScriptLib
             if (retval.Length == 0)
             {
                 // a complex command folder. IE:
-                // ├──  -selftest
-                // │   ├── run.cs
-                // │   ├── utils.cs
-                // │   ├── log.cs
-                // │   └── test_definitions.cs.
+                // ├──  -self
+                // │   └──  -test
+                // │       ├── run.cs
+                // │       ├── utils.cs
+                // │       ├── log.cs
+                // │       └── test_definitions.cs.
 
-                // possible cCLI command:
-                // css -selftest
-                // css -selftest:run
-                // css -selftest:log
+                // possible CLI command:
+                // css -self-test
+                // css -self-test-run
+                // css -self-test-log
                 if (file.GetFileName().StartsWith("-"))
                 {
-                    if (file.Contains(":"))
-                    {
-                        var filePath = file.Replace(':', Path.DirectorySeparatorChar);
-                        retval = _ResolveFiles(filePath, extraDirs, "");
-                        if (retval.Length == 0)
-                            retval = _ResolveFiles(filePath, extraDirs, ".cs");
-                    }
-                    else
-                    {
-                        retval = _ResolveFiles(file.PathJoin("run.cs"), extraDirs, "");
-                    }
+                    var filePath = "-" + file.TrimStart('-').Replace("-", $"{Path.DirectorySeparatorChar}-");
+                    retval = _ResolveFiles(filePath, extraDirs, "");
+                    if (retval.IsEmpty())
+                        retval = _ResolveFiles(filePath, extraDirs, ".cs");
+                    if (retval.IsEmpty())
+                        retval = _ResolveFiles(filePath.PathJoin("-run.cs"), extraDirs, "");
                 }
             }
 

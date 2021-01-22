@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>cs-script.core</id>
-        <version>1.4.4.0-NET5-RC4</version>
+        <version>1.4.5.0-NET5-RC5</version>
         <title>CS-Script.Core</title>
         <authors>Oleg Shilo</authors>
         <owners>Oleg Shilo</owners>
@@ -43,5 +43,6 @@ v1.4.3.0
     </metadata>
     <files>
         <file src="tools\chocolateyInstall.ps1" target="tools\chocolateyInstall.ps1" />
+        <file src="tools\chocolateyuninstall.ps1" target="tools\chocolateyuninstall.ps1" />
     </files>
 </package>

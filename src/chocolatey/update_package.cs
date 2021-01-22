@@ -34,7 +34,7 @@ void main()
 string calcChecksum(string url)
 {
     var file = "cs-script.7z";
-    cmd.DownloadBinary(url, file, (step, total) => Console.Write("\r{0}%\r", (int)(step * 100.0 / total)));
+    cmd.download(url, file, (step, total) => Console.Write("\r{0}%\r", (int)(step * 100.0 / total)));
     Console.WriteLine();
 
     var cheksum = cmd.run(@"C:\ProgramData\chocolatey\tools\checksum.exe", "-t sha256 -f \"" + file + "\"", echo: false).Trim();

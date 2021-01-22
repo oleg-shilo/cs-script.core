@@ -151,7 +151,7 @@ namespace CSScripting.CodeDom
             var cache_dir = CSExecutor.ScriptCacheDir; // C:\Users\user\AppData\Local\Temp\csscript.core\cache\1822444284
             var build_dir = cache_dir.PathJoin(".build", projectName);
 
-            build_dir.DeleteDir(handeExceptions: true)
+            build_dir.DeleteDir(handleExceptions: true)
                      .EnsureDir();
 
             var sources = new List<string>();
@@ -342,7 +342,7 @@ namespace CSScripting.CodeDom
                 }
             }
 
-            build_dir.DeleteDir(handeExceptions: true);
+            build_dir.DeleteDir(handleExceptions: true);
 
             return result;
         }
@@ -604,7 +604,7 @@ EndGlobal"
                 }
             }
 
-            build_dir.DeleteDir(handeExceptions: true);
+            build_dir.DeleteDir(handleExceptions: true);
 
             return result;
         }

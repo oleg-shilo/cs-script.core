@@ -1173,6 +1173,7 @@ class Program
                     .ToString();
 
             var cs = new StringBuilder()
+                .AppendLine("//css_ng dotnet")
                 .AppendLine("//css_winapp")
                 .AppendLine("//css_nuget -ver:3.2.0 -noref Caliburn.Micro")
                 .AppendLine(@"//css_dir %css_nuget%\caliburn.micro\3.2.0\lib\net45")
@@ -1255,6 +1256,7 @@ class Program
                     .ToString();
 
             var cs = new StringBuilder()
+                .AppendLine("//css_ng dotnet")
                 .AppendLine("//css_winapp")
                 .AppendLine($"//css_inc {Path.GetFileNameWithoutExtension(context)}.xaml")
                 .AppendLine("//css_ref PresentationFramework")

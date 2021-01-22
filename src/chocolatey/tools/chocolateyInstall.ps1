@@ -48,6 +48,8 @@ try {
   }
 
   Install-ChocolateyEnvironmentVariable 'CSSCRIPT_DIR' $installDir User
+
+  Install-BinFile "css1" "$installDir\cscs.exe"
   
 } catch {
   throw $_.Exception

@@ -197,10 +197,14 @@ namespace csscript
 
         public void EnableWpf(string arg)
         {
+            EnableWpf(arg, Assembly.GetExecutingAssembly().Location.ChangeExtension(".runtimeconfig.json"), true);
+            EnableWpf(arg, Assembly.GetExecutingAssembly().Location.ChangeFileName("css.runtimeconfig.json"), false);
+        }
+
+        void EnableWpf(string arg, string configFile, bool primaryConfig)
+        {
             const string console_type = "\"name\": \"Microsoft.NETCore.App\"";
             const string win_type = "\"name\": \"Microsoft.WindowsDesktop.App\"";
-
-            var configFile = Path.ChangeExtension(Assembly.GetExecutingAssembly().Location, ".runtimeconfig.json");
 
             var content = File.ReadAllText(configFile);
 
@@ -209,9 +213,9 @@ namespace csscript
             else if (arg == "disabled" || arg == "0")
                 content = content.Replace(win_type, console_type);
 
-            CSExecutor.print($"WPF support is {(content.Contains(win_type) ? "enabled" : "disabled")}");
-
             File.WriteAllText(configFile, content);
+            if (primaryConfig)
+                CSExecutor.print($"WPF support is {(content.Contains(win_type) ? "enabled" : "disabled")}");
         }
     }
 }

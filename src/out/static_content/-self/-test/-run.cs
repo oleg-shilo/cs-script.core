@@ -17,7 +17,7 @@ class Script
 {
     static public void Main(string[] args)
     {
-        Environment.SetEnvironmentVariable("css_test_asm", Path.Combine(Environment.CurrentDirectory, "..", @"cscs.dll"));
+        Environment.SetEnvironmentVariable("css_test_asm", Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..", "..", @"cscs.dll")));
 
         var test_class = new cscs_cli();
 

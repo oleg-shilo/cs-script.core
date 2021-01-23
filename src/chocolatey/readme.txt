@@ -1,6 +1,5 @@
 # Build
-1. run ..\build.cmd
-2. 7Zip 'cs-script.core\src\out\.NET Core' folder
+1. run ..\*build*.cmd from .\..\
 
 # Package
 1.  Update update_package.cs with URL and the latest version

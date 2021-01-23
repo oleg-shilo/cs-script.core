@@ -23,17 +23,16 @@
 </description>
         <summary>CS-Script.Core</summary>
         <releaseNotes>
-# .NET5 Preview Release (RC4)
-v1.4.4.0
-- Added //css_engine (//css_ng) directive for choosing the compiling engine
-- Added -engine:&lt;csc|dotnet&gt; switch
+# Release v1.4.5.0-NET5-RC5
 
-v1.4.3.0
-- LoadFrom is globally replaced with LoadFile (to avoid CLR-backed asm memory caching)
-- Implemented hot-loading for csc engine in standalone mode. First cut
-- Normalized all \n and \r\n CLI output by using Environment.NewLine
-- Add config setting for using of csc builder
-- Added reporting using of incompatible csc compiler for scripts requiring XAML compilation implemented deployment of build server
+## CLI
+- Added complex (multi-file) commands support (e.g. `css -self-test-run`)
+- Added `css -self-test` command for testing the engine on the target system
+- Added `css -self-exe` command for building css launcher for manual deployment
+- Build changes to support Linux distro
+- Added `-vscode` help info
+- Added `css -server:restart` CLI parameter
+- Added detection of CLI host and build server running with different root privileges on Linux
         </releaseNotes>
         <copyright>Oleg Shilo</copyright>
         <tags>cs-script C# script dynamic hosting</tags>

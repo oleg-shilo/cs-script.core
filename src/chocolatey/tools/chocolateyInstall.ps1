@@ -1,10 +1,10 @@
 $packageName = 'cs-script.core'
-$url = 'https://github.com/oleg-shilo/cs-script.core/releases/download/v1.4.4-NET5-RC4/cs-script.core.v1.4.4.0.7z'
+$url = 'https://github.com/oleg-shilo/cs-script.core/releases/download/v1.4.5.0-NET5-RC5/cs-script.win.v1.4.5.0.7z'
 
 try {
   $installDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 
-  $cheksum = 'AE9ED5C9591A404778D29F392710E08556DFE1D402A0EC2658194C6BDF12D5D5'
+  $cheksum = 'D9A4F3D389AD89C260BFB3E3EE7008A2D3C46BCBA177503B80B32EE30918C1C5'
   $checksumType = "sha256"
 
   function stop-server

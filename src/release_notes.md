@@ -2,6 +2,8 @@
 
 ## CLI
 - Added complex (multi-file) commands support (e.g. `css -self-test-run`)
+- Added `css -self-test` command for testing the engine on the target system
+- Added `css -self-exe` command for building css launcher for manual deployment
 - Build changes to support Linux distro
 - Added `-vscode` help info
 - Added `css -server:restart` CLI parameter

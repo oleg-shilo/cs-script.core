@@ -54,6 +54,7 @@ namespace cscs
                 {
                     if (serverCommand == "-server:stop") Globals.StopBuildServer();
                     else if (serverCommand == "-server:start") Globals.StartBuildServer();
+                    else if (serverCommand == "-server:restart") Globals.RestartBuildServer();
                     else if (serverCommand == "-server:ping") Globals.Ping();
                     else if (serverCommand == "-server:add") Globals.DeployBuildServer();
                     else if (serverCommand == "-server:remove") Globals.RemoveBuildServer();

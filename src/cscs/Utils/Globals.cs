@@ -27,6 +27,11 @@ namespace CSScripting
             if (report)
                 PrintBuildServerInfo();
         }
+        static internal void RestartBuildServer(bool report = false)
+        {
+            StopBuildServer();
+            StartBuildServer(report);
+        }
 
         static internal void PrintBuildServerInfo()
         {

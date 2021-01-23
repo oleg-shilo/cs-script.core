@@ -294,11 +294,7 @@ namespace CSScripting.CodeDom
                 if (Runtime.IsLinux)
                 {
                     result.PathToAssembly = options.OutputAssembly;
-                    //try
-                    //{
                     File.Copy(assembly, result.PathToAssembly, true);
-                    //}
-                    //catch { }
                 }
                 else
                 {
@@ -335,6 +331,34 @@ namespace CSScripting.CodeDom
             }
             else
             {
+                if (result.Errors.Any(x => x.ErrorNumber == "CS2012") && Runtime.IsLinux && compile_on_server)
+                {
+                    // When running on Linux as sudo CS-Script creates temp folders (e.g. cache) that automatically
+                    // get write-protected if accessed by not sudo-process. On Windows these folders are always not protected.
+                    // Meaning that if the build server is running as non root (sudo) it will fail to place the output to these folders.
+                    // The solution is to either restart build server as sudo or use dotnet engine as it always starts and stops with the
+                    // cscs.exe executable and always inherits its root context.
+
+                    var outputDir = assembly.GetDirName();
+
+                    bool serverCanWrite = BuildServer.Request($"-is_writable_dir:{outputDir}", BuildServer.serverPort) == true.ToString();
+                    bool hostCanWrite = outputDir.IsWritable();
+
+                    if (hostCanWrite && !serverCanWrite)
+                        result.Errors.Add(new CompilerError
+                        {
+                            ErrorText = "The build server have less permissions to write to the temporary output directories " +
+                            "than host process (cs-script process). " + NewLine +
+                            "permissions comparing to the build server. " + NewLine + NewLine +
+                            "If you are running cs-script with root privileges you may need to " +
+                            "restart the build server with root privileges too:" + NewLine + NewLine +
+                            "  sudo css -server:restart" + NewLine + NewLine +
+                            "Alternatively you can switch to dotnet engine, which is always " +
+                            "aligned with the script engine permissions context. " + NewLine +
+                            "(e.g. `cscs -ng:dotnet <script_path>`)"
+                        });
+                }
+
                 if (result.Errors.IsEmpty())
                 {
                     // unknown error; e.g. invalid compiler params

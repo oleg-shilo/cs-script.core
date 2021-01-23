@@ -2,7 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "-new:console",
+      "commandLineArgs": "-check test.cs",
       "remoteDebugEnabled": false
     }
   }

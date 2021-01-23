@@ -123,6 +123,12 @@ namespace CSScripting.CodeDom
                 StartRemoteInstance(port);
         }
 
+        public static void RestartRemoteInstance(int? port)
+        {
+            StopRemoteInstance(port);
+            StartRemoteInstance(port);
+        }
+
         public static void StartRemoteInstance(int? port)
         {
             try
@@ -289,6 +295,11 @@ namespace CSScripting.CodeDom
                             {
                                 try { clientSocket.WriteAllText($"pid:{Environment.ProcessId}\nfile: {Assembly.GetExecutingAssembly().Location}"); } catch { }
                             }
+                            else if (request.StartsWith("-is_writable_dir:"))
+                            {
+                                var dir = request.Replace("-is_writable_dir:", "");
+                                try { clientSocket.WriteAllText($"{dir.IsWritable()}"); } catch { }
+                            }
                             else
                             {
                                 string response = CompileWithCsc(request.Split('\n'));
@@ -345,6 +356,33 @@ namespace CSScripting.CodeDom
                 }
                 return $"{exitCode}|{buff.GetStringBuilder()}";
             }
+        }
+
+        static bool IsWritable(this string path)
+        {
+            var testFile = Path.Combine(path, Guid.NewGuid().ToString());
+            try
+            {
+                File.WriteAllText(testFile, "");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                try { testFile.DeleteIfExists(); } catch { }
+            }
+        }
+
+        static string DeleteIfExists(this string path)
+        {
+            if (Directory.Exists(path))
+                Directory.Delete(path);
+            else if (File.Exists(path))
+                File.Delete(path);
+            return path;
         }
     }
 }

@@ -358,16 +358,17 @@ namespace csscript
                                              "Prints script initialization/compilation time information of the .NET compiler. ",
                                                  "It is a convenient way of testing performance of the .NET distribution.");
 
-            switch2Help[server] = new ArgInfo("-server[:start|stop|add|remove|ping]",
+            switch2Help[server] = new ArgInfo("-server[:<start|stop|restart|add|remove|ping>]",
                                           "Prints the information about build server.",
                                           "Build server is a background process which implements hop loading of C# compiler csc.exe. " +
                                           "Somewhat similar to VBCSCompiler.exe.",
                                           "This option is only relevant if compiler engine is set to 'csc' (see '-engine' command).",
-                                          " -server:start  - ${<==}deploys and start starts build server",
-                                          " -server:stop   - ${<==}stops starts build server",
-                                          " -server:add    - ${<==}deploys build server",
-                                          " -server:remove - ${<==}removes build server files. Useful for troubleshooting.",
-                                          " -server:ping   - ${<==}Pins running instance (if any) of the build server");
+                                          " -server:start   - ${<==}deploys and start starts build server",
+                                          " -server:stop    - ${<==}stops starts build server",
+                                          " -server:restart - ${<==}restarts build server",
+                                          " -server:add     - ${<==}deploys build server",
+                                          " -server:remove  - ${<==}removes build server files. Useful for troubleshooting.",
+                                          " -server:ping    - ${<==}Pins running instance (if any) of the build server");
 
             switch2Help[tc] = new ArgInfo("-tc",
                                           "Trace compiler input produced by CS-Script code provider CSSRoslynProvider.dll.",

@@ -96,6 +96,33 @@ namespace CSScripting
             return Environment.GetFolderPath(folder);
         }
 
+        internal static bool IsWritable(this string path)
+        {
+            var testFile = path.PathJoin(Guid.NewGuid().ToString());
+            try
+            {
+                File.WriteAllText(testFile, "");
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+            finally
+            {
+                try { testFile.DeleteIfExists(); } catch { }
+            }
+        }
+
+        internal static string DeleteIfExists(this string path)
+        {
+            if (Directory.Exists(path))
+                Directory.Delete(path);
+            else if (File.Exists(path))
+                File.Delete(path);
+            return path;
+        }
+
         /// <summary>
         /// Ensures the directory exists.
         /// </summary>

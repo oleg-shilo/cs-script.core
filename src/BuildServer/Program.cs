@@ -39,6 +39,11 @@ namespace compile_server
                     App.Log($"Stopping remote instance...");
                     App.Log(BuildServer.StopRemoteInstance(port));
                 }
+                else if (args.FirstOrDefault() == "-restart")
+                {
+                    App.Log($"Restarting remote instance...");
+                    BuildServer.RestartRemoteInstance(port);
+                }
                 else if (args.FirstOrDefault() == "-ping")
                 {
                     App.Log($"Pinging remote instance...");

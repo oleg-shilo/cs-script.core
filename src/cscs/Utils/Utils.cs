@@ -118,15 +118,6 @@ namespace CSScripting
             return path;
         }
 
-        public static string DeleteIfExists(this string path)
-        {
-            if (Directory.Exists(path))
-                Directory.Delete(path);
-            else if (File.Exists(path))
-                File.Delete(path);
-            return path;
-        }
-
         class Win32
         {
             [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]

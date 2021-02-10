@@ -27,6 +27,7 @@ namespace CSScripting
             if (report)
                 PrintBuildServerInfo();
         }
+
         static internal void RestartBuildServer(bool report = false)
         {
             StopBuildServer();
@@ -37,8 +38,13 @@ namespace CSScripting
         {
             if (Globals.BuildServerIsDeployed)
             {    // CSScriptLib.CoreExtensions.RunAsync(
+                var alive = BuildServer.IsServerAlive(null);
                 Console.WriteLine($"Build server deployed: {Globals.build_server.GetFullPath()}");
-                Console.WriteLine($"Build server is {(BuildServer.IsServerAlive(null) ? "" : "not ")}running.");
+
+                var pid = alive ?
+                    $" ({BuildServer.PingRemoteInstance(null).Split('\n').FirstOrDefault()})"
+                    : "";
+                Console.WriteLine($"Build server is {(alive ? "" : "not ")}running{pid}.");
             }
             else
             {
@@ -142,7 +148,7 @@ namespace CSScripting
             get
             {
 #if !DEBUG
-                // if (!build_server.FileExists())
+                if (!build_server.FileExists())
 #endif
                 try
                 {
@@ -179,6 +185,9 @@ namespace CSScripting
                 return File.Exists(file) ? file : "dotnet.exe";
             }
         }
+
+        static internal string GetCompilerFor(string file)
+            => file.GetExtension().SameAs("cs") ? csc : csc.ChangeFileName("vbc.dll");
 
         /// <summary>
         /// Gets or sets the path to the C# compiler executable (e.g. csc.exe or csc.dll)

@@ -14,6 +14,8 @@ namespace compile_server
     {
         static int Main(string[] app_args)
         {
+            // Debug.Assert(false);
+
             var exitCode = 0;
             try
             {

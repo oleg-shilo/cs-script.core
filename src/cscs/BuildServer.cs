@@ -72,7 +72,7 @@ namespace CSScripting.CodeDom
                 {
                     // first arg is the compiler identifier: csc|vbc
 
-                    string request = string.Join('\n', args.Skip(1));
+                    string request = string.Join('\n', args);
                     string response = BuildServer.Request(request, port);
 
                     var responseItems = response.Split(new char[] { '|' }, 2);
@@ -302,7 +302,11 @@ namespace CSScripting.CodeDom
                             }
                             else
                             {
-                                string response = CompileWithCsc(request.Split('\n'));
+                                var args = request.Split('\n');
+                                var compiler = args.First();
+                                args = args.Skip(1).ToArray();
+
+                                string response = Compile(compiler, args);
 
                                 clientSocket.WriteAllText(response);
                             }
@@ -332,8 +336,10 @@ namespace CSScripting.CodeDom
             }
         }
 
-        static string CompileWithCsc(string[] args)
+        static string Compile(string compiler, string[] args)
         {
+            // Debug.Assert(false);
+
             using (SimpleAsmProbing.For(Path.GetDirectoryName(csc)))
             {
                 var oldOut = Console.Out;
@@ -344,7 +350,15 @@ namespace CSScripting.CodeDom
                 int exitCode = 0;
                 try
                 {
-                    exitCode = AppDomain.CurrentDomain.ExecuteAssembly(csc, args);
+                    if (compiler == "csc")
+                    {
+                        exitCode = AppDomain.CurrentDomain.ExecuteAssembly(csc, args);
+                    }
+                    else
+                    {
+                        var vbc = Path.Join(Path.GetDirectoryName(csc), "vbc.dll");
+                        exitCode = AppDomain.CurrentDomain.ExecuteAssembly(vbc, args);
+                    }
                 }
                 catch (Exception e)
                 {

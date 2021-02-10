@@ -145,6 +145,12 @@ namespace CSScripting.CodeDom
 
         CompilerResults CompileAssemblyFromFileBatch_with_Csc(CompilerParameters options, string[] fileNames)
         {
+            if (fileNames.Any() && fileNames.First().GetExtension().SameAs(".vb"))
+                throw new CompilerException("Executing VB scripts is only supported on dotnet engine. Please either set it:" + NewLine +
+                    " - as global setting with [css -config:set:DefaultCompilerEngine=dotnet]" + NewLine +
+                    " - from CLI parameters with [css -ng:dotnet <scriupt.vb>]" + NewLine +
+                    " - from your VB script code with [' //css_ng dotnet]");
+
             string projectName = fileNames.First().GetFileName();
 
             var engine_dir = this.GetType().Assembly.Location.GetDirName();
@@ -255,7 +261,10 @@ namespace CSScripting.CodeDom
                 Profiler.EngineContext = "Building with csc engine server (Build server)...";
 
                 // using sockets directly
-                var request = $@"csc {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}"
+
+                var compiler = $"{sources.FirstOrDefault()?.GetExtension().Trim('.')}c";
+
+                var request = $@"{compiler} {common_args.JoinBy(" ")}  /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}"
                               .SplitCommandLine();
 
                 // ensure server running
@@ -271,7 +280,7 @@ namespace CSScripting.CodeDom
             else
             {
                 Profiler.EngineContext = "Building with local csc engine...";
-                cmd = $@"""{Globals.csc}"" {common_args.JoinBy(" ")} /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
+                cmd = $@"""{Globals.GetCompilerFor(sources.FirstOrDefault())}"" {common_args.JoinBy(" ")} /out:""{assembly}"" {refs_args.JoinBy(" ")} {source_args.JoinBy(" ")}";
                 result.NativeCompilerReturnValue = dotnet.Run(cmd, build_dir, x => result.Output.Add(x));
             }
 
@@ -522,7 +531,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30608.117
 MinimumVisualStudioVersion = 10.0.40219.1
-Project(`{9A19103F-16F7-4668-BE54-9A1E7A4F7556}`) = `{proj_name}`, `{proj_name}.csproj`, `{03A7169D-D1DD-498A-86CD-7C9587D3DBDD}`
+Project(`{9A19103F-16F7-4668-BE54-9A1E7A4F7556}`) = `{proj_name}`, `{proj_file}`, `{03A7169D-D1DD-498A-86CD-7C9587D3DBDD}`
 EndProject
 Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -541,7 +550,8 @@ Global
 EndGlobal"
 .Replace("`", "\"")
 .Replace("    ", "\t")
-.Replace("{proj_name}", projectFile.GetFileNameWithoutExtension());
+.Replace("{proj_name}", projectFile.GetFileNameWithoutExtension())
+.Replace("{proj_file}", projectFile.GetFileName());
             File.WriteAllText(projectFile.ChangeExtension(".sln"), solution);
 
             return projectFile;

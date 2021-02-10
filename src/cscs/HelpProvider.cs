@@ -402,6 +402,7 @@ namespace csscript
 
                                                   // "${<=6}" + AppInfo.appName + " -config:set:" + inmem + "=true", // may need to resurrect if users do miss it :)
 
+                                                  "${<=6}" + AppInfo.appName + " -config:set:DefaultCompilerEngine=dotnet",
                                                   "${<=6}" + AppInfo.appName + " -config:set:DefaultArguments=add:-ac",
                                                   "${<=6}" + AppInfo.appName + " -config:set:default_arguments=del:-ac",
                                                   "${<=6}" + AppInfo.appName + " -config:c:\\cs-script\\css_VB.xml sample.vb)");
@@ -1085,12 +1086,12 @@ Type           Template
 ---------------------------------------------------
 console         Console script application (Default)
 console-vb      Console VB script application
-winform        Windows Forms (WinForms) script application
-winform-vb     Windows Forms (WinForms) VB script application
+winform         Windows Forms (WinForms) script application
+winform-vb      Windows Forms (WinForms) VB script application
 wpf             WPF script application
 wpf-cm          Cliburm.Micro based WPF script application
 toplevel|top    Top-level class script application with no entry point
-                (avaliable on C# 9 only)
+                (available on C# 9 only)
 
 Legacy templates:
 auto            Auto-class (classless) script application; use 'toplevel' instead

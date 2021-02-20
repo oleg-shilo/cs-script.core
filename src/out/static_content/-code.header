@@ -7,3 +7,4 @@
     using System.Diagnostics;
     using static dbg;
     using static System.Environment;
+    using static dbg; // to use 'print' instead of 'dbg.print'

@@ -27,7 +27,7 @@ namespace CSScriptLib
             {
                 // first arg is the compiler identifier: csc|vbc
 
-                string request = string.Join("\n", args.Skip(1));
+                string request = string.Join("\n", args);
                 string response = BuildServer.Request(request, port);
 
                 return response;

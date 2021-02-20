@@ -61,25 +61,66 @@ namespace csscript
 
                 var projectFile = CSharpCompiler.CreateProject(compileParams, project.Files, ScriptVsDir);
 
-                print("Opening project: " + projectFile);
-
                 var envarName = request == AppArgs.vs ? "CSSCRIPT_VSEXE" : "CSSCRIPT_VSCODEEXE";
                 var vs_exe = Environment.GetEnvironmentVariable(envarName);
 
                 Process p = null;
                 if (request == AppArgs.vs)
                 {
+                    print("Opening project: " + projectFile);
                     if (vs_exe.IsEmpty())
-                        print($"Error: you need to set environment variable '{envarName}' to the valid path to Viual Studio executable devenv.exe.");
+                    {
+                        try
+                        {
+                            p = Process.Start("devenv", projectFile);
+                        }
+                        catch
+                        {
+                            print($"Error: you need to set environment variable '{envarName}' to the valid path to Visual Studio executable devenv.exe.");
+                        }
+                    }
                     else
                         p = Process.Start(vs_exe, projectFile);
                 }
                 else
                 {
+                    print("Opening script: " + options.scriptFileName);
                     if (vs_exe.IsEmpty())
-                        print($"Error: you need to set environment variable '{envarName}' to the valid path to Viual Studio Code executable code.exe.");
+                    {
+                        var vscode_exe = (Runtime.IsWin ? "code.exe" : "code");
+                        string ide = null;
+                        if (Runtime.IsWin)
+                        {
+                            // C:\Program Files\Microsoft VS Code\Code.exe
+                            ide = Directory.GetDirectories(SpecialFolder.ProgramFiles.GetPath(), "*")
+                                           .Where(d => d.GetFileName().StartsWith("Microsoft", true))
+                                           .Select(d =>
+                                                   {
+                                                       // current user may not have permission to read some folders
+                                                       try { return Directory.GetFiles(d, vscode_exe, SearchOption.AllDirectories).FirstOrDefault(); }
+                                                       catch { return null; }
+                                                   })
+                                           .FirstOrDefault(f => f != null);
+                        }
+                        else
+                        {
+                            "which".Run(vscode_exe, onOutput: line => ide = line);
+                        }
+
+                        try
+                        {
+                            // RunAsync works better than Process.Start as it stops VSCode diagnostics STD output
+                            p = (ide ?? "<unknown>").RunAsync(options.scriptFileName);
+                            print($"Opening with auto-detected VSCode '{ide}'. You can set an alternative location with environment variable '{envarName}'");
+                        }
+                        catch (Exception)
+                        {
+                            print($"Error: you need to set environment variable '{envarName}' to the valid path " +
+                                  $"to Visual Studio Code executable code{vscode_exe}.");
+                        }
+                    }
                     else
-                        p = Process.Start(vs_exe, projectFile.GetDirName());
+                        p = vs_exe.RunAsync(options.scriptFileName);
                 }
 
                 if (p != null)

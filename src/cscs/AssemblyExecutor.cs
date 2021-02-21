@@ -1,3 +1,4 @@
+using CSScripting;
 using System;
 using System.IO;
 using System.Linq;
@@ -64,7 +65,7 @@ namespace csscript
                    probe(args.Name.Split(',').First()); // repeat it again but with the short name
         }
 
-        public Assembly ResolveResEventHandler(object sender, ResolveEventArgs args) => Assembly.LoadFrom(this.asmFile);
+        public Assembly ResolveResEventHandler(object sender, ResolveEventArgs args) => Assembly.LoadFile(this.asmFile);
 
         string asmFile = "";
 
@@ -81,7 +82,7 @@ namespace csscript
 
             if (!ExecuteOptions.options.inMemoryAsm)
             {
-                assembly = Assembly.LoadFrom(filename);
+                assembly = Assembly.LoadFile(filename);
             }
             else
             {
@@ -128,9 +129,8 @@ namespace csscript
                                                    .SelectMany(m => m.GetTypes())
                                                    .SelectMany(t => t.GetMembers(bf)
                                                    .OfType<MethodInfo>())
-                                                   .Where(x => x.Name == "Main" && x.IsStatic)
+                                                   .Where(x => x.Name.IsOneOf("Main", "$Main", "<Main>$") && x.IsStatic)
                                                    .ToArray();
-
             if (methods.Any())
             {
                 if (methods.Count() > 1)

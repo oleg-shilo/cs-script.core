@@ -1,12 +1,14 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace csscript
+namespace CSScripting
 {
-    internal class Profiler
+    class Profiler
     {
         static public Stopwatch Stopwatch = new Stopwatch();
+
+        static public string EngineContext = "";
 
         static Dictionary<string, Stopwatch> items = new Dictionary<string, Stopwatch>();
 

@@ -1,11 +1,17 @@
+using CSScriptLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using CSScriptLib;
+using CSScripting;
 
+#if !class_lib
 namespace csscript
+#else
+
+namespace CSScriptLib
+#endif
 {
     /// <summary>
     /// Class that holds all information about the execution context
@@ -44,7 +50,7 @@ namespace csscript
         /// </para>
         /// </summary>
         /// <param name="script">The script.</param>
-        /// <returns></returns>
+        /// <returns>The project instance</returns>
         static public Project GenerateProjectFor(string script)
         {
             return ProjectBuilder.GenerateProjectFor(script);
@@ -84,21 +90,22 @@ namespace csscript
             searchDirs.AddRange(defaultSearchDirs);
 
             ScriptParser parser;
-            using (var currDir = new CurrentDirGuard())
+            using (new CurrentDirGuard())
             {
                 Environment.CurrentDirectory = Path.GetDirectoryName(script);
                 parser = new ScriptParser(script, searchDirs.ToArray(), false);
             }
 
+#if !class_lib
+
             CSExecutor.options.preCompilers = parser.Precompilers
                                                     .Select(x => FileParser.ResolveFile(x, CSExecutor.options.searchDirs))
                                                     .AddItem(CSExecutor.options.preCompilers)
                                                     .JoinBy(",");
-
             PrecompilationContext precompiling = CSSUtils.Precompile(script,
                                                                      parser.FilesToCompile.Distinct(),
                                                                          CSExecutor.options);
-
+#endif
             // search dirs could be also defined in the script
             var probingDirs = searchDirs.Concat(parser.SearchDirs)
                                         .Where(x => !string.IsNullOrEmpty(x))
@@ -113,16 +120,18 @@ namespace csscript
             //    NotifyClient("Processing NuGet packages...");
             //}
 
-            project.Files = sources.Distinct().Select<string, string>(Utils.PathNormaliseSeparators).ToArray();
+            project.Files = sources.Distinct().Select<string, string>(PathExtensions.PathNormaliseSeparators).ToArray();
 
             project.Refs = parser.AgregateReferences(probingDirs, defaultRefAsms, defaultNamespaces)
-                                 .Map(Utils.PathNormaliseSeparators, Utils.EnsureAsmExtension)
+                                 .Select(PathExtensions.PathNormaliseSeparators)
                                  .ToArray();
 
+#if !class_lib
             project.Refs = project.Refs.ConcatWith(precompiling.NewReferences);
             project.Files = project.Files.ConcatWith(precompiling.NewIncludes);
+#endif
 
-            project.SearchDirs = probingDirs.Select<string, string>(Utils.PathNormaliseSeparators).ToArray();
+            project.SearchDirs = probingDirs.Select<string, string>(PathExtensions.PathNormaliseSeparators).ToArray();
 
             return project;
         }
@@ -150,8 +159,12 @@ namespace csscript
 
                 var configFile = Settings.DefaultConfigFile;
                 var settings = Settings.Load(configFile);
-
+#if !class_lib
                 items.dirs.AddRange(splitPathItems(settings.SearchDirs));
+#else
+                items.dirs.AddRange(settings.SearchDirs);
+#endif
+
                 if (configFile != null && File.Exists(configFile))
                     items.dirs.Add(Path.Combine(Path.GetDirectoryName(configFile), "lib"));
                 items.asms.AddRange(splitPathItems(settings.DefaultRefAssemblies));
@@ -167,8 +180,7 @@ namespace csscript
         /// <summary>
         /// Gets the CSS configuration. Used by ST3 Syntaxer
         /// </summary>
-        /// <returns></returns>cls
-        ///
+        /// <returns>Default config file location</returns>
         static public string GetCSSConfig()
             => Settings.DefaultConfigFile;
     }

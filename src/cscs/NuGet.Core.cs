@@ -1,3 +1,5 @@
+using CSScripting;
+using CSScripting.CodeDom;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -5,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using CSScripting.CodeDom;
 
 namespace csscript
 {
@@ -85,7 +86,7 @@ namespace csscript
             }
 
             // C:\Users\user\AppData\Local\Temp\csscript.core\.nuget\333
-            var nuget_dir = CSExecutor.GetScriptTempDir()
+            var nuget_dir = Runtime.GetScriptTempDir()
                                       .PathJoin(".nuget", Process.GetCurrentProcess().Id)
                                       .EnsureDir();
 
@@ -95,13 +96,13 @@ namespace csscript
 
                 if (!File.Exists(proj_template))
                 {
-                    Utils.Run("dotnet", "new console", nuget_dir);
+                    "dotnet".Run("new console", nuget_dir);
                     foreach (var name in packages)
                     {
                         var ver = "";
                         if (version != null)
                             ver = "-v " + version;
-                        Utils.Run("dotnet", $"add package {name} {ver}", nuget_dir, x => Console.WriteLine(x));
+                        "dotnet".Run($"add package {name} {ver}", nuget_dir, x => Console.WriteLine(x));
                     }
 
                     // intercept and report incompatible packages (maybe)
@@ -309,7 +310,7 @@ namespace csscript
 
         PackageInfo FindPackage(string name, string version)
         {
-            return Directory.GetDirectories(NuGetCache, name, SearchOption.TopDirectoryOnly)
+            var packages = Directory.GetDirectories(NuGetCache, name, SearchOption.TopDirectoryOnly)
                             .SelectMany(x =>
                             {
                                 return Directory.GetFiles(x, "*.nuspec", SearchOption.AllDirectories)
@@ -330,7 +331,9 @@ namespace csscript
                             })
                             .OrderByDescending(x => x.Version)
                             .Where(x => x != null)
-                            .FirstOrDefault(x => x.Name == name && (version.IsEmpty() || version == x.Version));
+                            .ToArray();
+
+            return packages.FirstOrDefault(x => x.Name == name && (version.IsEmpty() || version == x.Version));
         }
 
         public string[] Resolve(string[] packages, bool suppressDownloading, string script)

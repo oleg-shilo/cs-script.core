@@ -1,0 +1,24 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v5.0/linux-x64",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v5.0": {},
+    ".NETCoreApp,Version=v5.0/linux-x64": {
+      "cscs/1.4.4.0-NET5-RC4": {
+        "runtime": {
+          "cscs.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "cscs/1.4.4.0-NET5-RC4": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

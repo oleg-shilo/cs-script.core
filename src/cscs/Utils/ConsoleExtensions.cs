@@ -1,8 +1,8 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis;
 
 namespace csscript
 {
@@ -10,7 +10,7 @@ namespace csscript
     /// Based on "maettu-this" proposal https://github.com/oleg-shilo/cs-script/issues/78
     /// His `SplitLexicallyWithoutTakingNewLineIntoAccount` is taken/used practically without any change.
     /// </summary>
-    internal static class ConsoleExtensions
+    static class ConsoleExtensions
     {
         // for free form text when Console is not attached; so make it something big...
         public static int MaxNonConsoleTextWidth = 500;
@@ -29,7 +29,7 @@ namespace csscript
                 if (width != 0)
                     return width - 1;
                 else
-                    return 100;
+                    return 120;
             }
             catch { }
             return MaxNonConsoleTextWidth;

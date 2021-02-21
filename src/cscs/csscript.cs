@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
+using static System.Environment;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using CSScripting;
 using CSScripting.CodeDom;
 using CSScriptLib;
 
@@ -51,6 +51,84 @@ namespace csscript
                 }
                 print("Published: " + destination);
             }
+            else if (request == AppArgs.vs || request == AppArgs.vscode)
+            {
+                var project = Project.GenerateProjectFor(options.scriptFileName);
+
+                var compileParams = new CompilerParameters();
+                compileParams.ReferencedAssemblies.AddRange(project.Refs);
+                compileParams.GenerateExecutable = true;
+
+                var projectFile = CSharpCompiler.CreateProject(compileParams, project.Files, ScriptVsDir);
+
+                var envarName = request == AppArgs.vs ? "CSSCRIPT_VSEXE" : "CSSCRIPT_VSCODEEXE";
+                var vs_exe = Environment.GetEnvironmentVariable(envarName);
+
+                Process p = null;
+                if (request == AppArgs.vs)
+                {
+                    print("Opening project: " + projectFile);
+                    if (vs_exe.IsEmpty())
+                    {
+                        try
+                        {
+                            p = Process.Start("devenv", projectFile);
+                        }
+                        catch
+                        {
+                            print($"Error: you need to set environment variable '{envarName}' to the valid path to Visual Studio executable devenv.exe.");
+                        }
+                    }
+                    else
+                        p = Process.Start(vs_exe, projectFile);
+                }
+                else
+                {
+                    print("Opening script: " + options.scriptFileName);
+                    if (vs_exe.IsEmpty())
+                    {
+                        var vscode_exe = (Runtime.IsWin ? "code.exe" : "code");
+                        string ide = null;
+                        if (Runtime.IsWin)
+                        {
+                            // C:\Program Files\Microsoft VS Code\Code.exe
+                            ide = Directory.GetDirectories(SpecialFolder.ProgramFiles.GetPath(), "*")
+                                           .Where(d => d.GetFileName().StartsWith("Microsoft", true))
+                                           .Select(d =>
+                                                   {
+                                                       // current user may not have permission to read some folders
+                                                       try { return Directory.GetFiles(d, vscode_exe, SearchOption.AllDirectories).FirstOrDefault(); }
+                                                       catch { return null; }
+                                                   })
+                                           .FirstOrDefault(f => f != null);
+                        }
+                        else
+                        {
+                            "which".Run(vscode_exe, onOutput: line => ide = line);
+                        }
+
+                        try
+                        {
+                            // RunAsync works better than Process.Start as it stops VSCode diagnostics STD output
+                            p = (ide ?? "<unknown>").RunAsync(options.scriptFileName);
+                            print($"Opening with auto-detected VSCode '{ide}'. You can set an alternative location with environment variable '{envarName}'");
+                        }
+                        catch (Exception)
+                        {
+                            print($"Error: you need to set environment variable '{envarName}' to the valid path " +
+                                  $"to Visual Studio Code executable code{vscode_exe}.");
+                        }
+                    }
+                    else
+                        p = vs_exe.RunAsync(options.scriptFileName);
+                }
+
+                if (p != null)
+                    File.WriteAllText(ScriptVsDir.PathJoin("pid"), p.Id.ToString());
+
+                Task.Run(() =>
+                    Utils.CleanAbandonedProcessDirs(ScriptVsDir));
+            }
             else if (request == AppArgs.proj || request == AppArgs.proj_dbg || request == AppArgs.proj_csproj)
             {
                 var project = Project.GenerateProjectFor(options.scriptFileName);
@@ -63,7 +141,6 @@ namespace csscript
 
                     var projectFile = CSharpCompiler.CreateProject(compileParams, project.Files);
                     print("project:" + projectFile);
-                    // print(File.ReadAllText(projectFile));
                 }
                 else
                 {
@@ -117,14 +194,13 @@ namespace csscript
                 options.reportDetailedErrorInfo = settings.ReportDetailedErrorInfo;
                 options.openEndDirectiveSyntax = settings.OpenEndDirectiveSyntax;
                 options.consoleEncoding = settings.ConsoleEncoding;
-                options.decorateAutoClassAsCS6 = settings.AutoClass_DecorateAsCS6;
+                options.compilerEngine = settings.DefaultCompilerEngine;
                 options.enableDbgPrint = settings.EnableDbgPrint;
                 options.inMemoryAsm = settings.InMemoryAssembly;
 
                 //options.useSurrogateHostingProcess = settings.UseSurrogateHostingProcess;
                 options.concurrencyControl = settings.ConcurrencyControl;
                 options.hideCompilerWarnings = settings.HideCompilerWarnings;
-                options.TargetFramework = settings.TargetFramework;
 
                 //process default command-line arguments
                 string[] defaultCmdArgs = settings.DefaultArguments
@@ -144,63 +220,124 @@ namespace csscript
             return settings;
         }
 
-        public string[] PreprocessArgs(IEnumerable<string> args)
+        public string[] PreprocessInlineCodeArgs(string[] args)
         {
             // the first arg is warranted to be '-code'
-            if (args.ElementAtOrDefault(1) == "?")
+            if (args.Last().IsHelpRequest())
                 return args.ToArray();
 
-            if (args.Count() == 1)
+            if (args.Count() == 1 && args.First() != $"-{AppArgs.speed}")
                 return "-code ?".Split(' ');
 
-            var newArgs = args.TakeWhile(a => !a.StartsWith($"-{AppArgs.code}")).ToList();
+            List<string> newArgs;
+
+            // need to get raw unparsed CLI line so cannot use args
+            var code = Environment.CommandLine;
+
+            if (Environment.CommandLine.EndsWith($"-{AppArgs.speed}")) // speed test
+            {
+                // simulate `{engine_file} -code "/**/"`
+                code = $@"{this.GetType().Assembly.Location} -{AppArgs.code} /**/";
+
+                var engineArg = args.FirstOrDefault(x => x.StartsWith("-ng:") || x.StartsWith("-engine:"));
+
+                newArgs = new List<string>();
+                if (engineArg != null)
+                    newArgs.Add(engineArg);
+            }
+            else // all args before -code
+                newArgs = args.TakeWhile(a => !a.StartsWith($"-{AppArgs.code}")).ToList();
+
             newArgs.Add("-l:0"); // ensure the current dir is not changed to the location of the script, which is in
                                  // this case always the "snippets" directory
 
-            int pos = Environment.CommandLine.IndexOf(AppArgs.code);
+            int pos = code.IndexOf(AppArgs.code);
 
             if (pos < 0)
             {
                 Console.WriteLine("Invalid input parameters. Expected '-code' argument is missing.");
+                return newArgs.ToArray();
+            }
+
+            bool attchDebugger = code.EndsWith("//x", StringComparison.OrdinalIgnoreCase);
+            if (attchDebugger)
+                code = code.Substring(0, code.Length - 3).TrimEnd();
+
+            code = code.Replace("-code:show", "-code")
+                       .Substring(pos + (AppArgs.code.Length + 1))
+                       .Replace("#``", "\"")
+                       .Replace("#''", "\"")
+                       .Replace("#'", "'")
+                       .Replace("''", "\"")
+                       .Replace("``", "\"")
+                       .Replace("`", "\"")
+                       .Replace("`n", "\n")
+                       .Replace("#n", "\n")
+                       .Replace("`r", "\r")
+                       .Replace("#r", "\r")
+                       .Trim(" \"".ToCharArray())
+                       .Expand();
+
+            var commonHeader =
+            "   using System;" + NewLine +
+            "   using System.IO;" + NewLine +
+            "   using System.Collections;" + NewLine +
+            "   using System.Collections.Generic;" + NewLine +
+            "   using System.Linq;" + NewLine +
+            "   using System.Reflection;" + NewLine +
+            "   using System.Diagnostics;" + NewLine +
+            "   using static dbg;" + NewLine +
+            "   using static System.Environment;" + NewLine;
+
+            var customHeaderFile = this.GetType().Assembly.Location.GetDirName().PathJoin("-code.header");
+
+            if (File.Exists(customHeaderFile))
+            {
+                commonHeader = File.ReadAllLines(customHeaderFile)
+                                   .Select(x => "   " + x.Trim())
+                                   .JoinBy(NewLine)
+                                   + $"{NewLine}// --------------------{NewLine}";
             }
             else
+                try { File.WriteAllText(customHeaderFile, commonHeader); }
+                catch { /* there is always a chance we can fail (e.g. because of dir permissions) */}
+
+            code = commonHeader + code;
+
+            if (!code.EndsWith(";"))
+                code += ";";
+
+            var script = Runtime.GetScriptTempDir()
+                                .PathJoin("snippets")
+                                .EnsureDir()
+                                .PathJoin($"{code.GetHashCodeEx()}.{Process.GetCurrentProcess().Id}.cs");
+
+            if (args.Contains("-code:show"))
             {
-                // the actual arg is $"-{AppArgs.code}"
-                var code = Environment.CommandLine;
-
-                bool attchDebugger = code.EndsWith("//x", StringComparison.OrdinalIgnoreCase);
-                if (attchDebugger)
-                    code = code.Substring(0, code.Length - 3).TrimEnd();
-
-                code = code.Substring(pos + (AppArgs.code.Length + 1))
-                           .Replace("``", "\"")
-                           .Replace("`n", "\n")
-                           .Replace("`r", "\r")
-                           .Trim(" \"".ToCharArray())
-                           .Expand();
-
-                var commonHeader = "//css_ac freestyle\nusing System; using System.Diagnostics; using System.IO;\n";
-                var customHeaderFile = this.GetType().Assembly.Location.GetDirName().PathJoin("-code.header");
+                if (args.Contains("-code:show"))
+                {
+                    Console.WriteLine("/*--------------------");
+                    Console.WriteLine("CS-Script args:");
+                    for (int i = 0; i < args.Length; i++)
+                        Console.WriteLine($"  {i}: {args[i].Replace("-code:show", "-code")}");
+                    Console.WriteLine("--------------------*/");
+                }
+                Console.WriteLine("// Interpreted C# code:");
                 if (File.Exists(customHeaderFile))
                 {
-                    commonHeader = File.ReadAllText(customHeaderFile).Replace("\r\n", "\n").TrimEnd() + "\n";
+                    Console.WriteLine("// --------------------");
+                    Console.WriteLine("// common header: " + customHeaderFile);
                 }
-                code = commonHeader + code;
-
-                if (!code.EndsWith(";"))
-                    code += ";";
-
-                var script = CSExecutor.GetScriptTempDir()
-                                       .PathJoin("snippets")
-                                       .EnsureDir()
-                                       .PathJoin($"{code.GetHashCodeEx()}.{Process.GetCurrentProcess().Id}.cs");
-
-                File.WriteAllText(script, code);
-
-                newArgs.Add(script);
-                if (attchDebugger)
-                    newArgs.Add("//x");
+                Console.WriteLine(code);
+                Console.WriteLine("// --------------------");
+                throw new CLIExitRequest();
             }
+
+            File.WriteAllText(script, code);
+
+            newArgs.Add(script);
+            if (attchDebugger)
+                newArgs.Add("//x");
 
             return newArgs.ToArray();
         }
@@ -216,15 +353,27 @@ namespace csscript
 
                 if (args.Length > 0)
                 {
-                    //Here we need to separate application arguments from script ones.
-                    //Script engine arguments are always followed by script arguments
-                    //[appArgs][scriptFile][scriptArgs][//x]
+                    // Here we need to separate application arguments from script ones.
+                    // Script engine arguments are always followed by script arguments
+                    // [appArgs][scriptFile][scriptArgs][//x]
                     List<string> appArgs = new List<string>();
 
-                    //The following will also update corresponding "options" members from "settings" data
+                    // load settings from file and then process user cli args as some settings values may need to be replaced
+                    // upon user request. So
+                    // 1 - load settings
+                    // 2 - process args and possibly update settings
+
+                    // The following will also update corresponding "options" members from "settings" data
                     Settings settings = LoadSettings(appArgs);
 
                     int firstScriptArg = this.ParseAppArgs(args);
+
+                    if (options.altConfig.HasText()) // user requested to use a non default config file, so start again.
+                    {
+                        appArgs.Clear();
+                        settings = LoadSettings(appArgs); // will use options.altConfig as a file source
+                        firstScriptArg = this.ParseAppArgs(args);
+                    }
 
                     options.resolveAutogenFilesRefs = settings.ResolveAutogenFilesRefs;
                     if (!options.processFile)
@@ -292,27 +441,27 @@ namespace csscript
                     var host_dir = this.GetType().Assembly.GetAssemblyDirectoryName();
                     var local_dir = Path.GetDirectoryName(Path.GetFullPath(options.scriptFileName));
 
-                    using (var currDir = new CurrentDirGuard())
+                    using (new CurrentDirGuard())
                     {
                         if (options.local)
                             Environment.CurrentDirectory = Path.GetDirectoryName(Path.GetFullPath(options.scriptFileName));
 
-                        dirs.AddIfNotThere(Environment.CurrentDirectory, Settings.local_dirs_section);
-                        dirs.AddIfNotThere(local_dir, Settings.local_dirs_section);
+                        dirs.AddPathIfNotThere(Environment.CurrentDirectory, Settings.local_dirs_section);
+                        dirs.AddPathIfNotThere(local_dir, Settings.local_dirs_section);
 
                         foreach (string dir in options.searchDirs) //some directories may be already set from command-line
                         {
                             // command line dirs resolved against current dir
                             if (!dir.IsDirSectionSeparator())
-                                dirs.AddIfNotThere(Path.GetFullPath(dir), Settings.cmd_dirs_section);
+                                dirs.AddPathIfNotThere(Path.GetFullPath(dir), Settings.cmd_dirs_section);
                         }
 
                         if (settings != null)
                             foreach (string dir in Environment.ExpandEnvironmentVariables(settings.SearchDirs).Split(",;".ToCharArray()))
                                 if (dir.Trim() != "")
-                                    dirs.AddIfNotThere(Path.GetFullPath(dir), Settings.config_dirs_section);
+                                    dirs.AddPathIfNotThere(Path.GetFullPath(dir), Settings.config_dirs_section);
 
-                        dirs.AddIfNotThere(host_dir, Settings.local_dirs_section);
+                        dirs.AddPathIfNotThere(host_dir, Settings.local_dirs_section);
                     }
 
                     options.scriptFileName = FileParser.ResolveFile(options.scriptFileName, dirs.ToArray());
@@ -332,17 +481,18 @@ namespace csscript
                     {
                         if (!Settings.ProbingLegacyOrder)
                         {
-                            dirs.AddIfNotThere(CSExecutor.ScriptCacheDir, Settings.internal_dirs_section);
+                            dirs.AddPathIfNotThere(CSExecutor.ScriptCacheDir, Settings.internal_dirs_section);
                         }
                     }
 
                     options.searchDirs = dirs.ToArray();
                     var cmdScripts = new CSharpParser.CmdScriptInfo[0];
 
-                    var compilerDirective = "//css_compiler";
+                    var compilerDirective = "//css_engine";
+                    var compilerDirective2 = "//css_ng";
                     //do quick parsing for pre/post scripts, ThreadingModel and embedded script arguments
 
-                    CSharpParser parser = new CSharpParser(options.scriptFileName, true, new[] { compilerDirective }, options.searchDirs);
+                    CSharpParser parser = new CSharpParser(options.scriptFileName, true, new[] { compilerDirective, compilerDirective2 }, options.searchDirs);
 
                     // it is either '' or 'freestyle', but not 'null' if '//css_ac' was specified
                     if (parser.AutoClassMode != null)
@@ -350,7 +500,11 @@ namespace csscript
                         options.autoClass = true;
                     }
 
-                    options.compilerEngine = parser.GetDirective(compilerDirective)?.LastOrDefault();
+                    var compilerDirectives = parser.GetDirective(compilerDirective).Concat(parser.GetDirective(compilerDirective2));
+                    if (compilerDirectives.Any())
+                    {
+                        options.compilerEngine = compilerDirectives.Last();
+                    }
 
                     if (parser.Inits.Length != 0)
                         options.initContext = parser.Inits[0];
@@ -360,14 +514,14 @@ namespace csscript
                     {
                         List<string> newSearchDirs = new List<string>(options.searchDirs);
 
-                        using (IDisposable currDir = new CurrentDirGuard())
+                        using (new CurrentDirGuard())
                         {
                             Environment.CurrentDirectory = Path.GetDirectoryName(Path.GetFullPath(options.scriptFileName));
 
                             var code_probing_dirs = parser.ExtraSearchDirs.Select<string, string>(Path.GetFullPath);
 
                             foreach (string dir in code_probing_dirs)
-                                newSearchDirs.AddIfNotThere(dir, Settings.code_dirs_section.Expand());
+                                newSearchDirs.AddPathIfNotThere(dir, Settings.code_dirs_section.Expand());
 
                             foreach (string file in parser.RefAssemblies)
                             {
@@ -376,7 +530,7 @@ namespace csscript
                                 if (dir != "")
                                 {
                                     dir = Path.GetFullPath(dir);
-                                    newSearchDirs.AddIfNotThere(dir, Settings.code_dirs_section);
+                                    newSearchDirs.AddPathIfNotThere(dir, Settings.code_dirs_section);
                                 }
                             }
                             options.searchDirs = newSearchDirs.ToArray();
@@ -585,9 +739,14 @@ namespace csscript
                         Console.WriteLine("  Provider: " + options.altCompiler);
                         try
                         {
-                            Console.WriteLine("  Engine: " + Assembly.GetExecutingAssembly().Location);
+                            Console.WriteLine("  Script engine: " + Assembly.GetExecutingAssembly().Location);
                         }
                         catch { }
+
+                        if (options.compilerEngine == "csc")
+                            Console.WriteLine($"  Compiler engine: {options.compilerEngine} ({Globals.csc})");
+                        else
+                            Console.WriteLine($"  Compiler engine: {options.compilerEngine} ({Globals.dotnet})");
 
                         try
                         {
@@ -792,9 +951,12 @@ namespace csscript
 
                                 assemblyFileName = Compile(options.scriptFileName);
 
+                                if (Runtime.IsLinux && assemblyFileName.EndsWith(".exe"))
+                                    assemblyFileName = assemblyFileName.RemoveAssemblyExtension();
+
                                 Profiler.Stopwatch.Stop();
 
-                                if (options.verbose)
+                                if (options.verbose || Utils.IsSpeedTest || options.profile)
                                 {
                                     TimeSpan compilationTime = Profiler.Stopwatch.Elapsed;
 
@@ -802,21 +964,32 @@ namespace csscript
                                     if (Profiler.has("compiler"))
                                         pureCompilerTime = Profiler.get("compiler").Elapsed;
 
+                                    if (options.verbose || options.profile)
+                                        Console.WriteLine("> ----------------");
+
+                                    Console.WriteLine(Profiler.EngineContext);
                                     Console.WriteLine($"Initialization time: {initializationTime.TotalMilliseconds} msec");
                                     Console.WriteLine($"Compilation time:    {pureCompilerTime.TotalMilliseconds} msec");
                                     Console.WriteLine($"Total load time:     {compilationTime.TotalMilliseconds} msec");
-                                    Console.WriteLine("> ----------------");
-                                    Console.WriteLine("");
+
+                                    if (options.verbose || options.profile)
+                                    {
+                                        Console.WriteLine("> ----------------");
+                                        Console.WriteLine("");
+                                    }
                                 }
                             }
-                            catch
+                            catch (Exception e)
                             {
-                                if (!CSSUtils.IsRuntimeErrorReportingSuppressed)
+                                if (!(e is CLIExitRequest))
                                 {
-                                    print("Error: Specified file could not be compiled.\n");
-                                    if (NuGet.newPackageWasInstalled)
+                                    if (!CSSUtils.IsRuntimeErrorReportingSuppressed)
                                     {
-                                        print("> -----\nA new NuGet package has been installed. If some of it's components are not found you may need to restart the script again.\n> -----\n");
+                                        print($"Error: Specified file could not be compiled.{NewLine}");
+                                        if (NuGet.newPackageWasInstalled)
+                                        {
+                                            print($"> -----{NewLine}A new NuGet package has been installed. If some of it's components are not found you may need to restart the script again.{NewLine}> -----{NewLine}");
+                                        }
                                     }
                                 }
                                 throw;
@@ -834,12 +1007,15 @@ namespace csscript
                             compilingFileLock.Release();
 
                             Profiler.Stopwatch.Stop();
-                            CSSUtils.VerbosePrint("  Loading script from cache...", options);
-                            CSSUtils.VerbosePrint("", options);
-                            CSSUtils.VerbosePrint("  Cache file: \n       " + assemblyFileName, options);
-                            CSSUtils.VerbosePrint("> ----------------", options);
-                            CSSUtils.VerbosePrint("Initialization time: " + Profiler.Stopwatch.Elapsed.TotalMilliseconds + " msec", options);
-                            CSSUtils.VerbosePrint("> ----------------", options);
+                            if (options.verbose || options.profile)
+                            {
+                                Console.WriteLine("  Loading script from cache...");
+                                if (options.verbose)
+                                    Console.WriteLine($"  Cache file: {NewLine}       " + assemblyFileName);
+                                Console.WriteLine("> ----------------");
+                                Console.WriteLine("Initialization time: " + Profiler.Stopwatch.Elapsed.TotalMilliseconds + " msec");
+                                Console.WriteLine("> ----------------");
+                            }
                         }
 
                         // --- EXECUTE ---
@@ -879,7 +1055,7 @@ namespace csscript
                             catch
                             {
                                 if (!CSSUtils.IsRuntimeErrorReportingSuppressed)
-                                    print("Error: Specified file could not be executed.\n");
+                                    print("Error: Specified file could not be executed." + NewLine);
                                 throw;
                             }
                         }
@@ -908,13 +1084,10 @@ namespace csscript
                         else
                             message = ex.Message; //Mono friendly
 
-                        if (Runtime.IsWin &&
-                            ex is System.Reflection.ReflectionTypeLoadException &&
-                            Assembly.GetExecutingAssembly().GetName().Name == "cscs" && // console app
-                            message.Contains("'System.Windows.DependencyObject'"))
+                        if (Runtime.IsWin && IsWpfHostingException(ex) && Assembly.GetExecutingAssembly().GetName().Name == "cscs") // console app)
                         {
-                            message += "\n\nNOTE: If you are trying to use WPF ensure you have enabled WPF support " +
-                                "with `dotnet cscs.dll -wpf:enable`";
+                            message += $"{NewLine}{NewLine}NOTE: If you are trying to use WPF ensure you have enabled WPF support " +
+                                       $"with `{Environment.GetEnvironmentVariable("ENTRY_ASM")} -wpf:enable`";
                         }
 
                         print(message);
@@ -923,9 +1096,21 @@ namespace csscript
             }
         }
 
+        static bool IsWpfHostingException(Exception e)
+        {
+            var message = e.ToString();
+
+            if (e is System.Reflection.ReflectionTypeLoadException && (message.Contains("'System.Windows.DependencyObject'") || message.Contains("'WindowsBase,")))
+                return true;
+            else if (Runtime.IsWin && e.GetType().ToString().Contains("System.Windows.Markup.XamlParseException") && message.Contains("'System.Windows.Controls.UIElementCollection'"))
+                return true;
+            else
+                return false;
+        }
+
         static void SaveDebuggingMetadata(string scriptFile)
         {
-            var dir = Path.Combine(GetScriptTempDir(), "DbgAttach");
+            var dir = Path.Combine(Runtime.GetScriptTempDir(), "DbgAttach");
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
 
@@ -1093,7 +1278,7 @@ namespace csscript
                 {
                     var compilerAsmFile = LookupAltCompilerFile(options.altCompiler, scriptDir);
 
-                    var asm = Assembly.LoadFrom(compilerAsmFile);
+                    var asm = Assembly.LoadFile(compilerAsmFile);
                     Type[] types = asm.GetModules()[0].FindTypes(Module.FilterTypeName, "CSSCodeProvider");
 
                     MethodInfo method = types[0].GetMethod("CreateCompilerVersion");
@@ -1111,7 +1296,7 @@ namespace csscript
                 {
                     try
                     {
-                        var errorMessage = "\nCannot find alternative compiler (" + options.altCompiler + "). Loading default compiler instead.";
+                        var errorMessage = $"{NewLine}Cannot find alternative compiler (" + options.altCompiler + "). Loading default compiler instead.";
 
                         if (!File.Exists(options.altCompiler)) //Invalid alt-compiler configured
                             print(errorMessage);
@@ -1122,7 +1307,7 @@ namespace csscript
                     catch { }
 
                     // Debug.Assert(false);
-                    throw new ApplicationException("Cannot use alternative compiler (" + options.altCompiler + "). You may want to adjust 'CSSCRIPT_ROOT' environment variable or disable alternative compiler by setting 'useAlternativeCompiler' to empty value in the css_config.xml file.\n\nError Details:", ex);
+                    throw new ApplicationException($"Cannot use alternative compiler (" + options.altCompiler + $"). You may want to adjust 'CSSCRIPT_ROOT' environment variable or disable alternative compiler by setting 'useAlternativeCompiler' to empty value in the css_config.xml file.{NewLine}{NewLine}Error Details:", ex);
                 }
             }
             return compiler;
@@ -1238,7 +1423,7 @@ namespace csscript
 
             if (options.enableDbgPrint)
             {
-                if (Utils.IsNet40Plus() && !Runtime.IsMono)
+                if (Utils.IsNet40Plus())
                 {
                     addByAsmName("System.Linq"); // Implementation of System.Linq namespace
                     addByAsmName("System.Core"); // dependency of System.Linq namespace assembly
@@ -1334,7 +1519,10 @@ namespace csscript
             // ********************************************************************************************
 
             //System.Diagnostics.Debug.Assert(false);
+            // if no request to build executable or dll is made then use exe format as it is the only format that allows
+            // top-level statements (classless scripts)
             bool generateExe = options.buildExecutable;
+
             string scriptDir = Path.GetDirectoryName(scriptFileName);
             string assemblyFileName = "";
 
@@ -1389,7 +1577,9 @@ namespace csscript
                 Utils.AddCompilerOptions(compilerParams, "/d:DEBUG /d:TRACE");
 
             compilerParams.IncludeDebugInformation = options.DBG;
-            compilerParams.GenerateExecutable = generateExe;
+            compilerParams.GenerateExecutable = !options.compileDLL; // user asked to execute script but we still need to generate the exe assembly before
+                                                                     // the execution so top-level classes are supported
+            compilerParams.BuildExe = options.buildExecutable; // user asked to build exe
             compilerParams.GenerateInMemory = false;
             compilerParams.WarningLevel = (options.hideCompilerWarnings ? -1 : 4);
 
@@ -1405,6 +1595,8 @@ namespace csscript
                 filesToCompile = filesToCompile.Concat(context.NewIncludes).ToArray();
                 context.NewDependencies.AddRange(context.NewIncludes);
             }
+
+            Utils.AddCompilerOptions(compilerParams, context.NewCompilerOptions);
 
             string[] additionalDependencies = context.NewDependencies.ToArray();
 
@@ -1450,7 +1642,10 @@ namespace csscript
             {
                 if (generateExe)
                 {
-                    assemblyFileName = Path.Combine(scriptDir, Path.GetFileNameWithoutExtension(scriptFileName) + ".exe");
+                    if (Runtime.IsLinux)
+                        assemblyFileName = Path.Combine(scriptDir, Path.GetFileNameWithoutExtension(scriptFileName));
+                    else
+                        assemblyFileName = Path.Combine(scriptDir, Path.GetFileNameWithoutExtension(scriptFileName) + ".exe");
                 }
                 else if (options.useCompiled || options.compileDLL)
                 {
@@ -1488,7 +1683,7 @@ namespace csscript
             if (!Directory.Exists(outDir))
                 Directory.CreateDirectory(outDir);
 
-            //compilerParams.ReferencedAssemblies.Add(this.GetType().Assembly.Location);
+            compilerParams.CompilerOptions.TunnelConditionalSymbolsToEnvironmentVariables();
 
             CompilerResults results;
             if (generateExe)
@@ -1504,7 +1699,7 @@ namespace csscript
                     filesToCompile = filesToCompile.ConcatWith(filesToInject);
                 }
 
-                CSSUtils.VerbosePrint("  Output file: \n       " + assemblyFileName, options);
+                CSSUtils.VerbosePrint($"  Output file: {NewLine}       " + assemblyFileName, options);
                 CSSUtils.VerbosePrint("", options);
 
                 CSSUtils.VerbosePrint("  Files to compile: ", options);
@@ -1550,7 +1745,7 @@ namespace csscript
                             {
                                 if (attempts > 2)
                                 {
-                                    //yep we can get here as Mono 1.2.4 on Windows never ever releases the assembly
+                                    // yep we can get here as Mono 1.2.4 on Windows never ever releases the assembly
                                     File.Copy(compilerParams.OutputAssembly, Path.ChangeExtension(compilerParams.OutputAssembly, originalExtension), true);
                                     break;
                                 }
@@ -1613,7 +1808,7 @@ namespace csscript
 
                 if (options.syntaxCheck)
                 {
-                    Console.WriteLine("Compile: {0} error(s)\n{1}", ex.ErrorCount, ex.Message.Trim());
+                    Console.WriteLine("Compile: {0} error(s)" + NewLine + "{1}", ex.ErrorCount, ex.Message.Trim());
                 }
                 else
                     throw ex;
@@ -1634,23 +1829,18 @@ namespace csscript
                         string file = err.FileName;
                         int line = err.Line;
                         if (options.resolveAutogenFilesRefs)
-                            CSSUtils.NormaliseFileReference(ref file, ref line);
+                            CoreExtensions.NormaliseFileReference(ref file, ref line);
                         Console.WriteLine("  {0}({1},{2}):{3} {4} {5}", file, line, err.Column, (err.IsWarning ? "warning" : "error"), err.ErrorNumber, err.ErrorText);
                     }
                     Console.WriteLine("> ----------------");
                 }
 
-                string symbFileName = Utils.DbgFileOf(assemblyFileName);
-                string pdbFileName = Utils.DbgFileOf(assemblyFileName, false);
+                string pdbFileName = Utils.DbgFileOf(assemblyFileName);
 
                 if (!options.DBG) //.pdb and imported files might be needed for the debugger
                 {
                     parser.DeleteImportedFiles();
-                    Utils.FileDelete(symbFileName);
-
-                    // Roslyn always generates pdb files, even under Mono
-                    if (Runtime.IsMono)
-                        Utils.FileDelete(pdbFileName);
+                    Utils.FileDelete(pdbFileName);
                 }
 
                 if (options.useCompiled)
@@ -1688,7 +1878,7 @@ namespace csscript
                     if (Settings.legacyTimestampCaching)
                     {
                         var asmFile = new FileInfo(assemblyFileName);
-                        var pdbFile = new FileInfo(symbFileName);
+                        var pdbFile = new FileInfo(pdbFileName);
 
                         if (scriptFile.Exists && asmFile.Exists)
                         {
@@ -1711,7 +1901,7 @@ namespace csscript
         {
             lock (typeof(CSExecutor))
             {
-                return Path.Combine(GetScriptTempDir(), string.Format("{0}.{1}.tmp", Process.GetCurrentProcess().Id, Guid.NewGuid()));
+                return Path.Combine(Runtime.GetScriptTempDir(), string.Format("{0}.{1}.tmp", Process.GetCurrentProcess().Id, Guid.NewGuid()));
             }
         }
 
@@ -1723,20 +1913,7 @@ namespace csscript
         /// </summary>
         /// <returns>Temporary directory name.</returns>
         static public string GetScriptTempDir()
-        {
-            if (tempDir == null)
-            {
-                tempDir = Environment.GetEnvironmentVariable("CSS_CUSTOM_TEMPDIR");
-                if (tempDir == null)
-                {
-                    // tempDir = Path.Combine(Path.GetTempPath(), Utils.IsCore ? "csscript.core" : "csscript");
-                    tempDir = Path.Combine(Path.GetTempPath(), "csscript.core");
-                    if (!Directory.Exists(tempDir))
-                        Directory.CreateDirectory(tempDir);
-                }
-            }
-            return tempDir;
-        }
+            => Runtime.GetScriptTempDir();
 
         static string tempDir = null;
 
@@ -1744,10 +1921,7 @@ namespace csscript
         /// Sets the location for the CS-Script temporary files directory.
         /// </summary>
         /// <param name="path">The path for the temporary directory.</param>
-        static public void SetScriptTempDir(string path)
-        {
-            tempDir = path;
-        }
+        static public void SetScriptTempDir(string path) => tempDir = path;
 
         /// <summary>
         /// Generates the name of the cache directory for the specified script file.
@@ -1756,7 +1930,7 @@ namespace csscript
         /// <returns>Cache directory name.</returns>
         public static string GetCacheDirectory(string file)
         {
-            string commonCacheDir = Path.Combine(CSExecutor.GetScriptTempDir(), "cache");
+            string commonCacheDir = Path.Combine(Runtime.GetScriptTempDir(), "cache");
 
             string cacheDir;
             string directoryPath = Path.GetDirectoryName(Path.GetFullPath(file));
@@ -1764,11 +1938,11 @@ namespace csscript
             if (Runtime.IsWin)
             {
                 //Win is not case-sensitive so ensure, both lower and capital case path yield the same hash
-                dirHash = CSSUtils.GetHashCodeEx(directoryPath.ToLower()).ToString();
+                dirHash = directoryPath.ToLower().GetHashCodeEx().ToString();
             }
             else
             {
-                dirHash = CSSUtils.GetHashCodeEx(directoryPath).ToString();
+                dirHash = directoryPath.GetHashCodeEx().ToString();
             }
 
             cacheDir = Path.Combine(commonCacheDir, dirHash);
@@ -1794,8 +1968,8 @@ namespace csscript
             if (!File.Exists(infoFile))
                 try
                 {
-                    using (StreamWriter sw = new StreamWriter(infoFile))
-                        sw.Write(Environment.Version.ToString() + "\n" + directoryPath + "\n");
+                    using var sw = new StreamWriter(infoFile);
+                    sw.Write(Environment.Version.ToString() + NewLine + directoryPath + NewLine);
                 }
                 catch
                 {
@@ -1809,7 +1983,10 @@ namespace csscript
         ///<summary>
         /// Contains the name of the temporary cache folder in the CSSCRIPT subfolder of Path.GetTempPath(). The cache folder is specific for every script file.
         /// </summary>
-        static public string ScriptCacheDir { get; private set; } = "";
+        static public string ScriptCacheDir { get; set; } = "";
+
+        // "<temp_dir>\csscript.core\cache\<script_hash>"
+        static internal string ScriptVsDir => CSExecutor.ScriptCacheDir.Replace("cache", ".vs");
 
         /// <summary>
         /// Generates the name of the temporary cache folder in the CSSCRIPT subfolder of Path.GetTempPath(). The cache folder is specific for every script file.

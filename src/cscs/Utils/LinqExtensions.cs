@@ -1,14 +1,9 @@
+using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 
-#if class_lib
-
-namespace CSScriptLib
-#else
-namespace csscript
-#endif
+namespace CSScripting
 {
     /// <summary>
     /// Various LINQ extensions
@@ -28,7 +23,7 @@ namespace csscript
         /// <typeparam name="T"></typeparam>
         /// <param name="items">The items.</param>
         /// <param name="predicate">The predicate.</param>
-        /// <returns></returns>
+        /// <returns>Result of the test</returns>
         public static bool None<T>(this IEnumerable<T> items, Func<T, bool> predicate) => !items.Any(predicate);
 
         /// <summary>
@@ -37,7 +32,7 @@ namespace csscript
         /// <typeparam name="TSource">The type of the source.</typeparam>
         /// <param name="items">The items.</param>
         /// <param name="item">The item.</param>
-        /// <returns></returns>
+        /// <returns>The original collection instance.</returns>
         public static IEnumerable<TSource> AddItem<TSource>(this IEnumerable<TSource> items, TSource item) =>
             items.Concat(new[] { item });
 
@@ -68,7 +63,7 @@ namespace csscript
         /// <typeparam name="T"></typeparam>
         /// <param name="collection">The collection.</param>
         /// <param name="action">The action.</param>
-        /// <returns></returns>
+        /// <returns>The original collection instance</returns>
         public static IEnumerable<T> ForEach<T>(this IEnumerable<T> collection, Action<T> action)
         {
             foreach (T item in collection)
@@ -76,6 +71,17 @@ namespace csscript
                 action(item);
             }
             return collection;
+        }
+
+        internal static T With<T>(this T @object, Action<T> action)
+        {
+            action(@object);
+            return @object;
+        }
+
+        internal static T2 With<T, T2>(this T @object, Func<T, T2> action)
+        {
+            return action(@object);
         }
     }
 }

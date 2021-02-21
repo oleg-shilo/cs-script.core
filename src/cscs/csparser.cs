@@ -1,11 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using static System.Environment;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using CSScripting;
 using CSScriptLib;
 
 namespace csscript
@@ -232,7 +234,7 @@ namespace csscript
                     else
                     {
                         if (statement.Length > 1 && (statement[0] == '.' && statement[1] != '.')) //just a single-dot start dir
-                            statement = Path.Combine(Path.GetDirectoryName(parentScript), statement);
+                            statement = parentScript.GetDirName().PathJoin(statement).GetFullPath();
 
                         return new[] { new ImportInfo(statement, parentScript, context) };
                     }
@@ -243,8 +245,8 @@ namespace csscript
                     {
                         if (statement.IndexOfAny(DirectiveDelimiters) != -1) // contains any unescaped delimiter
                         {
-                            throw new InvalidDirectiveException(e.Message +
-                                "\nEnsure your directive escapes all delimiters ('" + new string(DirectiveDelimiters) + "') by doubling the delimiter character.");
+                            throw new InvalidDirectiveException(e.Message + NewLine +
+                                "Ensure your directive escapes all delimiters ('" + new string(DirectiveDelimiters) + "') by doubling the delimiter character.");
                         }
                     }
                     throw;
@@ -354,11 +356,11 @@ namespace csscript
                         //it happens that user has no rights to do so.
                         //Ignore the error and it will be reported when get.exe will try to download the package(s) into
                         //this cache directory.
-                        Environment.SetEnvironmentVariable("css_nuget", NuGet.NuGetCacheView);
+                        Utils.SetEnvironmentVariable("css_nuget", NuGet.NuGetCacheView);
                     }
                     catch (Exception e)
                     {
-                        System.Diagnostics.Trace.WriteLine("Cannot initialize NuGet cache folder.\n" + e);
+                        System.Diagnostics.Trace.WriteLine($"Cannot initialize NuGet cache folder.{NewLine}" + e);
                     }
                 }
                 NeedInitEnvironment = false;
@@ -574,11 +576,14 @@ namespace csscript
             foreach (string statement in GetRawStatements("//css_ignore_ns", endCodePos))
                 ignoreNamespaces.Add(statement.Trim());
 
-            //analyse resource references
+            // analyze resource references
+            // this directive is special as it may contain two paths
+            // //css_res Resources1.resx;",
+            // //css_res Form1.resx, Scripting.Form1.resources;"
             foreach (string statement in GetRawStatements("//css_resource", endCodePos))
-                resFiles.Add(statement.NormaliseAsDirectiveOf(file));
+                resFiles.Add(statement.NormaliseAsDirectiveOf(file, multiPathDelimiter: ','));
             foreach (string statement in GetRawStatements("//css_res", endCodePos))
-                resFiles.Add(statement.NormaliseAsDirectiveOf(file));
+                resFiles.Add(statement.NormaliseAsDirectiveOf(file, multiPathDelimiter: ','));
 
             //analyse extra search (probing) dirs
             foreach (string statement in GetRawStatements("//css_searchdir", endCodePos))
@@ -591,6 +596,13 @@ namespace csscript
                 var pattern = Environment.ExpandEnvironmentVariables(UnescapeDirectiveDelimiters(statement)).Trim();
                 searchDirs.AddRange(workingDir.GetMatchingDirs(pattern));
             }
+
+            if (HasRawStatement("//css_winapp", endCodePos))
+            {
+                searchDirs.Add("%WINDOWS_DESKTOP_APP%".Expand());
+                refAssemblies.Add("System.Windows.Forms");
+            }
+
             //analyse namespace references
             foreach (string statement in GetRawStatements(code, "using", endCodePos, true))
                 if (!statement.StartsWith("(")) //just to cut off "using statements" as we are interested in "using directives" only
@@ -811,7 +823,7 @@ namespace csscript
         /// <summary>
         /// Apartment state of the script.
         /// </summary>
-        public ApartmentState ThreadingModel { get; private set; } = ApartmentState.Unknown;
+        public ApartmentState ThreadingModel { get; set; } = ApartmentState.Unknown;
 
         string autoClassMode = null;
 
@@ -823,12 +835,12 @@ namespace csscript
         /// <summary>
         /// Script C# raw code.
         /// </summary>
-        public string Code { get; private set; } = "";
+        public string Code { get; set; } = "";
 
         /// <summary>
         /// Script C# code after namespace renaming.
         /// </summary>
-        public string ModifiedCode { get; private set; } = "";
+        public string ModifiedCode { get; set; } = "";
 
         List<string> searchDirs = new List<string>();
         List<string> resFiles = new List<string>();
@@ -847,6 +859,9 @@ namespace csscript
         /// Enables omitting closing character (";") for CS-Script directives (e.g. "//css_ref System.Xml.dll" instead of "//css_ref System.Xml.dll;").
         /// </summary>
         public static bool OpenEndDirectiveSyntax = true;
+
+        bool HasRawStatement(string pattern, int endIndex)
+            => IndexOf(pattern, 0, endIndex) != -1;
 
         string[] GetRawStatements(string pattern, int endIndex, bool canBeEmpty = false)
         {
@@ -872,8 +887,10 @@ namespace csscript
                         else
                             endPos = IndexOfDelimiter(pos, codeToAnalyse.Length - 1, ';');
 
-                        if (endPos != -1)
-                            retval.Add(codeToAnalyse.Substring(pos, endPos - pos).Trim());
+                        if (endPos == -1)
+                            endPos = codeToAnalyse.Length;
+
+                        retval.Add(codeToAnalyse.Substring(pos, endPos - pos).Trim());
                     }
                 }
                 pos = codeToAnalyse.IndexOf(pattern, pos + 1);
@@ -1104,7 +1121,7 @@ namespace csscript
         /// </remarks>
         /// </summary>
         /// <param name="text">The text to be processed.</param>
-        /// <returns></returns>
+        /// <returns>Escaped string</returns>
         public static string EscapeDirectiveDelimiters(string text)
         {
             foreach (char c in DirectiveDelimiters)
@@ -1119,7 +1136,7 @@ namespace csscript
         ///
         /// </summary>
         /// <param name="text">The text.</param>
-        /// <returns></returns>
+        /// <returns>Escaped string</returns>
         internal static string UserToInternalEscaping(string text)
         {
             foreach (char c in DirectiveDelimiters)
@@ -1146,7 +1163,7 @@ namespace csscript
         /// </remarks>
         /// </summary>
         /// <param name="text">The text to be processed.</param>
-        /// <returns></returns>
+        /// <returns>Unescaped string</returns>
         public static string UnescapeDirectiveDelimiters(string text)
         {
             foreach (char c in DirectiveDelimiters)

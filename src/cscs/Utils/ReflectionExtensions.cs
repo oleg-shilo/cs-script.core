@@ -1,22 +1,17 @@
+using Microsoft.CodeAnalysis;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis;
 
-#if class_lib
-
-namespace CSScriptLib
-#else
-namespace csscript
-#endif
+namespace CSScripting
 {
-    public partial class CSScript
+    class Directives
     {
-        static internal string DynamicWrapperClassName = "DynamicClass";
-        static internal string RootClassName = "css_root";
-        // Roslyn still does not support anything else but `Submission#0` (17 Jul 2019)
-        // Roslyn now does support alternative class names (1 Jan 2020)
+        public const string compiler = "//css_engine";
+        public const string compiler_csc = "csc";
+        public const string compiler_dotnet = "dotnet";
     }
 
     /// <summary>
@@ -28,7 +23,7 @@ namespace csscript
         /// Returns directory where the specified assembly file is.
         /// </summary>
         /// <param name="asm">The asm.</param>
-        /// <returns></returns>
+        /// <returns>The directory path</returns>
         public static string Directory(this Assembly asm)
         {
             var file = asm.Location();
@@ -43,14 +38,22 @@ namespace csscript
         /// of dynamic assembly.
         /// </summary>
         /// <param name="asm">The asm.</param>
-        /// <returns></returns>
+        /// <returns>The path to the assembly file</returns>
         public static string Location(this Assembly asm)
         {
             if (asm.IsDynamic())
             {
                 string location = Environment.GetEnvironmentVariable("location:" + asm.GetHashCode());
                 if (location == null)
-                    return "";
+                {
+                    // Note assembly can contain only single AssemblyDescriptionAttribute
+                    return asm.GetCustomAttributes(typeof(AssemblyDescriptionAttribute), true)?
+                              .Cast<AssemblyDescriptionAttribute>()
+                              .FirstOrDefault()?
+                              .Description
+                              ??
+                              "";
+                }
                 else
                     return location ?? "";
             }
@@ -62,7 +65,7 @@ namespace csscript
         /// Gets the name of the type.
         /// </summary>
         /// <param name="type">The type.</param>
-        /// <returns></returns>
+        /// <returns>Thew name of the type.</returns>
         public static string GetName(this Type type)
         {
             return type.GetTypeInfo().Name;
@@ -101,9 +104,8 @@ namespace csscript
                 //instantiate the user first type found (but not auto-generated types)
                 //Ignore Roslyn internal root type: "Submission#0"; real script class will be Submission#0+Script
 
-                var firstUserTypes = asm.GetTypes()
-                                        .FirstOrDefault(x => x.FullName.StartsWith(CSScript.RootClassName) &&
-                                                             x.FullName != CSScript.RootClassName);
+                var firstUserTypes = asm.OrderedUserTypes()
+                                        .FirstOrDefault();
 
                 if (firstUserTypes != null)
                     return Activator.CreateInstance(firstUserTypes, args);
@@ -114,9 +116,9 @@ namespace csscript
             {
                 var name = typeName.Replace("*.", "");
 
-                Type[] types = asm.GetTypes()
+                Type[] types = asm.OrderedUserTypes()
                                   .Where(t => (t.FullName == name
-                                               || t.FullName == ($"{CSScript.RootClassName}+{name}")
+                                               || t.FullName == ($"{Globals.RootClassName}+{name}")
                                                || t.Name == name))
                                       .ToArray();
 
@@ -127,16 +129,19 @@ namespace csscript
             }
         }
 
-        internal static Type FirstUserTypeAssignableFrom<T>(this Assembly asm)
-        {
-            // exclude Roslyn internal types
-            return asm
-                .ExportedTypes
-                .Where(t => t.FullName.StartsWith($"{CSScript.RootClassName}+")  // Submission#0+Script
-                            && !t.FullName.Contains("<<Initialize>>")) // Submission#0+<<Initialize>>d__0
+        static bool IsRoslynInternalType(this Type type)
+            => type.FullName.Contains("<<Initialize>>"); // Submission#0+<<Initialize>>d__0
 
-                .FirstOrDefault(x => typeof(T).IsAssignableFrom(x));
-        }
+        static bool IsScriptRootClass(this Type type)
+            => type.FullName.Contains($"{Globals.RootClassName}+"); // Submission#0+Script
+
+        internal static IEnumerable<Type> OrderedUserTypes(this Assembly asm)
+           => asm.ExportedTypes
+                  .Where(t => !t.IsRoslynInternalType())
+                  .OrderBy(t => !t.IsScriptRootClass());  // ScriptRootClass will be on top
+
+        internal static Type FirstUserTypeAssignableFrom<T>(this Assembly asm)
+            => asm.OrderedUserTypes().FirstOrDefault(x => typeof(T).IsAssignableFrom(x));
 
         /// <summary>
         /// Determines whether the assembly is dynamic.

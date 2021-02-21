@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using static System.Environment;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml;
+using CSScripting;
 using CSScripting.CodeDom;
 
 namespace csscript
@@ -22,6 +24,7 @@ namespace csscript
         internal const string code_dirs_section = dirs_section_prefix + "dirs from code" + dirs_section_suffix;
         internal const string config_dirs_section = dirs_section_prefix + "dirs from config" + dirs_section_suffix;
         internal const string internal_dirs_section = dirs_section_prefix + "cs-script special dirs" + dirs_section_suffix;
+
         internal static string[] PseudoDirItems = new[]
         {
             local_dirs_section,
@@ -130,6 +133,7 @@ namespace csscript
         public string ConsoleEncoding
         {
             get { return consoleEncoding; }
+
             set
             {
                 //consider: https://social.msdn.microsoft.com/Forums/vstudio/en-US/e448b241-e250-4dcb-8ecd-361e00920dde/consoleoutputencoding-breaks-batch-files?forum=netfxbcl
@@ -188,37 +192,12 @@ namespace csscript
         internal const string DefaultEncodingName = "default";
 
         /// <summary>
-        /// Specifies the .NET Framework version that the script is compiled against. This option can have the following values:
-        ///   v2.0
-        ///   v3.0
-        ///   v3.5
-        ///   v4.0
+        /// Gets or sets the default compiler engine. Possible values are 'csc' and 'dotnet'.
         /// </summary>
-        public string TargetFramework
-        {
-            get { return targetFramework; }
-            set { targetFramework = value; }
-        }
-
-#if net35
-        string targetFramework = "v3.5";
-#else
-        string targetFramework = "v4.0";
-#endif
-
-        /// <summary>
-        /// Specifies the .NET Framework version that the script is compiled against. This option can have the following values:
-        ///   v2.0
-        ///   v3.0
-        ///   v3.5
-        ///   v4.0
-        /// </summary>
-        [Category("RuntimeSettings")]
-        [Description("Specifies the .NET Framework version that the script is compiled against (used by CSharpCodeProvider.CreateCompiler as the 'CompilerVersion' parameter).\nThis option is for the script compilation only.\nFor changing the script execution CLR use //css_host directive from the script.\nYou are discouraged from modifying this value thus if the change is required you need to edit css_config.xml file directly.")]
-        public string CompilerFramework
-        {
-            get { return targetFramework; }
-        }
+        /// <value>
+        /// The default compiler.
+        /// </value>
+        public string DefaultCompilerEngine { get; set; } = Runtime.IsLinux ? "csc" : "dotnet";
 
         /// <summary>
         /// List of assembly names to be automatically referenced by the script. The items must be separated by coma or semicolon. Specifying .dll extension (e.g. System.Core.dll) is optional.
@@ -234,6 +213,7 @@ namespace csscript
 
                 return defaultRefAssemblies;
             }
+
             set { defaultRefAssemblies = value; }
         }
 
@@ -241,17 +221,10 @@ namespace csscript
 
         string InitDefaultRefAssemblies()
         {
-            if (Runtime.IsMono)
-            {
-                return "System; System.Core;";
-            }
+            if (Utils.IsNet45Plus())
+                return "System; System.Core; System.Linq;";
             else
-            {
-                if (Utils.IsNet45Plus())
-                    return "System; System.Core; System.Linq;";
-                else
-                    return "System; System.Core;";
-            }
+                return "System; System.Core;";
         }
 
         /// <summary>
@@ -271,7 +244,9 @@ namespace csscript
             set { searchDirs = value; }
         }
 
-        string searchDirs = "%CSSCRIPT_DIR%" + Path.DirectorySeparatorChar + "lib;%CSSCRIPT_INC%;";
+        string searchDirs = "%CSSCRIPT_ROOT%".PathJoin("lib") + ";" +
+                   Runtime.CustomCommandsDir + ";" +
+                           "%CSSCRIPT_INC%;";
 
         /// <summary>
         /// Add search directory to the search (probing) path Settings.SearchDirs.
@@ -363,17 +338,6 @@ namespace csscript
         /// </value>
         internal bool OptimisticConcurrencyModel { get; set; } = true;
 
-        /// <summary>
-        /// Gets or sets a value indicating whether auto-class decoration should allow C# 6 specific syntax.
-        /// If it does the statement "using static dbg;" will be injected at the start of the auto-class definition thus the
-        /// entry script may invoke static methods for object inspection with <c>dbg</c> class without specifying the
-        /// class name (e.g. "print(DateTime.Now);").
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if decorate auto-class as C# 6; otherwise, <c>false</c>.
-        /// </value>
-        public bool AutoClass_DecorateAsCS6 { get; set; } = true;
-
         internal bool AutoClass_DecorateAlways { get; set; }
 
         /// <summary>
@@ -402,21 +366,7 @@ namespace csscript
         /// Gets or sets the concurrency control model.
         /// </summary>
         /// <value>The concurrency control.</value>
-        public ConcurrencyControl ConcurrencyControl
-        {
-            get
-            {
-                if (concurrencyControl == ConcurrencyControl.HighResolution && Runtime.IsMono)
-                    concurrencyControl = ConcurrencyControl.Standard;
-                return concurrencyControl;
-            }
-            set
-            {
-                concurrencyControl = value;
-            }
-        }
-
-        ConcurrencyControl concurrencyControl = ConcurrencyControl.Standard;
+        public ConcurrencyControl ConcurrencyControl { get; set; } = ConcurrencyControl.Standard;
 
         /// <summary>
         /// Serializes instance of Settings.
@@ -429,7 +379,7 @@ namespace csscript
                             .Where(p => p.CanRead && p.CanWrite)
                             .Where(p => p.Name != "SuppressTimestamping")
                             .Select(p => " " + p.Name + ": " + (p.PropertyType == typeof(string) ? "\"" + p.GetValue(this, dummy) + "\"" : p.GetValue(this, dummy)))
-                            .JoinBy("\n");
+                            .JoinBy(NewLine);
 
             return props;
         }
@@ -546,8 +496,8 @@ namespace csscript
                 doc.DocumentElement.AppendChild(doc.CreateElement(nameof(SearchDirs))).AppendChild(doc.CreateTextNode(SearchDirs));
                 doc.DocumentElement.AppendChild(doc.CreateElement(nameof(UseAlternativeCompiler))).AppendChild(doc.CreateTextNode(UseAlternativeCompiler));
                 doc.DocumentElement.AppendChild(doc.CreateElement(nameof(RoslynDir))).AppendChild(doc.CreateTextNode(RoslynDir));
+                doc.DocumentElement.AppendChild(doc.CreateElement(nameof(DefaultCompilerEngine))).AppendChild(doc.CreateTextNode(DefaultCompilerEngine));
                 doc.DocumentElement.AppendChild(doc.CreateElement(nameof(ConsoleEncoding))).AppendChild(doc.CreateTextNode(ConsoleEncoding));
-                doc.DocumentElement.AppendChild(doc.CreateElement(nameof(AutoClass_DecorateAsCS6))).AppendChild(doc.CreateTextNode(AutoClass_DecorateAsCS6.ToString()));
                 doc.DocumentElement.AppendChild(doc.CreateElement(nameof(InMemoryAssembly))).AppendChild(doc.CreateTextNode(InMemoryAssembly.ToString()));
                 doc.DocumentElement.AppendChild(doc.CreateElement(nameof(HideCompilerWarnings))).AppendChild(doc.CreateTextNode(HideCompilerWarnings.ToString()));
                 doc.DocumentElement.AppendChild(doc.CreateElement(nameof(ReportDetailedErrorInfo))).AppendChild(doc.CreateTextNode(ReportDetailedErrorInfo.ToString()));
@@ -558,9 +508,6 @@ namespace csscript
 
                 if (HideAutoGeneratedFiles != HideOptions.HideAll)
                     doc.DocumentElement.AppendChild(doc.CreateElement(nameof(HideAutoGeneratedFiles))).AppendChild(doc.CreateTextNode(HideAutoGeneratedFiles.ToString()));
-
-                if (AutoClass_DecorateAlways)
-                    doc.DocumentElement.AppendChild(doc.CreateElement(nameof(AutoClass_DecorateAlways))).AppendChild(doc.CreateTextNode(AutoClass_DecorateAlways.ToString()));
 
                 if (!string.IsNullOrEmpty(CustomTempDirectory))
                     doc.DocumentElement.AppendChild(doc.CreateElement(nameof(CustomTempDirectory))).AppendChild(doc.CreateTextNode(CustomTempDirectory));
@@ -579,15 +526,13 @@ namespace csscript
 
                 //note node.ParentNode.InsertAfter(doc.CreateComment("") injects int node inner text and it is not what we want
                 //very simplistic formatting
-                var xml = doc.InnerXml.Replace("><", ">\n  <")
+                var xml = doc.InnerXml.Replace("><", $">{NewLine}  <")
                                       .Replace(">\n  </", "></")
-                                      .Replace("></CSSConfig>", ">\n</CSSConfig>");
+                                      .Replace(">\r\n  </", "></")
+                                      .Replace("></CSSConfig>", $">{NewLine}</CSSConfig>");
 
                 xml = CommentElement(xml, "consoleEncoding", "if 'default' then system default is used; otherwise specify the name of the encoding (e.g. 'utf-8')");
-                xml = CommentElement(xml, "autoclass.decorateAsCS6", "if 'true' auto-class decoration will inject C# 6 specific syntax expressions (e.g. 'using static dbg;')");
-                xml = CommentElement(xml, "autoclass.decorateAlways", "if 'true' decorate classless scripts unconditionally; otherwise only if a top level class-less 'main' detected. Not used yet.");
                 xml = CommentElement(xml, "useAlternativeCompiler", "Custom script compiler. For example C# 7 (Roslyn): '%CSSCRIPT_ROOT%!lib!CSSRoslynProvider.dll'".Replace('!', Path.DirectorySeparatorChar));
-                xml = CommentElement(xml, "roslynDir", "Location of Roslyn compilers to be used by custom script compilers. For example C# 7 (Roslyn): /usr/lib/mono/4.5");
                 xml = CommentElement(xml, "enableDbgPrint", "Gets or sets a value indicating whether to enable Python-like print methods (e.g. dbg.print(DateTime.Now))");
 
                 File.WriteAllText(fileName, xml);
@@ -622,8 +567,6 @@ namespace csscript
         /// <summary>
         /// Gets the default configuration file path. It is a "css_config.xml" file located in the same directory where the assembly
         /// being executed is (e.g. cscs.exe).
-        /// <para>Note, when running under Mono the "css_config.mono.xml" file will have higher precedence than "css_config.xml".
-        /// This way you can have Mono specific settings without affecting the settings for non-Mono runtimes.</para>
         /// </summary>
         /// <value>
         /// The default configuration file location. Returns null if the file is not found.
@@ -635,17 +578,8 @@ namespace csscript
                 try
                 {
                     string asm_path = Assembly.GetExecutingAssembly().Location;
-                    if (!string.IsNullOrEmpty(asm_path))
-                    {
-                        if (Runtime.IsMono)
-                        {
-                            var monoFileName = Path.Combine(Path.GetDirectoryName(asm_path), "css_config.mono.xml");
-                            if (File.Exists(monoFileName))
-                                return monoFileName;
-                        }
-
-                        return Path.Combine(Path.GetDirectoryName(asm_path), "css_config.xml");
-                    }
+                    if (asm_path.IsNotEmpty())
+                        return asm_path.ChangeFileName("css_config.xml");
                 }
                 catch { }
                 return null;
@@ -711,15 +645,13 @@ namespace csscript
                     node = data.SelectSingleNode(nameof(UseAlternativeCompiler)); if (node != null) settings.UseAlternativeCompiler = node.InnerText;
                     node = data.SelectSingleNode(nameof(RoslynDir)); if (node != null) settings.RoslynDir = Environment.ExpandEnvironmentVariables(node.InnerText);
                     node = data.SelectSingleNode(nameof(SearchDirs)); if (node != null) settings.SearchDirs = node.InnerText;
+                    node = data.SelectSingleNode(nameof(DefaultCompilerEngine)); if (node != null) settings.DefaultCompilerEngine = node.InnerText;
                     node = data.SelectSingleNode(nameof(HideAutoGeneratedFiles)); if (node != null) settings.HideAutoGeneratedFiles = (HideOptions)Enum.Parse(typeof(HideOptions), node.InnerText, true);
-                    node = data.SelectSingleNode(nameof(AutoClass_DecorateAsCS6)); if (node != null) settings.AutoClass_DecorateAsCS6 = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(EnableDbgPrint)); if (node != null) settings.EnableDbgPrint = node.InnerText.ToBool();
-                    node = data.SelectSingleNode(nameof(AutoClass_DecorateAlways)); if (node != null) settings.AutoClass_DecorateAlways = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(HideCompilerWarnings)); if (node != null) settings.HideCompilerWarnings = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(InMemoryAssembly)); if (node != null) settings.InMemoryAssembly = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(ResolveRelativeFromParentScriptLocation)); if (node != null) settings.ResolveRelativeFromParentScriptLocation = node.InnerText.ToBool();
-                    node = data.SelectSingleNode(nameof(ConcurrencyControl)); if (node != null) settings.concurrencyControl = (ConcurrencyControl)Enum.Parse(typeof(ConcurrencyControl), node.InnerText, false);
-                    node = data.SelectSingleNode(nameof(TargetFramework)); if (node != null) settings.TargetFramework = node.InnerText;
+                    node = data.SelectSingleNode(nameof(ConcurrencyControl)); if (node != null) settings.ConcurrencyControl = (ConcurrencyControl)Enum.Parse(typeof(ConcurrencyControl), node.InnerText, false);
                     node = data.SelectSingleNode(nameof(DefaultRefAssemblies)); if (node != null) settings.defaultRefAssemblies = node.InnerText;
                     node = data.SelectSingleNode(nameof(OpenEndDirectiveSyntax)); if (node != null) settings.OpenEndDirectiveSyntax = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(Precompiler)); if (node != null) settings.Precompiler = node.InnerText;
@@ -727,9 +659,7 @@ namespace csscript
                     node = data.SelectSingleNode(nameof(ConsoleEncoding)); if (node != null) settings.ConsoleEncoding = node.InnerText;
                     node = data.SelectSingleNode(nameof(CustomTempDirectory)); if (node != null) settings.CustomTempDirectory = node.InnerText;
                     node = data.SelectSingleNode(nameof(Precompiler)); if (node != null) settings.Precompiler = node.InnerText;
-                    node = data.SelectSingleNode(nameof(CustomHashing)); if (node != null) settings.CustomHashing = node.InnerText.ToBool();
                     node = data.SelectSingleNode(nameof(ConsoleEncoding)); if (node != null) settings.ConsoleEncoding = node.InnerText;
-                    node = data.SelectSingleNode(nameof(ConcurrencyControl)); if (node != null) settings.concurrencyControl = (ConcurrencyControl)Enum.Parse(typeof(ConcurrencyControl), node.InnerText, false);
                 }
                 catch
                 {

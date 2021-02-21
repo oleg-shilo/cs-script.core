@@ -1,13 +1,22 @@
+using CSScripting;
+using CSScripting.CodeDom;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
-using CSScripting.CodeDom;
 
 namespace csscript
 {
-    class InvalidDirectiveException : ApplicationException
+    /// <summary>
+    /// The exception that is thrown when an invalid CS-Script directive is encountered.
+    /// </summary>
+    /// <seealso cref="csscript.CompilerException" />
+    class InvalidDirectiveException : CompilerException
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InvalidDirectiveException"/> class.
+        /// </summary>
+        /// <param name="message">The message.</param>
         public InvalidDirectiveException(string message) : base(message)
         {
         }
@@ -25,7 +34,7 @@ namespace csscript
     /// <summary>
     /// The exception that is thrown when a the script CLI error occurs.
     /// </summary>
-    internal class CLIException : ApplicationException
+    class CLIException : ApplicationException
     {
         public int ExitCode = -1;
 
@@ -91,26 +100,34 @@ namespace csscript
                 if (err.IsWarning && hideCompilerWarnings)
                     continue;
 
-                string file = err.FileName;
-                int line = err.Line;
+                if (err.FileName.HasText())
+                {
+                    string file = err.FileName;
+                    int line = err.Line;
 
-                if (resolveAutogenFilesRefs)
-                    CSSUtils.NormaliseFileReference(ref file, ref line);
+                    if (resolveAutogenFilesRefs)
+                        CoreExtensions.NormaliseFileReference(ref file, ref line);
 
-                compileErr.Append(file);
-                compileErr.Append("(");
-                compileErr.Append(line);
-                compileErr.Append(",");
-                compileErr.Append(err.Column);
-                compileErr.Append("): ");
+                    compileErr.Append(file)
+                              .Append("(")
+                              .Append(line)
+                              .Append(",")
+                              .Append(err.Column)
+                              .Append("): ");
+                }
+                else
+                {
+                    compileErr.Append("BUILD: ");
+                }
+
                 if (err.IsWarning)
                     compileErr.Append("warning ");
                 else
                     compileErr.Append("error ");
-                compileErr.Append(err.ErrorNumber);
-                compileErr.Append(": ");
-                compileErr.Append(err.ErrorText);
-                compileErr.Append(Environment.NewLine);
+                compileErr.Append(err.ErrorNumber)
+                          .Append(": ")
+                          .Append(err.ErrorText)
+                          .Append(Environment.NewLine);
             }
 
             var retval = new CompilerException(compileErr.ToString());

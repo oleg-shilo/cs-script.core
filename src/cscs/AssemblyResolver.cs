@@ -1,6 +1,6 @@
+using CSScripting;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -51,7 +51,7 @@ namespace csscript
         static HashSet<int> NotFoundAssemblies = new HashSet<int>();
 
         static int BuildHashSetValue(string assemblyName, string directory) =>
-            CSSUtils.GetHashCodeEx((assemblyName ?? "") + (directory ?? ""));
+            StringExtensions.GetHashCodeEx((assemblyName ?? "") + (directory ?? ""));
 
         static Assembly LoadAssemblyFrom(string assemblyName, string asmFile, bool throwException = false)
         {
@@ -62,9 +62,15 @@ namespace csscript
 
                 AssemblyName asmName = AssemblyName.GetAssemblyName(asmFile);
                 if (asmName != null && asmName.FullName == assemblyName)
-                    return Assembly.LoadFrom(asmFile);
-                else if (assemblyName.IndexOf(",") == -1 && asmName.FullName.StartsWith(assemblyName)) //short name requested
-                    return Assembly.LoadFrom(asmFile);
+                {
+                    return Assembly.LoadFile(asmFile);
+                }
+                else if (assemblyName.IndexOf(",") == -1 && asmName.FullName.StartsWith(assemblyName + ","))
+                {
+                    // short name requested
+                    // reqst:"test" - asm: "test, 1.0.0.0"
+                    return Assembly.LoadFile(asmFile);
+                }
             }
             catch
             {
@@ -247,14 +253,6 @@ namespace csscript
         public static string[] FindGlobalAssembly(String namespaceStr)
         {
             var retval = new List<string>();
-
-            if (Runtime.IsMono)
-            {
-                if (Utils.MonoGAC.Contains(namespaceStr))
-                {
-                    retval.Add(namespaceStr);
-                }
-            }
 
             if (retval.Count == 0 && namespaceStr.EndsWith(".dll", StringComparison.CurrentCultureIgnoreCase))
                 retval.Add(namespaceStr); //in case of if the namespaceStr is a dll name

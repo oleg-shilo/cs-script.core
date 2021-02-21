@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using csscript;
-using CSScriptLib;
+using CSScripting;
 
 namespace CSScriptLib
 {
@@ -15,7 +15,7 @@ namespace CSScriptLib
         /// <summary>
         /// Gets the script parsing context. This object is effectively a parsing result.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Parsing result</returns>
         public ScriptParsingResult GetContext()
         {
             return new ScriptParsingResult
@@ -41,7 +41,7 @@ namespace CSScriptLib
         /// original script file location.</para>
         /// </summary>
         /// <param name="scriptFile">The script file.</param>
-        /// <returns></returns>
+        /// <returns>Path to the script file to be compiled and executed</returns>
         public static string ProcessImportedScript(string scriptFile)
         {
             var parser = new FileParser(scriptFile, new ParsingParams(), true, true, new string[0], true);
@@ -103,7 +103,11 @@ namespace CSScriptLib
         /// <returns>Collection of the referenced assembly files.</returns>
         public string[] ResolvePackages(bool suppressDownloading = false)
         {
+#if !class_lib
             return NuGet.Resolve(Packages, suppressDownloading, this.ScriptPath);
+#else
+            return new string[0];
+#endif
         }
 
         /// <summary>
@@ -175,8 +179,9 @@ namespace CSScriptLib
 
             //process main file
             FileParser mainFile = new FileParser(fileName, null, true, false, searchDirs, throwOnError);
+#if !class_lib
             this.apartmentState = mainFile.ThreadingModel;
-
+#endif
             foreach (string file in mainFile.Precompilers)
                 PushPrecompiler(file);
 
@@ -277,9 +282,11 @@ namespace CSScriptLib
             }
             catch (Exception e)
             {
-                throw e.ToNewException(
-                    fileInfo.parseParams.importingErrorMessage,
-                    ExecuteOptions.options.reportDetailedErrorInfo); // encapsulate: ExecuteOptions.options.reportDetailedErrorInfo
+                throw e.ToNewException(fileInfo.parseParams.importingErrorMessage
+#if !class_lib
+                    , ExecuteOptions.options.reportDetailedErrorInfo
+#endif
+                                      );
             }
         }
 
@@ -298,7 +305,7 @@ namespace CSScriptLib
             {
                 if (file.Imported)
                 {
-                    if (file.fileNameImported != file.fileName) //script file was copied
+                    if (file.fileNameImported.HasText() && file.fileNameImported != file.fileName) //script file was copied
                         retval.Add(file.fileNameImported);
                     else
                         retval.Add(file.fileName);
@@ -312,14 +319,14 @@ namespace CSScriptLib
         /// </summary>
         public void DeleteImportedFiles()
         {
-            foreach (FileParser file in fileParsers)
+            foreach (FileParser fileParser in fileParsers)
             {
-                if (file.Imported && file.fileNameImported != file.fileName) //the file was copied
+                if (fileParser.Imported && fileParser.fileNameImported != fileParser.fileName) //the file was copied
                 {
                     try
                     {
-                        File.SetAttributes(file.FileToCompile, FileAttributes.Normal);
-                        Utils.FileDelete(file.FileToCompile);
+                        File.SetAttributes(fileParser.FileToCompile, FileAttributes.Normal);
+                        fileParser.FileToCompile.FileDelete(rethrow: false);
                     }
                     catch { }
                 }
@@ -406,7 +413,7 @@ namespace CSScriptLib
         /// <param name="searchDirs">The search dirs.</param>
         /// <param name="defaultRefAsms">The default ref asms.</param>
         /// <param name="defaultNamespacess">The default namespaces.</param>
-        /// <returns></returns>
+        /// <returns>List of references</returns>
         public List<string> AgregateReferences(IEnumerable<string> searchDirs, IEnumerable<string> defaultRefAsms, IEnumerable<string> defaultNamespacess)
         {
             var probingDirs = searchDirs.ToArray();
@@ -465,7 +472,7 @@ namespace CSScriptLib
                     // complex file names as simple name + extension:
                     // System.Core -> System
                     // System.dll  -> System
-                    string name = Path.GetFileNameWithoutExtension(item.EnsureAsmExtension());
+                    string name = item.GetFileNameWithoutExtension();
                     if (!asmNames.Contains(name))
                     {
                         uniqueAsms.Add(item);

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>cs-script.core</id>
-        <version>1.4.0.0</version>
+        <version>1.4.5.0-NET5-RC5</version>
         <title>CS-Script.Core</title>
         <authors>Oleg Shilo</authors>
         <owners>Oleg Shilo</owners>
@@ -16,20 +16,23 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>CLR based runtime environment for executing scripts written in ECMA-compliant C#.
     The main idea of CS-Script is to allow "plain vanilla" C# code execution from both command-prompt and form any CLR application hosting the script engine.
-    CS-Script targets .NET Core 2.0.
+    CS-Script targets .NET 5.
     The default installation directory is "%ChocolateyInstall%\lib\cs-script.core".
     This package contains the set of scripts and binaries that required for the default functionality. However there is some additional content that represents somewhat less mainstream functionality and experimental features. This content is available as an `Extension Pack` from the releases page(https://github.com/oleg-shilo/cs-script/releases). Installing the `Extension Pack` is as simple as downloading and extracting the archive to your chocolatey install location (most likely C:\ProgramData\chocolatey\lib\cs-script.core\tools\cs-script.core).
 
 </description>
         <summary>CS-Script.Core</summary>
         <releaseNotes>
-# Release v1.3.2.0
-- Resolve error on Linux when downloading packages
-- Fixed error "Cannot parse "//css_import..."" when referencing an assembly
-- Updated help content for -new switch
-- Fixed AgregateReferences with inclusion of CLR assemblies
-- Updated initialization of %css_nuget% envar so it does not interfere with handling synatxer GenerateProjectFor request handling
+# Release v1.4.5.0-NET5-RC5
 
+## CLI
+- Added complex (multi-file) commands support (e.g. `css -self-test-run`)
+- Added `css -self-test` command for testing the engine on the target system
+- Added `css -self-exe` command for building css launcher for manual deployment
+- Build changes to support Linux distro
+- Added `-vscode` help info
+- Added `css -server:restart` CLI parameter
+- Added detection of CLI host and build server running with different root privileges on Linux
         </releaseNotes>
         <copyright>Oleg Shilo</copyright>
         <tags>cs-script C# script dynamic hosting</tags>
@@ -39,5 +42,6 @@
     </metadata>
     <files>
         <file src="tools\chocolateyInstall.ps1" target="tools\chocolateyInstall.ps1" />
+        <file src="tools\chocolateyuninstall.ps1" target="tools\chocolateyuninstall.ps1" />
     </files>
 </package>

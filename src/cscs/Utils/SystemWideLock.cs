@@ -1,17 +1,18 @@
+using CSScripting;
 using System;
 using System.Globalization;
 using System.Threading;
 
 namespace csscript
 {
-    internal interface ISystemWideLock : IDisposable
+    interface ISystemWideLock : IDisposable
     {
         bool Wait(int millisecondsTimeout);
 
         void Release();
     }
 
-    internal class WinSystemWideLock : ISystemWideLock, IDisposable
+    class WinSystemWideLock : ISystemWideLock, IDisposable
     {
         Mutex mutex;
 
@@ -40,14 +41,14 @@ namespace csscript
         }
     }
 
-    internal class LinuxSystemWideLock : WinSystemWideLock
+    class LinuxSystemWideLock : WinSystemWideLock
     {
         public LinuxSystemWideLock(string context) : base(context)
         {
         }
     }
 
-    internal class SystemWideLock : ISystemWideLock, IDisposable
+    class SystemWideLock : ISystemWideLock, IDisposable
     {
         ISystemWideLock mutex;
 
@@ -58,12 +59,12 @@ namespace csscript
             bool isLinux = (Environment.OSVersion.Platform == PlatformID.Unix);
             if (isLinux)
             {
-                mutex = new LinuxSystemWideLock(context + "." + CSSUtils.GetHashCodeEx(file));
+                mutex = new LinuxSystemWideLock(context + "." + file.GetHashCodeEx());
             }
             else
             {
                 file = file.ToLower(CultureInfo.InvariantCulture);
-                mutex = new WinSystemWideLock(context + "." + CSSUtils.GetHashCodeEx(file));
+                mutex = new WinSystemWideLock(context + "." + file.GetHashCodeEx());
             }
         }
 

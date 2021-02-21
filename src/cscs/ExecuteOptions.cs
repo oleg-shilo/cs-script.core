@@ -61,6 +61,7 @@ namespace csscript
             clone.DBG = this.DBG;
             clone.TargetFramework = this.TargetFramework;
             clone.verbose = this.verbose;
+            clone.profile = this.profile;
             clone.startDebugger = this.startDebugger;
             clone.local = this.local;
             clone.buildExecutable = this.buildExecutable;
@@ -86,7 +87,7 @@ namespace csscript
             clone.compilerEngine = this.compilerEngine;
             clone.autoClass = this.autoClass;
             clone.autoClass_InjectBreakPoint = this.autoClass_InjectBreakPoint;
-            clone.decorateAutoClassAsCS6 = this.decorateAutoClassAsCS6;
+            clone.defaultCompilerEngine = this.defaultCompilerEngine;
             clone.enableDbgPrint = this.enableDbgPrint;
             clone.initContext = this.initContext;
             clone.nonExecuteOpRquest = this.nonExecuteOpRquest;
@@ -119,6 +120,7 @@ namespace csscript
             clone.DBG = this.DBG;
             clone.TargetFramework = this.TargetFramework;
             clone.verbose = this.verbose;
+            clone.profile = this.profile;
             clone.local = this.local;
             clone.buildExecutable = this.buildExecutable;
             clone.refAssemblies = new List<string>(this.refAssemblies).ToArray();
@@ -141,7 +143,7 @@ namespace csscript
             clone.compilerEngine = this.compilerEngine;
             clone.autoClass = this.autoClass;
             clone.autoClass_InjectBreakPoint = this.autoClass_InjectBreakPoint;
-            clone.decorateAutoClassAsCS6 = this.decorateAutoClassAsCS6;
+            clone.defaultCompilerEngine = this.defaultCompilerEngine;
             clone.enableDbgPrint = this.enableDbgPrint;
             clone.customHashing = this.customHashing;
             clone.altConfig = this.altConfig;
@@ -177,6 +179,7 @@ namespace csscript
         public string TargetFramework = "v4.0";
         internal bool InjectScriptAssemblyAttribute = true;
         public bool verbose = false;
+        public bool profile = false;
         public bool startDebugger = false;
         public bool local = true;
         public bool buildExecutable = false;
@@ -189,7 +192,7 @@ namespace csscript
         public string altCompiler = "";
         public string roslynDir = "";
         public string consoleEncoding = "utf-8";
-        public bool decorateAutoClassAsCS6 = false;
+        public string defaultCompilerEngine = "dotnet";
         public bool enableDbgPrint = true;
         public string preCompilers = "";
         public string defaultRefAssemblies = "";
@@ -213,7 +216,7 @@ namespace csscript
         {
             if (!this.searchDirs.Contains(dir))
             {
-                this.searchDirs = this.searchDirs.ToList().AddIfNotThere(dir, section).ToArray();
+                this.searchDirs = this.searchDirs.ToList().AddPathIfNotThere(dir, section).ToArray();
             }
         }
     }

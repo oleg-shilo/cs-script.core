@@ -34,6 +34,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using static System.Environment;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -42,10 +43,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using csscript;
 using CSScripting.CodeDom;
 using CSScriptLib;
 
-namespace csscript
+namespace CSScripting
 {
     internal static class Utils
     {
@@ -83,104 +85,9 @@ namespace csscript
             }
         }
 
-        public static Thread StartMonitor(StreamReader stream, Action<string> action = null)
-        {
-            var thread = new Thread(x =>
-            {
-                try
-                {
-                    string line = null;
-                    while (null != (line = stream.ReadLine()))
-                        action?.Invoke(line);
-                }
-                catch { }
-            });
-            thread.Start();
-            return thread;
-        }
-
-        public static Process RunAsync(string exe, string args, string dir = null)
-        {
-            var process = new Process();
-
-            process.StartInfo.FileName = exe;
-            process.StartInfo.Arguments = args;
-            process.StartInfo.WorkingDirectory = dir;
-
-            // hide terminal window
-            process.StartInfo.UseShellExecute = false;
-            process.StartInfo.ErrorDialog = false;
-            process.StartInfo.CreateNoWindow = true;
-            process.StartInfo.RedirectStandardOutput = true;
-            process.StartInfo.RedirectStandardError = true;
-            process.Start();
-
-            return process;
-        }
-
-        public static int Run(this string exe, string args, string dir = null, Action<string> onOutput = null, Action<string> onError = null)
-        {
-            var process = RunAsync(exe, args, dir);
-
-            var error = StartMonitor(process.StandardError, onError);
-            var output = StartMonitor(process.StandardOutput, onOutput);
-
-            process.WaitForExit();
-
-            try { error.Abort(); } catch { }
-            try { output.Abort(); } catch { }
-
-            return process.ExitCode;
-        }
-
-        public static Exception ToNewException(this Exception ex, string message, bool encapsulate)
-        {
-            var topLevelMessage = message;
-            Exception childException = ex;
-            if (!encapsulate)
-            {
-                topLevelMessage += Environment.NewLine + ex.Message;
-                childException = null;
-            }
-            var constructor = ex.GetType().GetConstructor(new Type[] { typeof(string), typeof(Exception) });
-            if (constructor != null)
-                return (Exception)constructor.Invoke(new object[] { topLevelMessage, childException });
-            else
-                return new Exception(message, childException);
-        }
-
-        // internal static string NormaliseAsDirectiveOf(this string statement, string parentScript)
-        // {
-        //     var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
-
-        //     if (text.Length > 1 && (text[0] == '.' && text[1] != '.')) // just a single-dot start dir
-        //         text = parentScript.GetDirName().PathJoin(text).GetFullPath();
-
-        //     return text.Expand().Trim();
-        // }
-
-        // internal static string NormaliseAsDirective(this string statement)
-        // {
-        //     var text = CSharpParser.UnescapeDirectiveDelimiters(statement);
-        //     return Environment.ExpandEnvironmentVariables(text).Trim();
-        // }
-
         public static bool NotEmpty(this string text)
         {
             return !string.IsNullOrEmpty(text);
-        }
-
-        // Mono doesn't like referencing assemblies without dll or exe extension
-        public static string EnsureAsmExtension(this string asmName)
-        {
-            if (asmName != null && Runtime.IsMono)
-            {
-                if (!asmName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) &&
-                    !asmName.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                    asmName = asmName + ".dll";
-            }
-
-            return asmName;
         }
 
         public static IEnumerable<T> Map<T>(this IEnumerable<T> source, params Func<T, T>[] selectors)
@@ -191,31 +98,11 @@ namespace csscript
             return result;
         }
 
-        public static string PathNormaliseSeparators(this string path)
-        {
-            return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
-        }
-
         //to avoid throwing the exception
         public static string GetAssemblyDirectoryName(this Assembly asm)
         {
             string location = asm.Location();
             return location == "" ? "" : Path.GetDirectoryName(location);
-        }
-
-        public static string EnsureDir(this string path)
-        {
-            // if (!Directory.Exists(path))  // the checking can be inaccurate (e.g. file/dir just has been deleted but the checking reports "exists")
-            if (!path.IsEmpty())
-                Directory.CreateDirectory(path);
-            return path;
-        }
-
-        public static bool IsSharedAssembly(string path)
-        {
-            // <root>/<shared>/<runtime>/<asm_version>
-            return path.Contains("GAC_MSIL") ||
-                   Path.GetFullPath(path).StartsWith((Path.GetDirectoryName(Path.GetDirectoryName("".GetType().Assembly.Location))));
         }
 
         public static string DeleteDirContent(this string path)
@@ -231,99 +118,6 @@ namespace csscript
             return path;
         }
 
-        public static string DeleteDir(this string path)
-        {
-            if (Directory.Exists(path))
-            {
-                void del_dir(string d)
-                {
-                    try { Directory.Delete(d); }
-                    catch (Exception)
-                    {
-                        Thread.Sleep(1);
-                        Directory.Delete(d);
-                    }
-                }
-
-                var dirs = new Queue<string>();
-                dirs.Enqueue(path);
-
-                while (dirs.Any())
-                {
-                    var dir = dirs.Dequeue();
-
-                    foreach (var file in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
-                        File.Delete(file);
-
-                    Directory.GetDirectories(dir, "*", SearchOption.AllDirectories)
-                             .ForEach(dirs.Enqueue);
-                }
-
-                var emptyDirs = Directory.GetDirectories(path, "*", SearchOption.AllDirectories)
-                                         .Reverse();
-
-                emptyDirs.ForEach(del_dir);
-
-                del_dir(path);
-            }
-            return path;
-        }
-
-        public static string CopyFileTo(this string file, string destDir)
-        {
-            File.Copy(file, destDir.PathJoin(file.GetFileName()), true);
-            return file;
-        }
-
-        public static string DeleteIfExists(this string path)
-        {
-            if (Directory.Exists(path))
-                Directory.Delete(path);
-            else if (File.Exists(path))
-                File.Delete(path);
-            return path;
-        }
-
-        public static string GetPath(this Environment.SpecialFolder folder)
-        {
-            return Environment.GetFolderPath(folder);
-        }
-
-        public static string[] PathGetDirs(this string path, string mask)
-        {
-            return Directory.GetDirectories(path, mask);
-        }
-
-        public static string[] PathGetFiles(this string path, string mask)
-        {
-            return Directory.GetFiles(path, mask);
-        }
-
-        public static string GetFileNameWithoutExtension(this string path) => Path.GetFileNameWithoutExtension(path);
-
-        public static bool FileExists(this string path) => path.IsNotEmpty() ? File.Exists(path) : false;
-
-        public static bool DirExists(this string path) => path.IsNotEmpty() ? Directory.Exists(path) : false;
-
-        public static string ChangeExtension(this string path, string extension) => Path.ChangeExtension(path, extension);
-
-        public static void ClearFile(string path)
-        {
-            string parentDir = null;
-
-            if (File.Exists(path))
-                parentDir = Path.GetDirectoryName(path);
-
-            FileDelete(path, false);
-
-            if (parentDir != null && Directory.GetFiles(parentDir).Length == 0)
-                try
-                {
-                    Directory.Delete(parentDir);
-                }
-                catch { }
-        }
-
         class Win32
         {
             [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -334,140 +128,35 @@ namespace csscript
         {
             Environment.SetEnvironmentVariable(name, value);
             if (Runtime.IsWin)
-                try { Win32.SetEnvironmentVariable(name, value); } catch { } // so the child process can consume that var
+                try { Win32.SetEnvironmentVariable(name, value); } catch { } // so the child process can consume this var
         }
 
-        public static void FileDelete(string path)
-        {
-            FileDelete(path, false);
-        }
+        public static void FileDelete(string path) => FileDelete(path, false);
 
-        public static void CleanAbandonedCache()
+        public static void CleanAbandonedProcessDirs(string rootDir)
         {
-            var rootDir = CSExecutor.GetScriptTempDir().PathJoin("cache");
-
             if (Directory.Exists(rootDir))
-            {
-                foreach (var cacheDir in Directory.GetDirectories(rootDir))
+                foreach (var pid in Directory.GetFiles(rootDir, "pid"))
                     try
                     {
-                        // line 0: <clr version>
-                        // line 1: <dir>
-                        var infoFile = cacheDir.PathJoin("css_info.txt");
-                        var sourceDir = File.Exists(infoFile) ? File.ReadAllLines(infoFile)[1] : null;
-
-                        if (sourceDir.IsEmpty() || !Directory.Exists(sourceDir))
-                        {
-                            DeleteDir(cacheDir);
-                        }
-                        else
-                        {
-                            string sourceName(string path) =>
-                                path.GetFileNameWithoutExtension(); // remove `.dll` in `script.cs.dll`
-
-                            var sorceFiles = Directory.GetFiles(cacheDir, "*.dll")
-                                                      .Select(x => new
-                                                      {
-                                                          Source = sourceDir.PathJoin(sourceName(x)),
-                                                          PureName = x.GetFileName().Split('.').First(),
-                                                      })
-                                                      .ToArray();
-
-                            // jhkjhnk
-                            sorceFiles.Where(x => !File.Exists(x.Source))
-                                      .ForEach(file => Directory.GetFiles(cacheDir, $"{file.PureName}.*")
-                                                                .ForEach(x =>
-                                                                         {
-                                                                             FileDelete(x);
-                                                                         }));
-                        }
+                        if (int.TryParse(File.ReadAllText(pid), out int id) && !Process.GetProcesses().Any(p => p.Id == id))
+                            pid.GetDirName().DeleteDir();
                     }
                     catch { }
-            }
         }
 
-        public static void CleanSnippets()
+        public static void StartWithoutConsole(this string executable, string arguments)
         {
-            var dir = CSExecutor.GetScriptTempDir().PathJoin("snippets");
+            Process proc = new();
 
-            if (!Directory.Exists(dir))
-                return;
-
-            var runningProcesses = Process.GetProcesses().Select(x => x.Id);
-
-            foreach (var script in Directory.GetFiles(dir, "*.*.cs"))
-            {
-                int hostProcessId = int.Parse(script.GetFileName().Split('.')[1]);
-                if (Process.GetCurrentProcess().Id == hostProcessId || !runningProcesses.Contains(hostProcessId))
-                    FileDelete(script);
-            }
+            proc.StartInfo.FileName = executable;
+            proc.StartInfo.Arguments = arguments;
+            proc.StartInfo.UseShellExecute = false;
+            proc.StartInfo.RedirectStandardOutput = true;
+            proc.StartInfo.RedirectStandardError = true;
+            proc.StartInfo.CreateNoWindow = true;
+            proc.Start();
         }
-
-        public static void CleanUnusedTmpFiles(string dir, string pattern, bool verifyPid)
-        {
-            if (!Directory.Exists(dir))
-                return;
-
-            string[] oldTempFiles = Directory.GetFiles(dir, pattern);
-
-            foreach (string file in oldTempFiles)
-            {
-                try
-                {
-                    if (verifyPid)
-                    {
-                        string name = Path.GetFileName(file);
-
-                        int pos = name.IndexOf('.');
-
-                        if (pos > 0)
-                        {
-                            string pidValue = name.Substring(0, pos);
-
-                            int pid = 0;
-
-                            if (int.TryParse(pidValue, out pid))
-                            {
-                                //Didn't use GetProcessById as it throws if pid is not running
-                                if (Process.GetProcesses().Any(p => p.Id == pid))
-                                    continue; //still running
-                            }
-                        }
-                    }
-
-                    Utils.FileDelete(file);
-                }
-                catch { }
-            }
-        }
-
-        //public static Mutex FileLock_(string file, object context)
-        //{
-        //    if (!IsLinux())
-        //        file = file.ToLower(CultureInfo.InvariantCulture);
-
-        //    string mutexName = context.ToString() + "." + CSSUtils.GetHashCodeEx(file).ToString();
-
-        //    if (Utils.IsLinux())
-        //    {
-        //        //Utils.Ge
-        //        //scriptTextCRC = Crc32.Compute(Encoding.UTF8.GetBytes(scriptText));
-        //    }
-
-        //    return new Mutex(false, mutexName);
-        //}
-
-        //public static bool Wait(Mutex @lock, int millisecondsTimeout)
-        //{
-        //    return @lock.WaitOne(millisecondsTimeout, false);
-        //}
-
-        //public static void ReleaseFileLock(Mutex @lock)
-        //{
-        //    if (@lock != null)
-        //        try { @lock.ReleaseMutex(); }
-        //        catch { }
-        //}
 
         public delegate string ProcessNewEncodingHandler(string requestedEncoding);
 
@@ -553,10 +242,7 @@ namespace csscript
             return !Runtime.IsCore && Environment.Version.Major >= 4;
         }
 
-        public static bool IsNet20Plus()
-        {
-            return !Runtime.IsCore && Environment.Version.Major >= 2;
-        }
+        internal static bool IsSpeedTest => Environment.GetCommandLineArgs().Contains($"-{AppArgs.speed}");
 
         public static bool IsRuntimeCompatibleAsm(string file)
         {
@@ -567,12 +253,6 @@ namespace csscript
             }
             catch { }
             return false;
-        }
-
-        internal static void SetMonoRootDirEnvvar()
-        {
-            if (Environment.GetEnvironmentVariable("MONO") == null && Runtime.IsMono)
-                Environment.SetEnvironmentVariable("MONO", MonoRootDir);
         }
 
         public static string MonoRootDir
@@ -592,64 +272,17 @@ namespace csscript
             }
         }
 
-        public static string[] MonoGAC
-        {
-            get
-            {
-                try
-                {
-                    // C:\Program Files(x86)\Mono\lib\mono\gac
-                    var gacDir = Path.Combine(MonoRootDir, "gac");
-                    return Directory.GetDirectories(gacDir).Select(x => Path.GetFileName(x)).ToArray();
-                }
-                catch { }
-                return new string[0];
-            }
-        }
-
         public static Assembly AssemblyLoad(string asmFile)
-        {
-            try
-            {
-                return Assembly.LoadFrom(asmFile);
-            }
-            catch (FileNotFoundException e)
-            {
-                if (!Runtime.IsMono)
-                    throw e;
-                else
-                    try
-                    {
-                        // GAC assemblies on Mono are returned as asm partial name not a file path.
-                        // So file_not_found failures are expected so try load by name.
-                        return Assembly.Load(asmFile);
-                    }
-                    catch
-                    {
-                        throw e;
-                    }
-            }
-        }
+            => Assembly.LoadFile(asmFile);
 
         public static string DbgFileOf(string assemblyFileName)
-        {
-            return DbgFileOf(assemblyFileName, Runtime.IsMono);
-        }
+            => assemblyFileName.ChangeExtension(".pdb");
 
-        internal static string DbgFileOf(string assemblyFileName, bool is_mono)
-        {
-            // .NET changes the asm extension to '.pdb'
-            // Mono adds '.mdb' to the asm file name
-            if (is_mono)
-                return assemblyFileName + ".mdb";
-            else
-                return Path.ChangeExtension(assemblyFileName, ".pdb");
-        }
-
-        public static bool ContainsPath(string path, string subPath)
-        {
-            return path.Substring(0, subPath.Length).SamePathAs(subPath);
-        }
+        // [Obsolete]
+        // public static bool ContainsPath(string path, string subPath)
+        // {
+        //     return path.Substring(0, subPath.Length).SamePathAs(subPath);
+        // }
 
         public static bool IsNullOrWhiteSpace(string text)
         {
@@ -704,7 +337,7 @@ partial class dbg
 
         internal static string CreateDbgInjectionInterfaceCode(string scriptFileName)
         {
-            var file = CSExecutor.GetScriptTempDir().PathJoin("Cache", "dbg.cs");
+            var file = Runtime.GetScriptTempDir().PathJoin("Cache", "dbg.cs");
 
             try { File.WriteAllText(file, DbgInjectionCodeInterface); }
             catch { }
@@ -718,88 +351,85 @@ partial class dbg
 
             string dbg_injection_version = DbgInjectionCode.GetHashCode().ToString();
 
-            using (SystemWideLock fileLock = new SystemWideLock("CS-Script.dbg.injection", dbg_injection_version))
-            {
-                //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
-                //throw a nice informative exception.
-                if (Runtime.IsWin)
-                    fileLock.Wait(1000);
+            using SystemWideLock fileLock = new SystemWideLock("CS-Script.dbg.injection", dbg_injection_version);
 
-                var cache_dir = Path.Combine(CSExecutor.GetScriptTempDir(), "Cache");
-                var dbg_file = Path.Combine(cache_dir, "dbg.inject." + dbg_injection_version + ".cs");
-                var dbg_interface_file = Path.Combine(cache_dir, "dbg.cs");
+            //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
+            //throw a nice informative exception.
+            if (Runtime.IsWin)
+                fileLock.Wait(1000);
 
-                if (!File.Exists(dbg_file))
-                    File.WriteAllText(dbg_file, DbgInjectionCode);
+            var cache_dir = Path.Combine(Runtime.GetScriptTempDir(), "Cache");
+            var dbg_file = Path.Combine(cache_dir, "dbg.inject." + dbg_injection_version + ".cs");
+            var dbg_interface_file = Path.Combine(cache_dir, "dbg.cs");
 
-                CreateDbgInjectionInterfaceCode(scriptFileName);
+            if (!File.Exists(dbg_file))
+                File.WriteAllText(dbg_file, DbgInjectionCode);
 
-                foreach (var item in Directory.GetFiles(cache_dir, "dbg.inject.*.cs"))
-                    if (item != dbg_file)
-                        try
-                        {
-                            File.Delete(item);
-                        }
-                        catch { }
+            CreateDbgInjectionInterfaceCode(scriptFileName);
 
-                return dbg_file;
-            }
+            foreach (var item in Directory.GetFiles(cache_dir, "dbg.inject.*.cs"))
+                if (item != dbg_file)
+                    try
+                    {
+                        File.Delete(item);
+                    }
+                    catch { }
+
+            return dbg_file;
         }
 
         internal static string GetScriptedCodeAttributeInjectionCode(string scriptFileName)
         {
-            using (SystemWideLock fileLock = new SystemWideLock(scriptFileName, "attr"))
+            using SystemWideLock fileLock = new SystemWideLock(scriptFileName, "attr");
+
+            //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
+            //throw a nice informative exception.
+            if (Runtime.IsWin)
+                fileLock.Wait(1000);
+
+            string code = $"[assembly: System.Reflection.AssemblyDescriptionAttribute(@\"{scriptFileName}\")]";
+
+            if (scriptFileName.GetExtension().SameAs(".vb"))
+                code = $"<Assembly: System.Reflection.AssemblyDescriptionAttribute(\"{scriptFileName.Replace(@"\", @"\\")}\")>";
+
+            string currentCode = "";
+
+            string file = Path.Combine(CSExecutor.GetCacheDirectory(scriptFileName), Path.GetFileNameWithoutExtension(scriptFileName) + $".attr.g{scriptFileName.GetExtension()}");
+
+            Exception lastError = null;
+
+            for (int i = 0; i < 3; i++)
             {
-                //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
-                //throw a nice informative exception.
-                if (Runtime.IsWin)
-                    fileLock.Wait(1000);
-
-                string code = $"[assembly: System.Reflection.AssemblyDescriptionAttribute(@\"{scriptFileName}\")]";
-
-                if (scriptFileName.GetExtension().SameAs(".vb"))
-                    code = $"<Assembly: System.Reflection.AssemblyDescriptionAttribute(\"{scriptFileName.Replace(@"\", @"\\")}\")>";
-
-                string currentCode = "";
-
-                string file = Path.Combine(CSExecutor.GetCacheDirectory(scriptFileName), Path.GetFileNameWithoutExtension(scriptFileName) + $".attr.g{scriptFileName.GetExtension()}");
-
-                Exception lastError = null;
-
-                for (int i = 0; i < 3; i++)
+                try
                 {
-                    try
+                    if (File.Exists(file))
+                        using (var sr = new StreamReader(file))
+                            currentCode = sr.ReadToEnd();
+
+                    if (currentCode != code)
                     {
-                        if (File.Exists(file))
-                            using (StreamReader sr = new StreamReader(file))
-                                currentCode = sr.ReadToEnd();
+                        string dir = Path.GetDirectoryName(file);
 
-                        if (currentCode != code)
-                        {
-                            string dir = Path.GetDirectoryName(file);
+                        if (!Directory.Exists(dir))
+                            Directory.CreateDirectory(dir);
 
-                            if (!Directory.Exists(dir))
-                                Directory.CreateDirectory(dir);
+                        using (var sw = new StreamWriter(file)) //there were reports about the files being locked. Possibly by csc.exe so allow retry
 
-                            using (StreamWriter sw = new StreamWriter(file)) //there were reports about the files being locked. Possibly by csc.exe so allow retry
-                            {
-                                sw.Write(code);
-                            }
-                        }
-                        break;
+                            sw.Write(code);
                     }
-                    catch (Exception e)
-                    {
-                        lastError = e;
-                    }
-                    Thread.Sleep(200);
+                    break;
                 }
-
-                if (!File.Exists(file))
-                    throw new ApplicationException("Failed to create AttributeInjection file", lastError);
-
-                return file;
+                catch (Exception e)
+                {
+                    lastError = e;
+                }
+                Thread.Sleep(200);
             }
+
+            if (!File.Exists(file))
+                throw new ApplicationException("Failed to create AttributeInjection file", lastError);
+
+            return file;
         }
 
         public static bool HaveSameTimestamp(string file1, string file2)
@@ -870,8 +500,8 @@ partial class dbg
             catch (Exception e)
             {
                 if (!File.Exists(css_dir_res_gen))
-                    throw new ApplicationException("Cannot invoke " + resgen_exe + ": " + e.Message +
-                                                   "\nEnsure resgen.exe is in the %CSSCRIPT_ROOT%\\lib or " +
+                    throw new ApplicationException("Cannot invoke " + resgen_exe + ": " + e.Message + NewLine +
+                                                   "Ensure resgen.exe is in the %CSSCRIPT_ROOT%\\lib or " +
                                                    "its location is in the system PATH. Alternatively you " +
                                                    "can specify the direct location of resgen.exe via " +
                                                    "CSS_RESGEN environment variable.");
@@ -1057,6 +687,10 @@ partial class dbg
                         if (argValue != null)
                             options.forceOutputAssembly = Environment.ExpandEnvironmentVariables(argValue);
                     }
+                    else if (Args.ParseValuedArg(arg, AppArgs.ng, AppArgs.engine, out argValue)) // -ng:<csc:dotnet> -engine:<csc:dotnet>
+                    {
+                        options.compilerEngine = argValue;
+                    }
                     else if (Args.ParseValuedArg(arg, AppArgs.c, out argValue)) // -c:<value>
                     {
                         if (!options.suppressExecution) // do not change the value if compilation is the objective
@@ -1067,17 +701,6 @@ partial class dbg
                                 options.useCompiled = false;
                         }
                     }
-                    // may need to resurrect if users do miss it :)
-                    // else if (Args.ParseValuedArg(arg, AppArgs.inmem, out argValue)) // -inmem:<value>
-                    // {
-                    //     if (!options.suppressExecution) // do not change the value if compilation is the objective
-                    //     {
-                    //         if (argValue == "1" || argValue == null)
-                    //             options.inMemoryAsm = true;
-                    //         else if (argValue == "0")
-                    //             options.inMemoryAsm = false;
-                    //     }
-                    // }
                     else if (Args.ParseValuedArg(arg, AppArgs.dbgprint, out argValue)) // -dbgprint:<value>
                     {
                         if (argValue == "1" || argValue == null)
@@ -1106,13 +729,10 @@ partial class dbg
                     {
                         options.verbose = true;
                     }
-                    //else if (Args.Same(arg, AppArgs.preload)) // -preload
-                    //else if (Args.Same(arg, "-preload")) // -preload
-                    //{
-                    //    options.useCompiled = false;
-                    //    //CSScript.PreloadCompiler
-                    //    //CLIExitRequest.Throw();
-                    //}
+                    else if (Args.Same(arg, AppArgs.profile))
+                    {
+                        options.profile = true;
+                    }
                     else if (Args.ParseValuedArg(arg, AppArgs.dir, out argValue)) // -dir:path1,path2
                     {
                         if (argValue != null)
@@ -1155,41 +775,38 @@ partial class dbg
                     }
                     else if (Args.ParseValuedArg(arg, AppArgs.config, out argValue)) // -config:<file>
                     {
-                        if (!options.suppressExecution) // do not change the value if compilation is the objective
-                        {
-                            //-config:none             - ignore config file (use default settings)
-                            //-config:create           - create config file with default settings
-                            //-config:default          - print default config file
-                            //-config:raw              - print current config file content
-                            //-config:xml              - print current config file content
-                            //-config:ls               - lists/prints current config values
-                            //-config                  - lists/prints current config values
-                            //-config:get:name         - print current config file value
-                            //-config:set:name:value   - set current config file value
-                            //-config:<file>           - use custom config file
+                        //-config:none             - ignore config file (use default settings)
+                        //-config:create           - create config file with default settings
+                        //-config:default          - print default config file
+                        //-config:raw              - print current config file content
+                        //-config:xml              - print current config file content
+                        //-config:ls               - lists/prints current config values
+                        //-config                  - lists/prints current config values
+                        //-config:get:name         - print current config file value
+                        //-config:set:name:value   - set current config file value
+                        //-config:<file>           - use custom config file
 
-                            if (argValue == null ||
-                            argValue == "create" ||
-                            argValue == "default" ||
-                            argValue == "ls" ||
-                            argValue == "raw" ||
-                            argValue == "xml" ||
-                            argValue.StartsWith("get:") ||
-                            argValue.StartsWith("set:"))
-                            {
-                                // Debug.Assert(false);
-                                executor.ProcessConfigCommand(argValue);
-                                CLIExitRequest.Throw();
-                            }
-                            if (argValue == "none")
-                            {
-                                options.noConfig = true;
-                            }
-                            else
-                            {
-                                options.noConfig = true;
-                                options.altConfig = argValue;
-                            }
+                        if (argValue == null ||
+                        argValue == "create" ||
+                        argValue == "default" ||
+                        argValue == "ls" ||
+                        argValue == "raw" ||
+                        argValue == "xml" ||
+                        argValue.StartsWith("get:") ||
+                        argValue.StartsWith("set:"))
+                        {
+                            // Debug.Assert(false);
+                            executor.ProcessConfigCommand(argValue);
+                            CLIExitRequest.Throw();
+                        }
+                        if (argValue == "none")
+                        {
+                            options.noConfig = true;
+                        }
+                        else
+                        {
+                            options.noConfig = true;
+                            options.altConfig = argValue;
                         }
                     }
                     else if (Args.ParseValuedArg(arg, AppArgs.autoclass, AppArgs.ac, out argValue)) // -autoclass -ac
@@ -1237,6 +854,11 @@ partial class dbg
                         options.suppressExecution = true;
                         options.syntaxCheck = true;
                     }
+                    else if (Args.Same(arg, AppArgs.vs, AppArgs.vscode)) // -vs, -vscode
+                    {
+                        options.nonExecuteOpRquest = Args.Same(arg, AppArgs.vs) ? AppArgs.vs : AppArgs.vscode;
+                        options.processFile = false;
+                    }
                     else if (Args.ParseValuedArg(arg, AppArgs.proj, out argValue)) // -proj
                     {
                         // Requests for some no-dependency operations can be handled here
@@ -1252,8 +874,6 @@ partial class dbg
                             options.nonExecuteOpRquest = AppArgs.proj_csproj;
 
                         options.processFile = false;
-                        //options.processFile = false;
-                        //options.forceOutputAssembly = ;
                     }
                     else if (Args.Same(arg, AppArgs.publish)) // -publish
                     {
@@ -1312,7 +932,7 @@ partial class dbg
                     }
                     else if (Args.Same(arg, AppArgs.stop)) // -stop
                     {
-                        StopVBCSCompilers();
+                        Globals.StopBuildServer();
                         StopSyntaxer();
                         CLIExitRequest.Throw();
                     }
@@ -1336,7 +956,7 @@ partial class dbg
                         executor.ShowHelpFor(nextArg);
                         CLIExitRequest.Throw();
                     }
-                    else if (Args.ParseValuedArg(arg, AppArgs.wpf, out argValue)) // -s:<C# version>
+                    else if (Args.ParseValuedArg(arg, AppArgs.wpf, out argValue)) // -wpf:<enable|disable>
                     {
                         executor.EnableWpf(argValue);
                         CLIExitRequest.Throw();
@@ -1392,6 +1012,7 @@ partial class dbg
             contextData["NewSearchDirs"] = context.NewSearchDirs;
             contextData["NewReferences"] = context.NewReferences;
             contextData["NewIncludes"] = context.NewIncludes;
+            contextData["NewCompilerOptions"] = "";
             contextData["SearchDirs"] = context.SearchDirs;
             contextData["ConsoleEncoding"] = options.consoleEncoding;
             contextData["CompilerOptions"] = options.compilerOptions;
@@ -1420,7 +1041,7 @@ partial class dbg
                                 int index = 0;
 
                                 foreach (string file in filesToCompile)
-                                    CSSUtils.VerbosePrint("   " + index++ + " - " + Path.GetFileName(file) + " -> " + precompiler.GetType() + "\n           from " + precompilerFile, options);
+                                    CSSUtils.VerbosePrint("   " + index++ + " - " + Path.GetFileName(file) + " -> " + precompiler.GetType() + NewLine + "           from " + precompilerFile, options);
                                 CSSUtils.VerbosePrint("", options);
                             }
 
@@ -1475,6 +1096,7 @@ partial class dbg
                 }
             }
 
+            context.NewCompilerOptions = (string)contextData["NewCompilerOptions"];
             options.searchDirs = options.searchDirs.ConcatWith(context.NewSearchDirs);
 
             foreach (string asm in context.NewReferences)
@@ -1495,7 +1117,7 @@ partial class dbg
                                      File.ReadAllBytes(dbg));
             }
             else
-                return Assembly.LoadFrom(file);
+                return Assembly.LoadFile(file);
         }
 
         internal static Dictionary<string, List<object>> LoadPrecompilers(ExecuteOptions options)
@@ -1509,7 +1131,7 @@ partial class dbg
             {
                 bool canHandleCShar6 = (!string.IsNullOrEmpty(options.altCompiler) || !Runtime.IsWin);
 
-                AutoclassPrecompiler.decorateAutoClassAsCS6 = (options.decorateAutoClassAsCS6 && options.enableDbgPrint && canHandleCShar6);
+                AutoclassPrecompiler.decorateAutoClassAsCS6 = true;
 
                 AutoclassPrecompiler.injectBreakPoint = options.autoClass_InjectBreakPoint;
                 if (retval.ContainsKey(Assembly.GetExecutingAssembly().Location))
@@ -1542,7 +1164,7 @@ partial class dbg
                             asm = Assembly.Load(data, dbgData);
                         }
                         else
-                            asm = Assembly.LoadFrom(sourceFile);
+                            asm = Assembly.LoadFile(sourceFile);
                     }
                     else
                         asm = CompilePrecompilerScript(sourceFile, options.searchDirs);
@@ -1612,11 +1234,6 @@ partial class dbg
             return retval;
         }
 
-        internal static void StopVBCSCompilers()
-        {
-            kill("VBCSCompiler");
-        }
-
         static void kill(string proc_name)
         {
             try
@@ -1664,14 +1281,14 @@ partial class dbg
             sb.Append(options.compilerOptions); // parser.CompilerOptions can be ignored as if they are changed the whole script timestamp is also changed
             sb.Append(string.Join("|", options.searchDirs)); // "Incorrect work of cache #86"
 
-            return CSSUtils.GetHashCodeEx(sb.ToString());
+            return sb.ToString().GetHashCodeEx();
         }
 
         public static string[] GetAppDomainAssemblies()
         {
             return (from a in AppDomain.CurrentDomain.GetAssemblies()
                     let location = a.Location()
-                    where location != "" && !a.GlobalAssemblyCache
+                    where location != "" // `&& !a.GlobalAssemblyCache` no longer supported
                     select location).ToArray();
         }
 
@@ -1684,95 +1301,91 @@ partial class dbg
                 var asmExtension = ".dll";
                 string precompilerAsm = Path.Combine(CSExecutor.GetCacheDirectory(sourceFile), Path.GetFileName(sourceFile) + asmExtension);
 
-                using (Mutex fileLock = new Mutex(false, "CSSPrecompiling." + CSSUtils.GetHashCodeEx(precompilerAsm))) //have to use hash code as path delimiters are illegal in the mutex name
+                using Mutex fileLock = new Mutex(false, "CSSPrecompiling." + precompilerAsm.GetHashCodeEx()); //have to use hash code as path delimiters are illegal in the mutex name
+
+                //let other thread/process (if any) to finish loading/compiling the same file; 3 seconds should be enough
+                //if not we will just fail to compile as precompilerAsm will still be locked.
+                //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
+                //throw a nice informative exception.
+                fileLock.WaitOne(3000, false);
+
+                if (File.Exists(precompilerAsm))
                 {
-                    //let other thread/process (if any) to finish loading/compiling the same file; 3 seconds should be enough
-                    //if not we will just fail to compile as precompilerAsm will still be locked.
-                    //Infinite timeout is not good choice here as it may block forever but continuing while the file is still locked will
-                    //throw a nice informative exception.
-                    fileLock.WaitOne(3000, false);
+                    if (File.GetLastWriteTimeUtc(sourceFile) <= File.GetLastWriteTimeUtc(precompilerAsm))
+                        return Assembly_LoadFrom(precompilerAsm);
 
-                    if (File.Exists(precompilerAsm))
+                    Utils.FileDelete(precompilerAsm, true);
+                }
+
+                var parser = new ScriptParser(sourceFile, searchDirs);
+
+                var compilerParams = new CompilerParameters();
+
+                compilerParams.IncludeDebugInformation = true;
+                compilerParams.GenerateExecutable = false;
+                compilerParams.GenerateInMemory = false;
+                compilerParams.OutputAssembly = precompilerAsm;
+
+                List<string> refAssemblies = new List<string>();
+
+                //add local and global assemblies (if found) that have the same assembly name as a namespace
+                foreach (string nmSpace in parser.ReferencedNamespaces)
+                    foreach (string asm in AssemblyResolver.FindAssembly(nmSpace, searchDirs))
                     {
-                        if (File.GetLastWriteTimeUtc(sourceFile) <= File.GetLastWriteTimeUtc(precompilerAsm))
-                            return Assembly_LoadFrom(precompilerAsm);
-
-                        Utils.FileDelete(precompilerAsm, true);
+                        refAssemblies.Add(asm);
                     }
 
-                    var parser = new ScriptParser(sourceFile, searchDirs);
+                //add assemblies referenced from code
+                foreach (string asmName in parser.ReferencedAssemblies)
+                    if (asmName.StartsWith("\"") && asmName.EndsWith("\"")) //absolute path
+                    {
+                        //not-searchable assemblies
+                        string asm = asmName.Replace("\"", "");
+                        refAssemblies.Add(asm);
+                    }
+                    else
+                    {
+                        string nameSpace = asmName.RemoveAssemblyExtension();
 
-                    var compilerParams = new CompilerParameters();
+                        string[] files = AssemblyResolver.FindAssembly(nameSpace, searchDirs);
 
-                    compilerParams.IncludeDebugInformation = true;
-                    compilerParams.GenerateExecutable = false;
-                    compilerParams.GenerateInMemory = false;
-                    compilerParams.OutputAssembly = precompilerAsm;
-
-                    List<string> refAssemblies = new List<string>();
-
-                    //add local and global assemblies (if found) that have the same assembly name as a namespace
-                    foreach (string nmSpace in parser.ReferencedNamespaces)
-                        foreach (string asm in AssemblyResolver.FindAssembly(nmSpace, searchDirs))
+                        if (files.Length > 0)
                         {
-                            refAssemblies.Add(asm.EnsureAsmExtension());
-                        }
-
-                    //add assemblies referenced from code
-                    foreach (string asmName in parser.ReferencedAssemblies)
-                        if (asmName.StartsWith("\"") && asmName.EndsWith("\"")) //absolute path
-                        {
-                            //not-searchable assemblies
-                            string asm = asmName.Replace("\"", "");
-                            refAssemblies.Add(asm);
+                            refAssemblies.AddRange(files);
                         }
                         else
                         {
-                            string nameSpace = asmName.RemoveAssemblyExtension();
-
-                            string[] files = AssemblyResolver.FindAssembly(nameSpace, searchDirs);
-
-                            if (files.Length > 0)
-                            {
-                                foreach (string asm in files)
-                                {
-                                    refAssemblies.Add(asm.EnsureAsmExtension());
-                                }
-                            }
-                            else
-                            {
-                                refAssemblies.Add(nameSpace + ".dll");
-                            }
+                            refAssemblies.Add(nameSpace + ".dll");
                         }
-
-                    try
-                    {
-                        compilerParams.ReferencedAssemblies.Add(Assembly.GetExecutingAssembly().Location);
-                    }
-                    catch { }
-
-                    ////////////////////////////////////////
-                    foreach (string asm in refAssemblies.ToArray().RemovePathDuplicates())
-                    {
-                        compilerParams.ReferencedAssemblies.Add(asm);
                     }
 
-                    compilerParams.IncludeDebugInformation = true;
-
-                    var result = CSharpCompiler.Create().CompileAssemblyFromFile(compilerParams, sourceFile);
-
-                    if (result.Errors.Any())
-                        throw CompilerException.Create(result.Errors, true, false);
-
-                    if (!File.Exists(precompilerAsm))
-                        throw new Exception("Unknown building error");
-
-                    File.SetLastWriteTimeUtc(precompilerAsm, File.GetLastWriteTimeUtc(sourceFile));
-
-                    Assembly retval = Assembly_LoadFrom(precompilerAsm);
-
-                    return retval;
+                try
+                {
+                    compilerParams.ReferencedAssemblies.Add(Assembly.GetExecutingAssembly().Location);
                 }
+                catch { }
+
+                ////////////////////////////////////////
+                foreach (string asm in refAssemblies.ToArray().RemovePathDuplicates())
+                {
+                    compilerParams.ReferencedAssemblies.Add(asm);
+                }
+
+                compilerParams.IncludeDebugInformation = true;
+
+                var result = CSharpCompiler.Create().CompileAssemblyFromFile(compilerParams, sourceFile);
+
+                if (result.Errors.Any())
+                    throw CompilerException.Create(result.Errors, true, false);
+
+                if (!File.Exists(precompilerAsm))
+                    throw new Exception("Unknown building error");
+
+                File.SetLastWriteTimeUtc(precompilerAsm, File.GetLastWriteTimeUtc(sourceFile));
+
+                Assembly retval = Assembly_LoadFrom(precompilerAsm);
+
+                return retval;
             }
             catch (Exception e)
             {
@@ -1790,32 +1403,8 @@ partial class dbg
             }
         }
 
-        public static int GetHashCodeEx(this string s)
-        {
-            //during the script first compilation GetHashCodeEx is called ~10 times
-            //during the cached execution ~5 times only
-            //and for hosted scenarios it is twice less
-
-            //The following profiling demonstrates that in the worst case scenario hashing would
-            //only add ~2 microseconds to the execution time
-
-            //Native executions cost (milliseconds)=> 100000: 7; 10 : 0.0007
-            //Custom Safe executions cost (milliseconds)=> 100000: 40; 10: 0.004
-            //Custom Unsafe executions cost (milliseconds)=> 100000: 13; 10: 0.0013
-
-            if (ExecuteOptions.options.customHashing)
-            {
-                //deterministic GetHashCode; useful for integration with third party products (e.g. CS-Script.Npp)
-                return GetHashCode32(s);
-            }
-            else
-            {
-                return s.GetHashCode();
-            }
-        }
-
         //needed to have reliable HASH as x64 and x32 have different algorithms; This leads to the inability of script clients calculate cache directory correctly
-        static int GetHashCode32(string s)
+        public static int GetHashCode32(this string s)
         {
             char[] chars = s.ToCharArray();
 
@@ -1882,8 +1471,7 @@ partial class dbg
         public static string GenerateAutoclass(string file)
         {
             StringBuilder code = new StringBuilder(4096);
-            code.Append("//Auto-generated file\r\n"); //cannot use AppendLine as it is not available in StringBuilder v1.1
-                                                      //code.Append("using System;\r\n");
+            code.AppendLine("//Auto-generated file");
 
             bool headerProcessed = false;
 
@@ -1896,56 +1484,19 @@ partial class dbg
                         if (!line.StartsWith("//") && line.Trim() != "") //not comments or empty line
                         {
                             headerProcessed = true;
-                            //code.Append("namespace Scripting\r\n");
-                            //code.Append("{\r\n");
-                            code.Append("   public class ScriptClass\r\n");
-                            code.Append("   {\r\n");
-                            code.Append("   static public ");
+                            code.Append("   public class ScriptClass")
+                                .Append("   {")
+                                .Append("   static public ");
                         }
 
-                    code.Append(line);
-                    code.Append("\r\n");
+                    code.AppendLine(line);
                 }
 
-            code.Append("   }\r\n");
+            code.AppendLine("   }");
 
             string autogenFile = SaveAsAutogeneratedScript(code.ToString(), file);
 
             return autogenFile;
-        }
-
-        static public void NormaliseFileReference(ref string file, ref int line)
-        {
-            try
-            {
-                if (file.EndsWith(".g.csx") || file.EndsWith(".g.cs") && file.Contains(Path.Combine("CSSCRIPT", "Cache")))
-                {
-                    //it is an auto-generated file so try to find the original source file (logical file)
-                    string dir = Path.GetDirectoryName(file);
-                    string infoFile = Path.Combine(dir, "css_info.txt");
-                    if (File.Exists(infoFile))
-                    {
-                        string[] lines = File.ReadAllLines(infoFile);
-                        if (lines.Length > 1 && Directory.Exists(lines[1]))
-                        {
-                            string logicalFile = Path.Combine(lines[1], Path.GetFileName(file).Replace(".g.csx", ".csx").Replace(".g.cs", ".cs"));
-                            if (File.Exists(logicalFile))
-                            {
-                                string code = File.ReadAllText(file);
-                                int pos = code.IndexOf("///CS-Script auto-class generation");
-                                if (pos != -1)
-                                {
-                                    int injectedLineNumber = code.Substring(0, pos).Split('\n').Count() - 1;
-                                    if (injectedLineNumber <= line)
-                                        line -= 1; //a single line is always injected
-                                }
-                                file = logicalFile;
-                            }
-                        }
-                    }
-                }
-            }
-            catch { }
         }
     }
 
@@ -2125,21 +1676,20 @@ partial class dbg
 
             try
             {
-                using (FileStream fs = new FileStream(file, FileMode.Open))
-                {
-                    fs.Seek(0, SeekOrigin.End);
-                    using (var w = new BinaryWriter(fs))
-                    {
-                        char[] data = this.ToString().ToCharArray();
-                        w.Write(data);
-                        w.Write((Int32)data.Length);
-                        w.Write((Int32)(CSExecutor.options.DBG ? 1 : 0));
-                        w.Write((Int32)(CSExecutor.options.compilationContext));
-                        w.Write((Int32)CSSUtils.GetHashCodeEx(Environment.Version.ToString()));
+                using FileStream fs = new FileStream(file, FileMode.Open);
 
-                        w.Write((Int32)stampID);
-                    }
-                }
+                fs.Seek(0, SeekOrigin.End);
+
+                using var w = new BinaryWriter(fs);
+
+                char[] data = this.ToString().ToCharArray();
+                w.Write(data);
+                w.Write((Int32)data.Length);
+                w.Write((Int32)(CSExecutor.options.DBG ? 1 : 0));
+                w.Write((Int32)(CSExecutor.options.compilationContext));
+                w.Write((Int32)Environment.Version.ToString().GetHashCodeEx());
+
+                w.Write((Int32)stampID);
             }
             catch (Exception ex)
             {
@@ -2172,46 +1722,43 @@ partial class dbg
         {
             try
             {
-                using (FileStream fs = new FileStream(file, FileMode.Open, FileAccess.Read))
+                using var fs = new FileStream(file, FileMode.Open, FileAccess.Read);
+                using var r = new BinaryReader(fs);
+
+                int offset = 0;
+                int stamp = ReadIntBackwards(r, ref offset);
+
+                if (stamp == stampID)
                 {
-                    using (BinaryReader r = new BinaryReader(fs))
+                    int value = ReadIntBackwards(r, ref offset);
+                    if (value != Environment.Version.ToString().GetHashCodeEx())
                     {
-                        int offset = 0;
-                        int stamp = ReadIntBackwards(r, ref offset);
-
-                        if (stamp == stampID)
-                        {
-                            int value = ReadIntBackwards(r, ref offset);
-                            if (value != CSSUtils.GetHashCodeEx(Environment.Version.ToString()))
-                            {
-                                return false;
-                            }
-
-                            value = ReadIntBackwards(r, ref offset);
-                            if (value != CSExecutor.options.compilationContext)
-                            {
-                                return false;
-                            }
-
-                            value = ReadIntBackwards(r, ref offset);
-                            if (value != (CSExecutor.options.DBG ? 1 : 0))
-                            {
-                                return false;
-                            }
-
-                            int dataSize = ReadIntBackwards(r, ref offset);
-                            if (dataSize != 0)
-                            {
-                                fs.Seek(-(offset + dataSize), SeekOrigin.End);
-                                var result = this.Parse(new string(r.ReadChars(dataSize)));
-                                return result;
-                            }
-                            else
-                                return true;
-                        }
                         return false;
                     }
+
+                    value = ReadIntBackwards(r, ref offset);
+                    if (value != CSExecutor.options.compilationContext)
+                    {
+                        return false;
+                    }
+
+                    value = ReadIntBackwards(r, ref offset);
+                    if (value != (CSExecutor.options.DBG ? 1 : 0))
+                    {
+                        return false;
+                    }
+
+                    int dataSize = ReadIntBackwards(r, ref offset);
+                    if (dataSize != 0)
+                    {
+                        fs.Seek(-(offset + dataSize), SeekOrigin.End);
+                        var result = this.Parse(new string(r.ReadChars(dataSize)));
+                        return result;
+                    }
+                    else
+                        return true;
                 }
+                return false;
             }
             catch
             {
@@ -2252,7 +1799,7 @@ partial class dbg
             return true;
         }
 
-        int stampID = CSSUtils.GetHashCodeEx(Assembly.GetExecutingAssembly().FullName.Split(",".ToCharArray())[1]);
+        int stampID = Assembly.GetExecutingAssembly().FullName.Split(",".ToCharArray())[1].GetHashCodeEx();
 
         bool IsGACAssembly(string file)
         {
@@ -2265,7 +1812,7 @@ partial class dbg
 
     internal class Cache
     {
-        static string cacheRootDir = Path.Combine(CSExecutor.GetScriptTempDir(), "Cache");
+        static string cacheRootDir = Path.Combine(Runtime.GetScriptTempDir(), "Cache");
 
         static void deleteFile(string path)
         {
@@ -2385,137 +1932,6 @@ partial class dbg
                 }
 
             return result.ToString().TrimEnd() + Environment.NewLine;
-        }
-    }
-
-    /// <summary>
-    /// Class for automated assembly probing. It implments extremely simple ('optimistic')
-    /// probing algorithm. At runtime it attempts to resolve the assemblies via AppDomain.Assembly resolve
-    /// event by looking up the assembly files in the user dfined list of probing direcctories.
-    /// The algorithm relies on the simple relationship between assembluy name and assembly file name:
-    ///  &lt;assembly file&gt; = &lt;asm name&gt; + ".dll"
-    /// </summary>
-    ///<example>The following is an example of automated assembly probing.
-    ///<code>
-    /// using (SimpleAsmProbing.For(@"E:\Dev\Libs", @"E:\Dev\Packages"))
-    /// {
-    ///     dynamic script = CSScript.Load(script_file)
-    ///                              .CreateObject("Script");
-    ///     script.Print();
-    /// }
-    /// </code>
-    /// </example>
-    /// <seealso cref="System.IDisposable" />
-    public class SimpleAsmProbing : IDisposable
-    {
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        /// <summary>
-        /// Releases unmanaged and - optionally - managed resources.
-        /// </summary>
-        /// <param name="disposing"><c>true</c> to release both managed and unmanaged resources; <c>false</c> to release only unmanaged resources.</param>
-        protected virtual void Dispose(bool disposing)
-        {
-            Uninit();
-        }
-
-        /// <summary>
-        /// Finalizes an instance of the <see cref="SimpleAsmProbing"/> class.
-        /// </summary>
-        ~SimpleAsmProbing()
-        {
-            Dispose(false);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SimpleAsmProbing"/> class.
-        /// </summary>
-        public SimpleAsmProbing() { }
-
-        /// <summary>
-        /// Creates and initializes a new instance of the <see cref="SimpleAsmProbing"/> class.
-        /// </summary>
-        /// <param name="probingDirs">The probing dirs.</param>
-        /// <returns></returns>
-        public static SimpleAsmProbing For(params string[] probingDirs)
-        {
-            return new SimpleAsmProbing(probingDirs);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SimpleAsmProbing"/> class.
-        /// </summary>
-        /// <param name="probingDirs">The probing dirs.</param>
-        public SimpleAsmProbing(params string[] probingDirs)
-        {
-            Init(probingDirs);
-        }
-
-        static bool initialized = false;
-        static string[] probingDirs = new string[0];
-
-        /// <summary>
-        /// Sets probing dirs and subscribes to the <see cref="System.AppDomain.AssemblyResolve"/> event.
-        /// </summary>
-        /// <param name="probingDirs">The probing dirs.</param>
-        public void Init(params string[] probingDirs)
-        {
-            SimpleAsmProbing.probingDirs = probingDirs;
-            if (!initialized)
-            {
-                initialized = true;
-                AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
-            }
-        }
-
-        /// <summary>
-        /// Unsubscribes to the <see cref="System.AppDomain.AssemblyResolve"/> event.
-        /// </summary>
-        public void Uninit()
-        {
-            if (initialized)
-            {
-                initialized = false;
-                AppDomain.CurrentDomain.AssemblyResolve -= CurrentDomain_AssemblyResolve;
-            }
-        }
-
-        static Dictionary<string, Assembly> cache = new Dictionary<string, Assembly>();
-
-        Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            var shortName = args.Name.Split(',').First().Trim();
-
-            if (cache.ContainsKey(shortName))
-                return cache[shortName];
-
-            cache[shortName] = null; // this will prevent reentrance an cercular calls
-
-            foreach (string dir in probingDirs)
-            {
-                try
-                {
-                    string file = Path.Combine(dir, args.Name.Split(',').First().Trim() + ".dll");
-                    if (File.Exists(file))
-                        return (cache[shortName] = Assembly.LoadFrom(file));
-                }
-                catch { }
-            }
-
-            try
-            {
-                return (cache[shortName] = Assembly.LoadFrom(shortName));
-            }
-            catch
-            {
-            }
-            return null;
         }
     }
 }

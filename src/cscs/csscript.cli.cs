@@ -1,15 +1,9 @@
+using CSScripting;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using CSScripting.CodeDom;
-using CSScriptLib;
+using static System.Environment;
 
 namespace csscript
 {
@@ -53,33 +47,14 @@ namespace csscript
                 else if (command.StartsWith("set:"))
                 {
                     // set:DefaultArguments=-ac
-                    // set:roslyn
                     string name, value;
 
-                    if (command.SameAs("set:roslyn"))
-                    {
-                        var asmDir = Assembly.GetExecutingAssembly().GetAssemblyDirectoryName();
+                    string[] tokens = command.Substring(4).Split(new char[] { '=', ':' }, 2);
+                    if (tokens.Length != 2)
+                        throw new CLIException("Invalid set config property expression. Must be in name 'set:<name>=<value>' format.");
 
-                        var providerFile = ExistingFile(asmDir, "CSSRoslynProvider.dll") ??
-                                           ExistingFile(asmDir, "Lib", "CSSRoslynProvider.dll");
-
-                        if (providerFile != null)
-                        {
-                            name = "UseAlternativeCompiler";
-                            value = providerFile;
-                        }
-                        else
-                            throw new CLIException("Cannot locate Roslyn provider CSSRoslynProvider.dll");
-                    }
-                    else
-                    {
-                        string[] tokens = command.Substring(4).Split(new char[] { '=', ':' }, 2);
-                        if (tokens.Length != 2)
-                            throw new CLIException("Invalid set config property expression. Must be in name 'set:<name>=<value>' format.");
-
-                        name = tokens[0];
-                        value = tokens[1].Trim().Trim('"');
-                    }
+                    name = tokens[0];
+                    value = tokens[1].Trim().Trim('"');
 
                     var currentConfig = Settings.Load(true) ?? new Settings();
                     currentConfig.Set(name, value);
@@ -120,10 +95,20 @@ namespace csscript
             }
             else
             {
-                foreach (var sample in HelpProvider.BuildSampleCode(appType, outFile))
+                var context = outFile;
+                if (appType == "cmd")
+                    context = outFile ?? "-new_command";
+
+                foreach (var sample in HelpProvider.BuildSampleCode(appType, context))
                 {
                     if (outFile.IsNotEmpty())
                     {
+                        if (appType == "cmd" && outFile.GetDirName().IsEmpty())
+                        {
+                            // the command output file specified by command name only
+                            outFile = Runtime.CustomCommandsDir.PathJoin(outFile);
+                        }
+
                         var file = Path.GetFullPath(outFile).ChangeExtension(sample.FileExtension);
 
                         print?.Invoke($"Created: {file}");
@@ -131,7 +116,7 @@ namespace csscript
                     }
                     else
                     {
-                        print?.Invoke($"\nsample{sample.FileExtension}:");
+                        print?.Invoke($"{NewLine}{context}{sample.FileExtension}:{NewLine}----------");
                         print?.Invoke(sample.Code);
                     }
                 }
@@ -212,10 +197,14 @@ namespace csscript
 
         public void EnableWpf(string arg)
         {
+            EnableWpf(arg, Assembly.GetExecutingAssembly().Location.ChangeExtension(".runtimeconfig.json"), true);
+            EnableWpf(arg, Assembly.GetExecutingAssembly().Location.ChangeFileName("css.runtimeconfig.json"), false);
+        }
+
+        void EnableWpf(string arg, string configFile, bool primaryConfig)
+        {
             const string console_type = "\"name\": \"Microsoft.NETCore.App\"";
             const string win_type = "\"name\": \"Microsoft.WindowsDesktop.App\"";
-
-            var configFile = Path.ChangeExtension(Assembly.GetExecutingAssembly().Location, ".runtimeconfig.json");
 
             var content = File.ReadAllText(configFile);
 
@@ -224,9 +213,9 @@ namespace csscript
             else if (arg == "disabled" || arg == "0")
                 content = content.Replace(win_type, console_type);
 
-            CSExecutor.print($"WPF support is {(content.Contains(win_type) ? "enabled" : "disabled")}");
-
             File.WriteAllText(configFile, content);
+            if (primaryConfig)
+                CSExecutor.print($"WPF support is {(content.Contains(win_type) ? "enabled" : "disabled")}");
         }
     }
 }

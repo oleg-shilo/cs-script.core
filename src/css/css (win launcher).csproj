@@ -37,7 +37,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>true</UseVSHostingProcess>
-    <CodeAnalysisRuleSet>css (win launcher).ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -47,7 +47,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>css (win launcher).ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet></CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject />
@@ -73,8 +73,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\.editorconfig">
+      <Link>.editorconfig</Link>
+    </None>
     <None Include="App.config" />
-    <None Include="css %28win launcher%29.ruleset" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.6.1">
@@ -94,9 +96,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy "$(TargetPath)" "$(ProjectDir)..\out\.NET Core\$(TargetFileName)"
-copy "$(ProjectDir)..\out\.NET Core\*.dll" "$(TargetDir)" 
-copy "$(ProjectDir)..\out\.NET Core\cscs.runtimeconfig.json" "$(TargetDir)cscs.runtimeconfig.json"
-rem copy "$(ProjectDir)..\out\.NET Core\cscs.runtimeconfig.dev.json" "$(TargetDir)cscs.runtimeconfig.dev.json"</PostBuildEvent>
+    <PostBuildEvent>rem copy "$(TargetPath)" "$(ProjectDir)..\out\.NET Core\$(TargetFileName)"
+</PostBuildEvent>
   </PropertyGroup>
 </Project>

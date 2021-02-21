@@ -1,9 +1,10 @@
+﻿using csscript;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using csscript;
+using CSScripting;
 
 namespace CSScriptLib
 {
@@ -59,9 +60,7 @@ namespace CSScriptLib
         }
 
         public bool preserveMain = false;
-#if !class_lib
         public string importingErrorMessage;
-#endif
         List<string[]> renameNamespaceMap;
     }
 
@@ -187,7 +186,7 @@ namespace CSScriptLib
                 }
                 else
                 {
-                    fileNameImported = Path.Combine(CSExecutor.ScriptCacheDir, string.Format("i_{0}_{1}{2}", Path.GetFileNameWithoutExtension(fileName), CSSUtils.GetHashCodeEx(Path.GetDirectoryName(fileName)), Path.GetExtension(fileName)));
+                    fileNameImported = Path.Combine(CSExecutor.ScriptCacheDir, string.Format("i_{0}_{1}{2}", Path.GetFileNameWithoutExtension(fileName), Path.GetDirectoryName(fileName).GetHashCodeEx(), Path.GetExtension(fileName)));
                     if (!Directory.Exists(Path.GetDirectoryName(fileNameImported)))
                         Directory.CreateDirectory(Path.GetDirectoryName(fileNameImported));
                     if (File.Exists(fileNameImported))
@@ -251,10 +250,7 @@ namespace CSScriptLib
         /// to the alternative implementation of the probing algorithm.</para>
         /// </summary>
         public static string ResolveFile(string file, string[] extraDirs, bool throwOnError)
-        {
-            string[] files = ResolveFilesAlgorithm(file, extraDirs, throwOnError);
-            return files.Length > 0 ? files[0] : null;
-        }
+            => ResolveFilesAlgorithm(file, extraDirs, throwOnError).FirstOrDefault();
 
         internal static string[] ResolveFiles(string file, string[] extraDirs, bool throwOnError)
             => ResolveFilesAlgorithm(file, extraDirs, throwOnError);
@@ -266,6 +262,30 @@ namespace CSScriptLib
                 retval = _ResolveFiles(file, extraDirs, ".cs");
             if (retval.Length == 0)
                 retval = _ResolveFiles(file, extraDirs, ".csl"); //script link file
+            if (retval.Length == 0)
+            {
+                // a complex command folder. IE:
+                // ├──  -self
+                // │   └──  -test
+                // │       ├── run.cs
+                // │       ├── utils.cs
+                // │       ├── log.cs
+                // │       └── test_definitions.cs.
+
+                // possible CLI command:
+                // css -self-test
+                // css -self-test-run
+                // css -self-test-log
+                if (file.GetFileName().StartsWith("-"))
+                {
+                    var filePath = "-" + file.TrimStart('-').Replace("-", $"{Path.DirectorySeparatorChar}-");
+                    retval = _ResolveFiles(filePath, extraDirs, "");
+                    if (retval.IsEmpty())
+                        retval = _ResolveFiles(filePath, extraDirs, ".cs");
+                    if (retval.IsEmpty())
+                        retval = _ResolveFiles(filePath.PathJoin("-run.cs"), extraDirs, "");
+                }
+            }
 
             if (retval.Length == 0)
             {

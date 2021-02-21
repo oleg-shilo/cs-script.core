@@ -1,5 +1,6 @@
-//css_ac
-//css_inc %csscript_inc%\cmd.cs
+//_css_inc %csscript_inc%\cmd.cs
+//css_inc ..\out\ci\cmd.cs
+
 using System.IO;
 using System.Net;
 using System;
@@ -9,7 +10,7 @@ void main()
     ServicePointManager.Expect100Continue = true;
     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
-    var url = "https://github.com/oleg-shilo/cs-script.core/releases/download/v1.4.0.0/cs-script.core.v1.4.0.0.7z";
+    var url = "https://github.com/oleg-shilo/cs-script.core/releases/download/v1.4.5.0-NET5-RC5/cs-script.win.v1.4.5.0.7z";
 
     var installScript = @"tools\chocolateyInstall.ps1";
 
@@ -32,7 +33,7 @@ void main()
 string calcChecksum(string url)
 {
     var file = "cs-script.7z";
-    cmd.DownloadBinary(url, file, (step, total) => Console.Write("\r{0}%\r", (int)(step * 100.0 / total)));
+    cmd.download(url, file, (step, total) => Console.Write("\r{0}%\r", (int)(step * 100.0 / total)));
     Console.WriteLine();
 
     var cheksum = cmd.run(@"C:\ProgramData\chocolatey\tools\checksum.exe", "-t sha256 -f \"" + file + "\"", echo: false).Trim();

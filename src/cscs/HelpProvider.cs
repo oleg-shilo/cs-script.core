@@ -363,9 +363,10 @@ namespace csscript
                                           "Build server is a background process which implements hop loading of C# compiler csc.exe. " +
                                           "Somewhat similar to VBCSCompiler.exe.",
                                           "This option is only relevant if compiler engine is set to 'csc' (see '-engine' command).",
-                                          " -server:start   - ${<==}deploys and start starts build server",
+                                          " -server:start   - ${<==}deploys and starts build server",
                                           " -server:stop    - ${<==}stops starts build server",
                                           " -server:restart - ${<==}restarts build server",
+                                          " -server:reset   - ${<==}stops, re-deploys and starts build server",
                                           " -server:add     - ${<==}deploys build server",
                                           " -server:remove  - ${<==}removes build server files. Useful for troubleshooting.",
                                           " -server:ping    - ${<==}Pins running instance (if any) of the build server");

@@ -14,7 +14,7 @@ Console.WriteLine("===========================");
 Console.WriteLine("Version: " + version);
 Console.WriteLine("Debian Version: " + lnx_version);
 Console.WriteLine("===========================");
-hjgbjh
+
 @"..\..\CSScriptLib\src\CSScriptLib\CSScriptLib.csproj".set_version(version, changes);
 @"..\..\csws\csws.csproj".set_version(version, changes);
 @"..\..\cscs\cscs.csproj".set_version(version, changes);

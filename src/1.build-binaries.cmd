@@ -79,25 +79,6 @@ del "out\Windows\*.pdb"
 rd "out\Windows\win" /S /Q
 rd "out\Windows\console" /S /Q
 
-
-cd out\Windows
-
-echo >  -code.header    using System;
-echo >> -code.header    using System.IO;
-echo >> -code.header    using System.Collections;
-echo >> -code.header    using System.Collections.Generic;
-echo >> -code.header    using System.Linq;
-echo >> -code.header    using System.Reflection;
-echo >> -code.header    using System.Diagnostics;
-echo >> -code.header    using static dbg;
-echo >> -code.header    using static System.Environment;
-
-echo off
-cd ..\..
-
-copy "out\static_content\-code.header" "out\Linux" 
-copy "out\static_content\-code.header" "out\Windows" 
-
 copy "out\static_content\-self\*" "out\Windows\-self\" 
 copy "out\static_content\-self\*" "out\Linux\-self\" 
 
@@ -135,9 +116,14 @@ echo cd: %cd%
 ..\ci\7z.exe a -r "..\cs-script.win.7z" "*.*"
 cd ..\..
 
+echo =====================
+echo Injecting version in file names
+echo =====================
+
 cd out\Windows
-.\css -engine:csc -code var version = Assembly.LoadFrom(#''cscs.dll#'').GetName().Version.ToString();#nFile.Copy(#''..\\cs-script.win.7z#'', $#''..\\cs-script.win.v{version}.7z#'', true);
-.\css -engine:csc -code var version = Assembly.LoadFrom(#''cscs.dll#'').GetName().Version.ToString();#nFile.Copy(#''..\\cs-script.linux.7z#'', $#''..\\cs-script.linux.v{version}.7z#'', true);
+.\css -engine:dotnet -code Console.WriteLine(Assembly.LoadFrom(#''cscs.dll#'').GetName().Version)
+.\css -engine:dotnet -code var version = Assembly.LoadFrom(#''cscs.dll#'').GetName().Version.ToString();#nFile.Copy(#''..\\cs-script.win.7z#'', $#''..\\cs-script.win.v{version}.7z#'', true);
+.\css -engine:dotnet -code var version = Assembly.LoadFrom(#''cscs.dll#'').GetName().Version.ToString();#nFile.Copy(#''..\\cs-script.linux.7z#'', $#''..\\cs-script.linux.v{version}.7z#'', true);
 cd ..\..
 
 del out\cs-script.win.7z

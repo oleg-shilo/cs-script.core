@@ -34,6 +34,14 @@ namespace CSScripting
             StartBuildServer(report);
         }
 
+        static internal void ResetBuildServer(bool report = false)
+        {
+            StopBuildServer();
+            RemoveBuildServer();
+            DeployBuildServer();
+            StartBuildServer(report);
+        }
+
         static internal void PrintBuildServerInfo()
         {
             if (Globals.BuildServerIsDeployed)

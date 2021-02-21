@@ -2,7 +2,7 @@
   "profiles": {
     "cscs.exe.core": {
       "commandName": "Project",
-      "commandLineArgs": "-c:0 test.vb",
+      "commandLineArgs": "-code print(''Ensuring default -code.header'')",
       "remoteDebugEnabled": false
     }
   }

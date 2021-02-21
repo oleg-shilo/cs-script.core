@@ -304,7 +304,11 @@ namespace CSScripting.CodeDom
                             {
                                 var args = request.Split('\n');
                                 var compiler = args.First();
-                                args = args.Skip(1).ToArray();
+
+                                if (compiler == "csc" || compiler == "vb")
+                                    args = args.Skip(1).ToArray();
+                                else
+                                    compiler = "csc"; // the older engine may not send the compiler info at it is only expecting C# support
 
                                 string response = Compile(compiler, args);
 

@@ -278,13 +278,29 @@ namespace csscript
                        .Trim(" \"".ToCharArray())
                        .Expand();
 
-            var commonHeader = $"using System; using System.Diagnostics; using System.IO;{NewLine}{NewLine}";
+            var commonHeader =
+            "   using System;" + NewLine +
+            "   using System.IO;" + NewLine +
+            "   using System.Collections;" + NewLine +
+            "   using System.Collections.Generic;" + NewLine +
+            "   using System.Linq;" + NewLine +
+            "   using System.Reflection;" + NewLine +
+            "   using System.Diagnostics;" + NewLine +
+            "   using static dbg;" + NewLine +
+            "   using static System.Environment;" + NewLine;
+
             var customHeaderFile = this.GetType().Assembly.Location.GetDirName().PathJoin("-code.header");
+
             if (File.Exists(customHeaderFile))
             {
-                commonHeader = File.ReadAllLines(customHeaderFile).Select(x => "   " + x.Trim()).JoinBy(NewLine) +
-                               $"{NewLine}// --------------------{NewLine}";
+                commonHeader = File.ReadAllLines(customHeaderFile)
+                                   .Select(x => "   " + x.Trim())
+                                   .JoinBy(NewLine)
+                                   + $"{NewLine}// --------------------{NewLine}";
             }
+            else
+                try { File.WriteAllText(customHeaderFile, commonHeader); }
+                catch { /* there is always a chance we can fail (e.g. because of dir permissions) */}
 
             code = commonHeader + code;
 

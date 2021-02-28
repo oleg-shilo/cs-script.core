@@ -4,15 +4,19 @@
 
 CS-Script.Core has some dramatic improvements comparing to the .NET Full. However there are some limitations associated with .NET Core being a young and constantly evolving platform. 
 
-Also, some of the early CS-Script features, which demonstrated little traction with the developers have been deprecated. See Limitations section.
+Also, some of the early CS-Script features, which demonstrated little traction with the developers have been deprecated. See Limitations section 
 
+<hr/>
+
+_**For the roadmap for .NET 5 development see this [article](https://github.com/oleg-shilo/cs-script/wiki/Roadamap).**_
+<hr/>
  
 ### Limitations
 
 #### Imposed by .NET Core:
   - No support for script app.config file
     Support for custom app.config files is not available for .NET Core due to the API limitations
-  - No building "*.exe"
+  - No building "*.exe" (to be fixed in .NET5 edition)
 
 #### CS-Script obsolete features, limitations and constrains:
   - All scripts are compiled with debug symbols generated.

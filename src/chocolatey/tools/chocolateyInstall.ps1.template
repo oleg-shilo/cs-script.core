@@ -37,19 +37,8 @@ try {
   # Download and unpack a zip file
   Install-ChocolateyZipPackage "$packageName" "$url" "$installDir" -checksum $checksum -checksumType $checksumType
 
-  $css_full_dir = Get-EnvironmentVariable 'CSSCRIPT_FULL_DIR' User
-
-  if($css_full_dir) {
-    # already captured
-  }
-  else {
-    $css_full_dir = Get-EnvironmentVariable 'CSSCRIPT_DIR' User
-    Install-ChocolateyEnvironmentVariable 'CSSCRIPT_FULL_DIR' $css_full_dir User
-  }
-
   Install-ChocolateyEnvironmentVariable 'CSSCRIPT_DIR' $installDir User
-
-  Install-BinFile "css1" "$installDir\cscs.exe"
+  Install-ChocolateyEnvironmentVariable 'CSSCRIPT_ROOT' $installDir User
   
 } catch {
   throw $_.Exception

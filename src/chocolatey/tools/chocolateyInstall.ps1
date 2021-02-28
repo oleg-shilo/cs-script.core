@@ -1,10 +1,10 @@
 $packageName = 'cs-script.core'
-$url = 'https://github.com/oleg-shilo/cs-script.core/releases/download/v1.4.5.0-NET5-RC5/cs-script.win.v1.4.5.0.7z'
+$url = 'https://github.com/oleg-shilo/cs-script.core/releases/download/v2.0.0.0/cs-script.win.v2.0.0.0.7z'
 
 try {
   $installDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 
-  $cheksum = 'D9A4F3D389AD89C260BFB3E3EE7008A2D3C46BCBA177503B80B32EE30918C1C5'
+  $cheksum = 'FE7079CC71AEA4CDD84090942DDCD0364C6A560A95620E0CF3494F2EB9A640F1'
   $checksumType = "sha256"
 
   function stop-server
@@ -37,19 +37,8 @@ try {
   # Download and unpack a zip file
   Install-ChocolateyZipPackage "$packageName" "$url" "$installDir" -checksum $checksum -checksumType $checksumType
 
-  $css_full_dir = Get-EnvironmentVariable 'CSSCRIPT_FULL_DIR' User
-
-  if($css_full_dir) {
-    # already captured
-  }
-  else {
-    $css_full_dir = Get-EnvironmentVariable 'CSSCRIPT_DIR' User
-    Install-ChocolateyEnvironmentVariable 'CSSCRIPT_FULL_DIR' $css_full_dir User
-  }
-
   Install-ChocolateyEnvironmentVariable 'CSSCRIPT_DIR' $installDir User
-
-  Install-BinFile "css1" "$installDir\cscs.exe"
+  Install-ChocolateyEnvironmentVariable 'CSSCRIPT_ROOT' $installDir User
   
 } catch {
   throw $_.Exception

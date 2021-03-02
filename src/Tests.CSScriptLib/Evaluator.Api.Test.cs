@@ -104,7 +104,7 @@ namespace EvaluatorTests
         [Fact]
         public void CompileCode_InmemAsmLocation()
         {
-            if (evaluator is RoslynEvaluator) // Roslyn cannot work with C# files (but in memory streans)
+            if (evaluator is RoslynEvaluator) // Roslyn cannot work with C# files (but in memory streams)
                 return;                       // So asm location does not make sense.
 
             var asm_file = GetTempFileName(nameof(CompileCode_InmemAsmLocation));

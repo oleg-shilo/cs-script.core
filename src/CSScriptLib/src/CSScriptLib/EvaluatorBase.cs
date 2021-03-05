@@ -33,15 +33,14 @@
 using csscript;
 using CSScripting;
 using Microsoft.CodeAnalysis;
-
-//using Microsoft.CodeAnalysis;
-//using Microsoft.CodeAnalysis.CSharp.Scripting
 using Microsoft.CodeAnalysis.Scripting;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+
+#pragma warning disable CS0693 // Type parameter has the same name as the type parameter from outer type
 
 namespace CSScriptLib
 {
@@ -378,23 +377,26 @@ namespace CSScriptLib
 
         /// <summary>
         /// Wraps C# code fragment into auto-generated class (type name <c>DynamicClass</c>), evaluates it and loads the class to the current AppDomain.
-        /// <para>Returns typed <see cref="CSScriptLib.MethodDelegate{T}"/> for class-less style of invoking.</para>
+        /// <para>Returns typed <see cref="CSScriptLib.MethodDelegate{T}" /> for class-less style of invoking.</para>
         /// </summary>
         /// <typeparam name="T">The delegate return type.</typeparam>
+        /// <param name="code">The C# code.</param>
+        /// <returns>
+        /// The instance of a typed <see cref="CSScriptLib.MethodDelegate{T}" />
+        /// </returns>
         /// <example>
-        /// <code>
-        /// var product = CSScript.RoslynEvaluator
-        ///                       .CreateDelegate&lt;int&gt;(@"int Product(int a, int b)
-        ///                                             {
-        ///                                                 return a * b;
-        ///                                             }");
-        ///
+        ///   <code>
+        /// var product = CSScript.Evaluator
+        /// .CreateDelegate&lt;int&gt;(@"int Product(int a, int b)
+        /// {
+        /// return a * b;
+        /// }");
         /// int result = product(3, 2);
         /// </code>
         /// </example>
-        /// <param name="code">The C# code.</param>
-        /// <returns> The instance of a typed <see cref="CSScriptLib.MethodDelegate{T}"/></returns>
+        ///
         public MethodDelegate<T> CreateDelegate<T>(string code)
+
         {
             string scriptText = CSScript.WrapMethodToAutoClass(code, true, false);
             var asm = CompileCode(scriptText);
@@ -877,3 +879,5 @@ namespace CSScriptLib
         }
     }
 }
+
+#pragma warning restore CS0693 // Type parameter has the same name as the type parameter from outer type

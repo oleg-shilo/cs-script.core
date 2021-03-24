@@ -1,3 +1,10 @@
+
+Please not that this repository has ben moved to https://github.com/oleg-shilo/cs-script
+
+Post your questions and report issues there as this repository is effectively decomissioned.
+
+---
+
 # CS-Script.Core
 .NET Core port of CS-Script. Currently this repository is only for source code, release and issue management. The full wiki documentation can be found at https://github.com/oleg-shilo/cs-script.
 

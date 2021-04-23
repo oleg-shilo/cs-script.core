@@ -1,5 +1,5 @@
 
-Please not that this repository has ben moved to https://github.com/oleg-shilo/cs-script
+Please note that this repository has ben moved to https://github.com/oleg-shilo/cs-script
 
 Post your questions and report issues there as this repository is effectively decomissioned.
 
